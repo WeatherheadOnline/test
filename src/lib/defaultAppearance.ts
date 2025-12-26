@@ -5,6 +5,8 @@ export const defaultAppearance: Appearance = {
     style: 'solid',
     primaryColor: '#22c55e',
     secondaryColor: null,
+    direction: 'diagonal',
+    thickness: 'medium',
   },
   border: {
     style: 'solid',

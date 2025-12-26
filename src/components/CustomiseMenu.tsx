@@ -142,7 +142,66 @@ export default function CustomiseMenu({
                   ))}
                 </div>
               </div>
+
             )}
+
+
+
+{appearance.fill.style === 'stripes' && (
+  <div style={{ marginTop: '0.75rem' }}>
+    <p>Direction</p>
+    <div style={{ display: 'flex', gap: '0.5rem' }}>
+      {(['horizontal', 'vertical', 'diagonal'] as const).map(direction => (
+        <button
+          key={direction}
+          type="button"
+          aria-pressed={appearance.fill.direction === direction}
+          onClick={() =>
+            onChange({
+              ...appearance,
+              fill: {
+                ...appearance.fill,
+                direction,
+              },
+            })
+          }
+        >
+          {direction}
+        </button>
+      ))}
+    </div>
+  </div>
+)}
+
+
+{appearance.fill.style === 'stripes' && (
+  <div style={{ marginTop: '0.75rem' }}>
+    <p>Thickness</p>
+    <div style={{ display: 'flex', gap: '0.5rem' }}>
+      {(['thin', 'medium', 'thick'] as const).map(thickness => (
+        <button
+          key={thickness}
+          type="button"
+          aria-pressed={appearance.fill.thickness === thickness}
+          onClick={() =>
+            onChange({
+              ...appearance,
+              fill: {
+                ...appearance.fill,
+                thickness,
+              },
+            })
+          }
+        >
+          {thickness}
+        </button>
+      ))}
+    </div>
+  </div>
+)}
+
+
+
           </section>
 
           {/* Border section */}
@@ -176,6 +235,69 @@ export default function CustomiseMenu({
                   </button>
                 ))}
               </div>
+{(appearance.border.style === 'solid' ||
+  appearance.border.style === 'pattern') && (
+  <div style={{ marginTop: '0.75rem' }}>
+    <p>Primary colour</p>
+    <div style={{ display: 'flex', gap: '0.5rem' }}>
+      {['#000000', '#ffffff', '#22c55e', '#0ea5e9', '#f97316'].map(colour => (
+        <button
+          key={colour}
+          type="button"
+          aria-label={`Set border primary colour to ${colour}`}
+          aria-pressed={appearance.border.primaryColor === colour}
+          onClick={() =>
+            onChange({
+              ...appearance,
+              border: {
+                ...appearance.border,
+                primaryColor: colour,
+              },
+            })
+          }
+          style={{
+            width: 24,
+            height: 24,
+            borderRadius: '50%',
+            background: colour,
+            border: '1px solid #000',
+          }}
+        />
+      ))}
+    </div>
+  </div>
+)}
+{appearance.border.style === 'pattern' && (
+  <div style={{ marginTop: '0.75rem' }}>
+    <p>Secondary colour</p>
+    <div style={{ display: 'flex', gap: '0.5rem' }}>
+      {['#ffffff', '#fde047', '#a855f7', '#ec4899'].map(colour => (
+        <button
+          key={colour}
+          type="button"
+          aria-label={`Set border secondary colour to ${colour}`}
+          aria-pressed={appearance.border.secondaryColor === colour}
+          onClick={() =>
+            onChange({
+              ...appearance,
+              border: {
+                ...appearance.border,
+                secondaryColor: colour,
+              },
+            })
+          }
+          style={{
+            width: 24,
+            height: 24,
+            borderRadius: '50%',
+            background: colour,
+            border: '1px solid #000',
+          }}
+        />
+      ))}
+    </div>
+  </div>
+)}
             </div>
           </section>
 

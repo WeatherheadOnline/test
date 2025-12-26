@@ -6,13 +6,15 @@ export type Appearance = {
   fill: {
     style: FillStyle
     primaryColor: string
-    secondaryColor: string | null
+    secondaryColor?: string | null
+    direction?: 'horizontal' | 'vertical' | 'diagonal'
+    thickness?: 'thin' | 'medium' | 'thick'
   }
   border: {
     style: BorderStyle
-    thickness: 'thin' | 'medium' | 'thick'
-    primaryColor: string | null
-    secondaryColor: string | null
+    thickness?: 'thin' | 'medium' | 'thick'
+    primaryColor?: string | null
+    secondaryColor?: string | null
   }
   shadow: {
     style: ShadowStyle

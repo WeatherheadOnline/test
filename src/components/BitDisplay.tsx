@@ -6,16 +6,131 @@ type BitDisplayProps = {
 }
 
 export default function BitDisplay({ value, appearance }: BitDisplayProps) {
+  /**
+   * --------------------
+   * Fill styles
+   * --------------------
+   */
 
-const fillStyle =
-  appearance.fill.style === 'solid'
-    ? appearance.fill.primaryColor
-    : appearance.fill.primaryColor
+  const fillStyle: React.CSSProperties = (() => {
+    const { style, primaryColor, secondaryColor } = appearance.fill
+
+    switch (style) {
+      case 'solid':
+        return {
+          color: primaryColor,
+        }
+
+      case 'gradient':
+        return {
+          color: 'transparent',
+          backgroundImage: `linear-gradient(135deg, ${primaryColor}, ${
+            secondaryColor ?? primaryColor
+          })`,
+          WebkitBackgroundClip: 'text',
+          backgroundClip: 'text',
+        }
+
+case 'stripes': {
+  const direction =
+    appearance.fill.direction === 'horizontal'
+      ? '0deg'
+      : appearance.fill.direction === 'vertical'
+      ? '90deg'
+      : '45deg'
+
+  const stripeWidth =
+    appearance.fill.thickness === 'thin'
+      ? 8
+      : appearance.fill.thickness === 'thick'
+      ? 24
+      : 16
+
+  return {
+    color: 'transparent',
+    backgroundImage: `repeating-linear-gradient(
+      ${direction},
+      ${primaryColor},
+      ${primaryColor} ${stripeWidth}px,
+      ${secondaryColor ?? primaryColor} ${stripeWidth}px,
+      ${secondaryColor ?? primaryColor} ${stripeWidth * 2}px
+    )`,
+    WebkitBackgroundClip: 'text',
+    backgroundClip: 'text',
+  }
+}
+
+      default:
+        return {}
+    }
+  })()
+
+  /**
+   * --------------------
+   * Border styles
+   * --------------------
+   */
+
+  const strokeStyle: React.CSSProperties = (() => {
+    const { style, thickness, primaryColor } = appearance.border
+
+    if (style === 'none') {
+      return {
+        WebkitTextStrokeWidth: '0px',
+      }
+    }
+
+    const width =
+      thickness === 'thin'
+        ? '4px'
+        : thickness === 'medium'
+        ? '8px'
+        : '12px'
+
+    return {
+      WebkitTextStrokeWidth: width,
+      WebkitTextStrokeColor: primaryColor ?? '#000000',
+    }
+  })()
+
+  /**
+   * --------------------
+   * Shadow styles
+   * --------------------
+   */
+
+  const shadowStyle: React.CSSProperties = (() => {
+    switch (appearance.shadow.style) {
+      case 'none':
+        return {
+          textShadow: 'none',
+        }
+
+      case 'soft':
+        return {
+          textShadow: '0 24px 40px rgba(0,0,0,0.35)',
+        }
+
+      case 'hard':
+        return {
+          textShadow: '0 16px 0 rgba(0,0,0,0.6)',
+        }
+
+      case 'grounded':
+        return {
+          textShadow:
+            '0 32px 0 rgba(0,0,0,0.4), 0 40px 24px rgba(0,0,0,0.35)',
+        }
+
+      default:
+        return {}
+    }
+  })()
 
   return (
     <div
-      aria-label={`Your bit is ${value}`}
       role="img"
+      aria-label={`Your bit is ${value}`}
       style={{
         position: 'relative',
         fontSize: '18rem',
@@ -30,8 +145,8 @@ const fillStyle =
           position: 'absolute',
           inset: 0,
           color: 'transparent',
-          textShadow: '0 24px 40px rgba(0,0,0,0.4)',
           zIndex: 1,
+          ...shadowStyle,
         }}
       >
         {value}
@@ -44,8 +159,8 @@ const fillStyle =
           position: 'absolute',
           inset: 0,
           color: 'transparent',
-          WebkitTextStroke: '12px black',
           zIndex: 2,
+          ...strokeStyle,
         }}
       >
         {value}
@@ -55,8 +170,8 @@ const fillStyle =
       <span
         style={{
           position: 'relative',
-          color: '#22c55e',
           zIndex: 3,
+          ...fillStyle,
         }}
       >
         {value}
