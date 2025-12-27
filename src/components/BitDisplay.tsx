@@ -119,7 +119,9 @@ case 'stripes': {
       case 'grounded':
         return {
           textShadow:
-            '0 32px 0 rgba(0,0,0,0.4), 0 40px 24px rgba(0,0,0,0.35)',
+            '0 32px 30px rgba(0,0,0,0.4)',
+          transform: 'translateY(-0.1em) scaleY(0.5) skewX(20deg)',
+          transformOrigin: 'bottom center',
         }
 
       default:

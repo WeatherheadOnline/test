@@ -82,20 +82,12 @@ const handleFlip = () => {
     const profile = loadProfile()
 
     const nextFlipCount = profile.flipCount + 1
-    let nextUnlocks = [...profile.unlocks]
-
-    if (nextFlipCount === 4) nextUnlocks.push('fill.gradient')
-    if (nextFlipCount === 8) nextUnlocks.push('fill.stripes')
-    if (nextFlipCount === 16) nextUnlocks.push('fill.colours.pack1')
-    if (nextFlipCount >= 32 && nextFlipCount % 32 === 0) {
-      nextUnlocks.push('fill.patterns.pack1')
-    }
 
     const nextProfile = {
+      ...profile,
       status: !profile.status,
       flipCount: nextFlipCount,
       appearance: profile.appearance,
-      unlocks: Array.from(new Set(nextUnlocks)),
     }
 
     saveProfile(nextProfile)
@@ -103,7 +95,6 @@ const handleFlip = () => {
     // reconcile UI with persisted state
     setStatus(nextProfile.status)
     setFlipCount(nextProfile.flipCount)
-    setUnlocks(nextProfile.unlocks)
 
     setSaving(false)
   }, 250)
@@ -138,6 +129,10 @@ return (
     >
         Flip bit
     </button>
+
+    <p className="flip-count-card" aria-live="polite" style={{ padding: '0.5rem', backgroundColor: '#E8E8E8', outline: `1px solid #555555`, position: 'absolute', left: '0', top: '5rem' }}>
+        Flipped <strong>{flipCount}</strong> times
+    </p>
 
     <CustomiseMenu
       appearance={appearance}
