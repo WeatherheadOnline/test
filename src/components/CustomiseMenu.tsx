@@ -25,32 +25,6 @@ export default function CustomiseMenu({
   const menuRef = useRef<HTMLDivElement | null>(null)
   const buttonRef = useRef<HTMLButtonElement | null>(null)
 
-
-// useEffect
-
-//   useEffect(() => {
-//   if (!isOpen) return
-
-//   const handlePointerDown = (event: PointerEvent) => {
-//     const target = event.target as Node
-
-//     if (
-//       menuRef.current &&
-//       !menuRef.current.contains(target) &&
-//       buttonRef.current &&
-//       !buttonRef.current.contains(target)
-//     ) {
-//       setIsOpen(false)
-//     }
-//   }
-
-//   document.addEventListener('pointerdown', handlePointerDown)
-
-//   return () => {
-//     document.removeEventListener('pointerdown', handlePointerDown)
-//   }
-// }, [isOpen])
-
 useEffect(() => {
   if (!isOpen) return
 

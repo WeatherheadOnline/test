@@ -221,7 +221,7 @@ return (
     value={status ? '1' : '0'}
     appearance={appearance}
     />
-    <button
+    {/* <button
       ref={flipButtonRef}
       onClick={handleFlip}
       disabled={flipPending}
@@ -234,7 +234,87 @@ return (
       }}
     >
         Flip bit
-    </button>
+    </button> */}
+
+<button
+  ref={flipButtonRef}
+  type="button"
+  role="switch"
+  aria-checked={status}
+  onClick={handleFlip}
+  disabled={flipPending}
+  style={{
+    marginTop: '2rem',
+    width: '96px',
+    height: '44px',
+
+    position: 'relative',   // ⬅️ required
+    zIndex: 20,              // ⬅️ higher than giant bit
+
+    padding: 0,
+    border: 'none',
+    background: 'none',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: flipPending ? 'not-allowed' : 'pointer',
+    opacity: flipPending ? 0.5 : 1,
+  }}
+>
+  {/* Track */}
+  <span
+    aria-hidden="true"
+    style={{
+      position: 'relative',
+      width: '100%',
+      height: '100%',
+      borderRadius: '999px',
+      backgroundColor: '#bdbdbd',
+      border: '2px solid #888888',
+      userSelect: 'none',
+      pointerEvents: 'none',
+    }}
+  >
+    {/* Labels */}
+    <span
+      style={{
+        position: 'absolute',
+        inset: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '0 14px',
+        fontSize: '1.5rem',
+        fontWeight: 600,
+        color: '#000',
+        zIndex: 2,            // ABOVE knob
+        pointerEvents: 'none',
+      }}
+    >
+      <span>0</span>
+      <span>1</span>
+    </span>
+
+    {/* Knob */}
+    <span
+      style={{
+        position: 'absolute',
+        top: '0',
+        left: '0',
+        width: '42px',
+        height: '42px',
+        borderRadius: '50%',
+        backgroundColor: '#fff',
+        outline: '3px solid #555',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+        transform: status ? 'translateX(52px)' : 'translateX(0)',
+        transition: 'transform 200ms ease',
+        zIndex: 1,            // BELOW labels
+        pointerEvents: 'none',
+      }}
+    />
+  </span>
+</button>
 
     <p className="flip-count-card" aria-live="polite" style={{ padding: '0.5rem', backgroundColor: '#E8E8E8', outline: `1px solid #555555`, position: 'absolute', left: '0', top: '5rem' }}>
         Flipped <strong>{flipCount}</strong> times
