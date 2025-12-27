@@ -1,33 +1,51 @@
-export type UnlockRule = {
-  at: number
-  key: string
-}
+/**
+ * Single source of truth for all unlocks
+ */
 
-export const UNLOCK_RULES: UnlockRule[] = [
-  { at: 4, key: 'fill.gradient' },
-  { at: 8, key: 'fill.stripes' },
-  { at: 16, key: 'fill.colours.pack1' },
-  { at: 32, key: 'fill.patterns.pack1' },
-]
+/**
+ * Each entry represents:
+ * - when it unlocks (flipsRequired)
+ * - what it unlocks (ids)
+ */
+export const UNLOCK_DEFINITIONS = [
+ {
+    flipsRequired: 4,
+    ids: ['fill:gradient'],
+  },
+  {
+    flipsRequired: 8,
+    ids: ['fill:stripes'],
+  },
+  {
+    flipsRequired: 16,
+    ids: ['shadow:hard', 'shadow:grounded'],
+  },
+  {
+    flipsRequired: 32,
+    ids: ['fill:patterns:pack1'],
+  },
+] as const
 
-export function computeUnlocks(
+/**
+ * Union of all possible unlock IDs
+ */
+export type UnlockId =
+  (typeof UNLOCK_DEFINITIONS)[number]['ids'][number]
+
+/**
+ * Returns all unlocks earned at a given flip count
+ */
+export const getUnlocksForFlipCount = (
   flipCount: number,
-  existing: string[] = []
-): string[] {
-  const next = new Set(existing)
+  existing: UnlockId[] = []
+): UnlockId[] => {
+  const unlocked = new Set<UnlockId>(existing)
 
-  for (const rule of UNLOCK_RULES) {
-    if (flipCount >= rule.at) {
-      next.add(rule.key)
+  for (const rule of UNLOCK_DEFINITIONS) {
+    if (flipCount >= rule.flipsRequired) {
+      rule.ids.forEach(id => unlocked.add(id))
     }
   }
 
-  if (flipCount >= 32) {
-    const cycles = Math.floor((flipCount - 32) / 32)
-    if (cycles >= 0) {
-      next.add('cycles.' + cycles)
-    }
-  }
-
-  return Array.from(next)
+  return Array.from(unlocked)
 }

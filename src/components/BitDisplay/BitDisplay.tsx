@@ -1,5 +1,4 @@
 import { Appearance } from '@/types/appearance'
-import './bitDisplay.css'
 
 type BitDisplayProps = {
   value: '0' | '1'
@@ -119,24 +118,24 @@ case 'stripes': {
 
       case 'grounded':
         return {
-        textShadow:
-          '0 32px 30px rgba(0,0,0,0.4)',
-        transform: 'translateY(-0.1em) scaleY(0.3) skewX(10deg)',
-        transformOrigin: 'bottom left',
+          textShadow:
+            '0 32px 30px rgba(0,0,0,0.4)',
+          transform: 'translateY(-0.1em) scaleY(0.5) skewX(20deg)',
+          transformOrigin: 'bottom center',
         }
 
-        default:
+      default:
         return {}
     }
   })()
 
   return (
     <div
-      className="giant-bit-container"
       role="img"
       aria-label={`Your bit is ${value}`}
       style={{
         position: 'relative',
+        fontSize: '18rem',
         lineHeight: 1,
         fontWeight: 800,
       }}

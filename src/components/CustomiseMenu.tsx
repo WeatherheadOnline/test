@@ -1,17 +1,31 @@
 'use client'
 
 import { Appearance } from '@/types/appearance'
+import { UnlockId } from '@/lib/unlocks'
 
 type CustomiseMenuProps = {
   appearance: Appearance
+  unlocks: string[]
   onChange: (next: Appearance) => void
 }
 
 export default function CustomiseMenu({
   appearance,
+  unlocks,
   onChange,
 }: CustomiseMenuProps) {
   const isExpanded = true // temporary; we’ll wire toggle next
+  // const isUnlocked = (id: UnlockId) => unlocks.includes(id)
+  const isUnlocked = (id: string) => unlocks.includes(id)
+const baseColors = ['#22c55e', '#0ea5e9']
+const extraColors = ['#a855f7', '#f97316']
+
+const colours = isUnlocked('colors:pack1')
+  ? [...baseColors, ...extraColors]
+  : baseColors
+
+
+// The return statement:
 
   return (
     <section
@@ -54,61 +68,76 @@ export default function CustomiseMenu({
             </h2>
 
             {/* Fill style */}
-            <div style={{ marginTop: '0.5rem' }}>
-              <p>Fill style</p>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                {(['solid', 'gradient', 'stripes', 'pattern'] as const).map(
-                  style => (
-                    <button
-                      key={style}
-                      type="button"
-                      aria-pressed={appearance.fill.style === style}
-                      onClick={() =>
-                        onChange({
-                          ...appearance,
-                          fill: {
-                            ...appearance.fill,
-                            style,
-                          },
-                        })
-                      }
-                    >
-                      {style}
-                    </button>
-                  )
-                )}
-              </div>
-            </div>
+<div style={{ display: 'flex', gap: '0.5rem' }}>
+  {(['solid', 'gradient', 'stripes'] as const).map(style => {
+    const unlockId =
+      style === 'gradient'
+        ? 'fill:gradient'
+        : style === 'stripes'
+        ? 'fill:stripes'
+        : null
+
+    const locked = unlockId ? !isUnlocked(unlockId) : false
+
+    return (
+      <button
+        key={style}
+        type="button"
+        disabled={locked}
+        aria-disabled={locked}
+        aria-pressed={appearance.fill.style === style}
+        onClick={() => {
+          if (locked) return
+
+          onChange({
+            ...appearance,
+            fill: {
+              ...appearance.fill,
+              style,
+            },
+          })
+        }}
+        style={{
+          opacity: locked ? 0.4 : 1,
+          cursor: locked ? 'not-allowed' : 'pointer',
+        }}
+      >
+        {style} {locked && '🔒'}
+      </button>
+    )
+  })}
+</div>
 
             {/* Primary colour */}
             <div style={{ marginTop: '0.75rem' }}>
               <p>Primary colour</p>
               <div style={{ display: 'flex', gap: '0.5rem' }}>
-                {['#22c55e', '#0ea5e9', '#a855f7', '#f97316'].map(colour => (
-                  <button
-                    key={colour}
-                    type="button"
-                    aria-label={`Set primary colour to ${colour}`}
-                    aria-pressed={appearance.fill.primaryColor === colour}
-                    onClick={() =>
-                      onChange({
-                        ...appearance,
-                        fill: {
-                          ...appearance.fill,
-                          primaryColor: colour,
-                        },
-                      })
-                    }
-                    style={{
-                      width: 24,
-                      height: 24,
-                      borderRadius: '50%',
-                      background: colour,
-                      border: '1px solid #000',
-                    }}
-                  />
-                ))}
-              </div>
+
+                  {['#ffffff', '#000000', '#fde047', '#22c55e', '#0ea5e9', '#f97316'].map(colour => (
+                    <button
+                      key={colour}
+                      type="button"
+                      aria-label={`Set primary colour to ${colour}`}
+                      aria-pressed={appearance.fill.primaryColor === colour}
+                      onClick={() =>
+                        onChange({
+                          ...appearance,
+                          fill: {
+                            ...appearance.fill,
+                            primaryColor: colour,
+                          },
+                        })
+                      }
+                      style={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: '50%',
+                        background: colour,
+                        border: '1px solid #000',
+                      }}
+                    />
+                  ))}
+</div>
             </div>
 
             {/* Secondary colour (conditional) */}
@@ -116,6 +145,9 @@ export default function CustomiseMenu({
               <div style={{ marginTop: '0.75rem' }}>
                 <p>Secondary colour</p>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
+
+
+
                   {['#ffffff', '#000000', '#fde047'].map(colour => (
                     <button
                       key={colour}
@@ -144,8 +176,6 @@ export default function CustomiseMenu({
               </div>
 
             )}
-
-
 
 {appearance.fill.style === 'stripes' && (
   <div style={{ marginTop: '0.75rem' }}>
@@ -313,21 +343,41 @@ export default function CustomiseMenu({
             <div style={{ marginTop: '0.5rem' }}>
               <p>Shadow style</p>
               <div style={{ display: 'flex', gap: '0.5rem' }}>
-                {(['none', 'soft', 'hard', 'grounded'] as const).map(style => (
-                  <button
-                    key={style}
-                    type="button"
-                    aria-pressed={appearance.shadow.style === style}
-                    onClick={() =>
-                      onChange({
-                        ...appearance,
-                        shadow: { style },
-                      })
-                    }
-                  >
-                    {style}
-                  </button>
-                ))}
+                
+                {(['none', 'soft', 'hard', 'grounded'] as const).map(style => {
+  const unlockId =
+    style === 'hard'
+      ? 'shadow:hard'
+      : style === 'grounded'
+      ? 'shadow:grounded'
+      : null
+
+  const locked = unlockId ? !isUnlocked(unlockId) : false
+
+  return (
+    <button
+      key={style}
+      type="button"
+      disabled={locked}
+      aria-disabled={locked}
+      aria-pressed={appearance.shadow.style === style}
+      onClick={() => {
+        if (locked) return
+        onChange({
+          ...appearance,
+          shadow: { style },
+        })
+      }}
+      style={{
+        opacity: locked ? 0.4 : 1,
+        cursor: locked ? 'not-allowed' : 'pointer',
+      }}
+    >
+      {style} {locked && '🔒'}
+    </button>
+  )
+})}
+
               </div>
             </div>
           </section>

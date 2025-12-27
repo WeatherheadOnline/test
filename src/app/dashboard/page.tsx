@@ -1,36 +1,39 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import BitDisplay from '@/components/BitDisplay'
+import BitDisplay from '@/components/BitDisplay/BitDisplay'
 import Section from '@/components/Section'
 import { Appearance } from '@/types/appearance'
 import { defaultAppearance } from '@/lib/defaultAppearance'
 import CustomiseMenu from '@/components/CustomiseMenu'
 import { loadProfile, saveProfile } from '@/lib/localProfile'
+import { getUnlocksForFlipCount } from '@/lib/unlocks'
+import UnlockToast from '@/components/UnlockToast'
 
 export default function DashboardPage() {
-const [status, setStatus] = useState<boolean>(false)
-const [flipCount, setFlipCount] = useState<number>(0)
-const [appearance, setAppearance] = useState<Appearance>(defaultAppearance)
+  const [status, setStatus] = useState<boolean>(false)
+  const [flipCount, setFlipCount] = useState<number>(0)
+  const [appearance, setAppearance] = useState<Appearance>(defaultAppearance)
 
-const [loading, setLoading] = useState(true)
-const [saving, setSaving] = useState(false)
-const [flipPending, setFlipPending] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [flipPending, setFlipPending] = useState(false)
+  const [unlocks, setUnlocks] = useState<string[]>([])
+  const [unlockToasts, setUnlockToasts] = useState<string[]>([])
 
     const flipTimeoutRef = useRef<NodeJS.Timeout | null>(null)
     const appearanceTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-
-    
     const reloadProfile = () => {
-  const profile = loadProfile()
+      const profile = loadProfile()
 
-  setStatus(profile.status)
-  setFlipCount(profile.flipCount)
-  setAppearance(profile.appearance)
-}
+      setStatus(profile.status)
+      setFlipCount(profile.flipCount)
+      setAppearance(profile.appearance)
+      setUnlocks(profile.unlocks)
+    }
 
-
+const profile = loadProfile()
 
 const saveAppearanceDebounced = (nextAppearance: Appearance) => {
   if (appearanceTimeoutRef.current) {
@@ -52,16 +55,33 @@ useEffect(() => {
   setLoading(false)
 }, [])
 
+useEffect(() => {
+  const profile = loadProfile()
+
+  if (
+    appearance.fill.style === 'gradient' &&
+    !profile.unlocks.includes('fill:gradient')
+  ) {
+    setAppearance({
+      ...appearance,
+      fill: { ...appearance.fill, style: 'solid' },
+    })
+  }
+}, [])
+
 
   if (loading) return <p>Loading…</p>
   if (status === null) return <p>Not logged in</p>
 
 
+const unlockIdToLabel = (id: string): string | null => {
+  if (id.startsWith('fill:')) return 'Fill'
+  if (id.startsWith('border:')) return 'Border'
+  if (id.startsWith('shadow:')) return 'Shadow'
+  return null
+}
 
 
-// Keep saving (for error handling / rollback)
-// Stop using saving to disable the button
-// Clear flipPending when the debounce fires, not when the RPC finishes
 const handleFlip = () => {
   if (flipPending) return
 
@@ -83,18 +103,45 @@ const handleFlip = () => {
 
     const nextFlipCount = profile.flipCount + 1
 
+    const nextUnlocks = getUnlocksForFlipCount(
+      nextFlipCount,
+      profile.unlocks
+    )
+
+    const newlyUnlocked = nextUnlocks.filter(
+  id => !profile.unlocks.includes(id)
+)
+
+if (newlyUnlocked.length > 0) {
+  const labels = newlyUnlocked
+    .map(unlockIdToLabel)
+    .filter(Boolean) as string[]
+
+  if (labels.length > 0) {
+    setUnlockToasts(prev => [...prev, ...labels])
+
+    setTimeout(() => {
+      setUnlockToasts(prev =>
+        prev.filter(label => !labels.includes(label))
+      )
+    }, 1000)
+  }
+}
+
     const nextProfile = {
       ...profile,
-      status: !profile.status,
-      flipCount: nextFlipCount,
-      appearance: profile.appearance,
-    }
+        status: !profile.status,
+        flipCount: nextFlipCount,
+        appearance: profile.appearance,
+        unlocks: nextUnlocks,
+      }
 
     saveProfile(nextProfile)
 
     // reconcile UI with persisted state
     setStatus(nextProfile.status)
     setFlipCount(nextProfile.flipCount)
+    setUnlocks(nextProfile.unlocks)
 
     setSaving(false)
   }, 250)
@@ -111,6 +158,26 @@ const handleAppearanceChange = (next: Appearance) => {
 
 return (
   <main>
+
+    {/* Unlock toasts */}
+    <div
+      style={{
+        position: 'fixed',
+        top: '1rem',
+        right: '1rem',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0.5rem',
+        zIndex: 1000,
+        pointerEvents: 'none',
+      }}
+    >
+      {unlockToasts.map((label, i) => (
+        <UnlockToast key={`${label}-${i}`} label={label} />
+      ))}
+    </div>
+
+
     <Section minHeight="100vh">
     <BitDisplay
     value={status ? '1' : '0'}
@@ -136,12 +203,10 @@ return (
 
     <CustomiseMenu
       appearance={appearance}
+      unlocks={unlocks}
       onChange={handleAppearanceChange}
     />
 
-    <p aria-live="polite" style={{ marginTop: '1rem' }}>
-        Flipped <strong>{flipCount}</strong> times
-    </p>
     </Section>
   </main>
 )
