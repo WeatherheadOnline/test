@@ -5,11 +5,13 @@ import BitDisplay from '@/components/BitDisplay/BitDisplay'
 import Section from '@/components/Section'
 import { Appearance } from '@/types/appearance'
 import { defaultAppearance } from '@/lib/defaultAppearance'
-import CustomiseMenu from '@/components/CustomiseMenu'
+import CustomiseMenu from '@/components/CustomiseMenu/CustomiseMenu'
 import { loadProfile, saveProfile } from '@/lib/localProfile'
 import { getUnlocksForFlipCount } from '@/lib/unlocks'
 import UnlockToast from '@/components/UnlockToast'
 import FlipToast from '@/components/FlipToast'
+import '@/styles/globals.css'
+import './dashboard.css'
 
 export default function DashboardPage() {
 
@@ -221,20 +223,6 @@ return (
     value={status ? '1' : '0'}
     appearance={appearance}
     />
-    {/* <button
-      ref={flipButtonRef}
-      onClick={handleFlip}
-      disabled={flipPending}
-      aria-pressed={status}
-      style={{
-        padding: '1rem 2rem',
-        fontSize: '1.25rem',
-        marginTop: '2rem',
-        opacity: flipPending ? 0.5 : 1,
-      }}
-    >
-        Flip bit
-    </button> */}
 
 <button
   ref={flipButtonRef}
@@ -316,9 +304,12 @@ return (
   </span>
 </button>
 
-    <p className="flip-count-card" aria-live="polite" style={{ padding: '0.5rem', backgroundColor: '#E8E8E8', outline: `1px solid #555555`, position: 'absolute', left: '0', top: '5rem' }}>
-        Flipped <strong>{flipCount}</strong> times
-    </p>
+        <div className="flip-count-card" aria-live="polite">
+          <p><span>You have </span><span>flipped:</span></p>
+          <p className="bit-count-binary">{flipCount.toString(2)}</p>
+          <p className="bit-count-base10">({flipCount})</p>
+          <p>bits</p>
+        </div>
 
     <CustomiseMenu
       appearance={appearance}

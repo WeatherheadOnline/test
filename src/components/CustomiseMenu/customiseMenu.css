@@ -1,0 +1,41 @@
+.customise-menu-container {
+    width: 500px;
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+    padding: 1rem;
+    position: relative;
+}
+
+#customise-heading {
+    width: '100%';
+    textAlign: 'left';
+    fontSize: '1rem';
+    fontWeight: 600;
+    padding: '0.75rem 1rem';
+    borderRadius: '12px';
+    border: '1px solid #ccc';
+    cursor: 'pointer';
+}
+
+.customise-button-inactive {
+    background-color: grey;
+}
+
+.customise-button-active {
+    background-color: pink;
+}
+
+.customise-body {
+    background: #ffffff;
+    border-radius: 16px 16px 0 0;
+    padding: 1rem;
+
+    max-height: 80vh;
+    overflow-y: auto;
+
+    transition: transform 300ms ease;
+    z-index: 1000;
+
+}
+
+

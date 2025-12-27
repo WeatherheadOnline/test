@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { Appearance } from '@/types/appearance'
 import { UnlockId } from '@/lib/unlocks'
+import '@/styles/globals.css'
+import './customiseMenu.css'
 
 type CustomiseMenuProps = {
   appearance: Appearance
@@ -85,67 +87,36 @@ const onTouchMove = (e: React.TouchEvent) => {
 
   return (
     <section
-      aria-labelledby="customise-heading"
-      style={{
-        width: '100%',
-        maxWidth: '320px',
-        border: '1px solid #e5e5e5',
-        borderRadius: '12px',
-        padding: '1rem',
-        position: 'relative'
-      }}
+		aria-labelledby="customise-heading"
+		className={isOpen ? 'customise-button-active' : 'customise-button-inactive'}
     >
-      {/* Header */}
-<button
-  ref={buttonRef}
-  type="button"
-  aria-expanded={isOpen}
-  aria-controls="customise-body"
-  id="customise-heading"
-  onClick={() => setIsOpen(prev => !prev)}
-  style={{
-    width: '100%',
-    textAlign: 'left',
-    fontSize: '1rem',
-    fontWeight: 600,
-    padding: '0.75rem 1rem',
-    borderRadius: '12px',
-    border: '1px solid #ccc',
-    cursor: 'pointer',
+      	{/* Header */}
+		<button
+			ref={buttonRef}
+			type="button"
+			aria-expanded={isOpen}
+			aria-controls="customise-body"
+			id="customise-heading"
+			className="customise-menu-container"
+			onClick={() => setIsOpen(prev => !prev)}
+		>
+			Customise
+		</button>
 
-    /* visual change when hidden */
-    backgroundColor: isOpen ? '#ffffff' : '#f0f0f0',
-  }}
->
-  Customise
-</button>
+		{/* Body */}
+		{isOpen && (
+			<div
+			id="customise-body"
+			className="customise-body"
+			ref={menuRef}
+			onTouchStart={onTouchStart}
+			onTouchMove={onTouchMove}
+			style={{
+				visibility: isOpen ? 'visible' : 'hidden',
+				// transform: isOpen ? 'translateY(0)' : 'translateY(100%)',
 
-      {/* Body */}
-      {isOpen && (
-<div
-  id="customise-body"
-  ref={menuRef}
-  onTouchStart={onTouchStart}
-  onTouchMove={onTouchMove}
-  style={{
-    background: '#ffffff',
-    borderRadius: '16px 16px 0 0',
-    padding: '1rem',
-
-    /* mobile slide-up */
-    position: 'fixed',
-    left: 0,
-    right: 0,
-    bottom: 0,
-
-    maxHeight: '80vh',
-    overflowY: 'auto',
-
-    transform: isOpen ? 'translateY(0)' : 'translateY(100%)',
-    transition: 'transform 300ms ease',
-    zIndex: 1000,
-  }}
->
+			}}
+			>
           {/* Fill section */}
           <section aria-labelledby="fill-heading">
             <h2 id="fill-heading" style={{ fontSize: '0.9rem' }}>

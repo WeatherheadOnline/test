@@ -1,0 +1,21 @@
+.flip-count-card {
+    position: absolute;
+    left: 0;
+    top: 5rem;
+    border-radius: 0 1rem 1rem 0;
+    background-color: #E8E8E8;
+    outline: 1px solid black;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.flip-count-card span {
+    display: block;
+}
+
+.bit-count-binary {
+    font-family: Caprasimo, sans-serif
+}
+
