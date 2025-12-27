@@ -1,82 +1,56 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { supabase } from '@/lib/supabase'
 import BitDisplay from '@/components/BitDisplay'
 import Section from '@/components/Section'
 import { Appearance } from '@/types/appearance'
 import { defaultAppearance } from '@/lib/defaultAppearance'
 import CustomiseMenu from '@/components/CustomiseMenu'
+import { loadProfile, saveProfile } from '@/lib/localProfile'
 
 export default function DashboardPage() {
-    const [status, setStatus] = useState<boolean | null>(null)
-    const [flipCount, setFlipCount] = useState<number>(0)
-    const [loading, setLoading] = useState(true)
-    const [saving, setSaving] = useState(false)
-    const [appearance, setAppearance] = useState<Appearance>(defaultAppearance)
-    const [flipPending, setFlipPending] = useState(false)
+const [status, setStatus] = useState<boolean>(false)
+const [flipCount, setFlipCount] = useState<number>(0)
+const [appearance, setAppearance] = useState<Appearance>(defaultAppearance)
+
+const [loading, setLoading] = useState(true)
+const [saving, setSaving] = useState(false)
+const [flipPending, setFlipPending] = useState(false)
 
     const flipTimeoutRef = useRef<NodeJS.Timeout | null>(null)
     const appearanceTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-    const reloadProfile = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
 
-      if (!user) return
+    
+    const reloadProfile = () => {
+  const profile = loadProfile()
 
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('status, flip_count, appearance')
-        .eq('id', user.id)
-        .single()
-
-      if (!error && data) {
-        setStatus(data.status)
-        setFlipCount(data.flip_count)
-        setAppearance({
-          ...defaultAppearance,
-          ...data.appearance,
-        })
-      }
-    }
-
-
-
-    const saveAppearanceDebounced = (nextAppearance: Appearance) => {
-  // clear any pending save
-  if (appearanceTimeoutRef.current) {
-    clearTimeout(appearanceTimeoutRef.current)
-  }
-
-  appearanceTimeoutRef.current = setTimeout(async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) return
-
-    const { error } = await supabase
-      .from('profiles')
-      .update({
-        appearance: nextAppearance,
-      })
-      .eq('id', user.id)
-
-    if (error) {
-      console.error(error)
-      await reloadProfile() // self-heal
-    }
-  }, 400)
+  setStatus(profile.status)
+  setFlipCount(profile.flipCount)
+  setAppearance(profile.appearance)
 }
 
 
 
+const saveAppearanceDebounced = (nextAppearance: Appearance) => {
+  if (appearanceTimeoutRef.current) {
+    clearTimeout(appearanceTimeoutRef.current)
+  }
 
-  useEffect(() => {
-    reloadProfile().finally(() => setLoading(false))
-  }, [])
+  appearanceTimeoutRef.current = setTimeout(() => {
+    const profile = loadProfile()
+
+    saveProfile({
+      ...profile,
+      appearance: nextAppearance,
+    })
+  }, 400)
+}
+
+useEffect(() => {
+  reloadProfile()
+  setLoading(false)
+}, [])
 
 
   if (loading) return <p>Loading…</p>
@@ -88,36 +62,51 @@ export default function DashboardPage() {
 // Keep saving (for error handling / rollback)
 // Stop using saving to disable the button
 // Clear flipPending when the debounce fires, not when the RPC finishes
-  const handleFlip = () => {
-  if (status === null || flipPending) return
+const handleFlip = () => {
+  if (flipPending) return
 
-  // optimistic UI update
+  setFlipPending(true)
+
+  // optimistic UI
   setStatus(prev => !prev)
   setFlipCount(prev => prev + 1)
-  setFlipPending(true)
 
   if (flipTimeoutRef.current) {
     clearTimeout(flipTimeoutRef.current)
   }
 
-  flipTimeoutRef.current = setTimeout(async () => {
-    // debounce window is over — re-enable button
+  flipTimeoutRef.current = setTimeout(() => {
     setFlipPending(false)
-
     setSaving(true)
 
-    const { data, error } = await supabase.rpc('flip_bit')
+    const profile = loadProfile()
 
-    if (error || !data || data.length === 0) {
-      console.error(error)
-      await reloadProfile()
-    } else {
-      setStatus(data[0].status)
-      setFlipCount(data[0].flip_count)
+    const nextFlipCount = profile.flipCount + 1
+    let nextUnlocks = [...profile.unlocks]
+
+    if (nextFlipCount === 4) nextUnlocks.push('fill.gradient')
+    if (nextFlipCount === 8) nextUnlocks.push('fill.stripes')
+    if (nextFlipCount === 16) nextUnlocks.push('fill.colours.pack1')
+    if (nextFlipCount >= 32 && nextFlipCount % 32 === 0) {
+      nextUnlocks.push('fill.patterns.pack1')
     }
 
+    const nextProfile = {
+      status: !profile.status,
+      flipCount: nextFlipCount,
+      appearance: profile.appearance,
+      unlocks: Array.from(new Set(nextUnlocks)),
+    }
+
+    saveProfile(nextProfile)
+
+    // reconcile UI with persisted state
+    setStatus(nextProfile.status)
+    setFlipCount(nextProfile.flipCount)
+    setUnlocks(nextProfile.unlocks)
+
     setSaving(false)
-  }, 250) // ⬅ reduce debounce to 250ms (well under 500ms)
+  }, 250)
 }
 
 

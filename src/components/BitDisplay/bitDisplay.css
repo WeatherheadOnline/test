@@ -1,0 +1,3 @@
+.giant-bit-container {
+  font-size: clamp(12rem, 30vw, 30rem);
+}
