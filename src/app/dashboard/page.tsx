@@ -9,6 +9,7 @@ import CustomiseMenu from '@/components/CustomiseMenu'
 import { loadProfile, saveProfile } from '@/lib/localProfile'
 import { getUnlocksForFlipCount } from '@/lib/unlocks'
 import UnlockToast from '@/components/UnlockToast'
+import FlipToast from '@/components/FlipToast'
 
 export default function DashboardPage() {
   const [status, setStatus] = useState<boolean>(false)
@@ -20,6 +21,7 @@ export default function DashboardPage() {
   const [flipPending, setFlipPending] = useState(false)
   const [unlocks, setUnlocks] = useState<string[]>([])
   const [unlockToasts, setUnlockToasts] = useState<string[]>([])
+  const [flipToastKey, setFlipToastKey] = useState<number | null>(null)
 
     const flipTimeoutRef = useRef<NodeJS.Timeout | null>(null)
     const appearanceTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -69,6 +71,17 @@ useEffect(() => {
   }
 }, [])
 
+useEffect(() => {
+  if (flipToastKey === null) return
+
+  const t = setTimeout(() => {
+    setFlipToastKey(null)
+  }, 1500) // 500ms visible + 1000ms fade
+
+  return () => clearTimeout(t)
+}, [flipToastKey])
+
+
 
   if (loading) return <p>Loading…</p>
   if (status === null) return <p>Not logged in</p>
@@ -84,6 +97,9 @@ const unlockIdToLabel = (id: string): string | null => {
 
 const handleFlip = () => {
   if (flipPending) return
+
+  // force-remount flip toast
+  setFlipToastKey(Date.now())
 
   setFlipPending(true)
 
@@ -124,7 +140,7 @@ if (newlyUnlocked.length > 0) {
       setUnlockToasts(prev =>
         prev.filter(label => !labels.includes(label))
       )
-    }, 1000)
+    }, 2000)
   }
 }
 
@@ -153,7 +169,6 @@ const handleAppearanceChange = (next: Appearance) => {
   saveAppearanceDebounced(next)       // persistent
 }
 
-
 //   The return statement
 
 return (
@@ -175,6 +190,22 @@ return (
       {unlockToasts.map((label, i) => (
         <UnlockToast key={`${label}-${i}`} label={label} />
       ))}
+    </div>
+
+    {/* Flip toast */}
+    <div
+      style={{
+        position: 'fixed',
+        bottom: '2rem',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        zIndex: 1000,
+        pointerEvents: 'none',
+      }}
+    >
+      {flipToastKey !== null && (
+        <FlipToast key={flipToastKey} />
+      )}
     </div>
 
 
