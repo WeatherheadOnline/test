@@ -14,8 +14,10 @@ export default function DashboardPage() {
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
     const [appearance, setAppearance] = useState<Appearance>(defaultAppearance)
+    const [flipPending, setFlipPending] = useState(false)
 
     const flipTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+    const appearanceTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
     const reloadProfile = async () => {
       const {
@@ -41,6 +43,37 @@ export default function DashboardPage() {
     }
 
 
+
+    const saveAppearanceDebounced = (nextAppearance: Appearance) => {
+  // clear any pending save
+  if (appearanceTimeoutRef.current) {
+    clearTimeout(appearanceTimeoutRef.current)
+  }
+
+  appearanceTimeoutRef.current = setTimeout(async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) return
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        appearance: nextAppearance,
+      })
+      .eq('id', user.id)
+
+    if (error) {
+      console.error(error)
+      await reloadProfile() // self-heal
+    }
+  }, 400)
+}
+
+
+
+
   useEffect(() => {
     reloadProfile().finally(() => setLoading(false))
   }, [])
@@ -51,34 +84,46 @@ export default function DashboardPage() {
 
 
 
+
+// Keep saving (for error handling / rollback)
+// Stop using saving to disable the button
+// Clear flipPending when the debounce fires, not when the RPC finishes
   const handleFlip = () => {
-  if (status === null || saving) return
+  if (status === null || flipPending) return
 
   // optimistic UI update
   setStatus(prev => !prev)
   setFlipCount(prev => prev + 1)
+  setFlipPending(true)
 
-  // debounce backend write
   if (flipTimeoutRef.current) {
     clearTimeout(flipTimeoutRef.current)
   }
 
   flipTimeoutRef.current = setTimeout(async () => {
+    // debounce window is over — re-enable button
+    setFlipPending(false)
+
     setSaving(true)
 
     const { data, error } = await supabase.rpc('flip_bit')
 
     if (error || !data || data.length === 0) {
       console.error(error)
-      await reloadProfile() // rollback
+      await reloadProfile()
     } else {
-      // reconcile with authoritative values
       setStatus(data[0].status)
       setFlipCount(data[0].flip_count)
     }
 
     setSaving(false)
-  }, 400)
+  }, 250) // ⬅ reduce debounce to 250ms (well under 500ms)
+}
+
+
+const handleAppearanceChange = (next: Appearance) => {
+  setAppearance(next)                 // optimistic
+  saveAppearanceDebounced(next)       // persistent
 }
 
 
@@ -92,21 +137,22 @@ return (
     appearance={appearance}
     />
     <button
-        onClick={handleFlip}
-        disabled={saving}
-        aria-pressed={status}
-        style={{
+      onClick={handleFlip}
+      disabled={flipPending}
+      aria-pressed={status}
+      style={{
         padding: '1rem 2rem',
         fontSize: '1.25rem',
         marginTop: '2rem',
-        }}
+        opacity: flipPending ? 0.5 : 1,
+      }}
     >
         Flip bit
     </button>
-    
+
     <CustomiseMenu
       appearance={appearance}
-      onChange={setAppearance}
+      onChange={handleAppearanceChange}
     />
 
     <p aria-live="polite" style={{ marginTop: '1rem' }}>
