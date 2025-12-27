@@ -8,12 +8,14 @@ type CustomiseMenuProps = {
   appearance: Appearance
   unlocks: string[]
   onChange: (next: Appearance) => void
+  ignoreRef?: React.RefObject<HTMLElement | null>
 }
 
 export default function CustomiseMenu({
   appearance,
   unlocks,
   onChange,
+  ignoreRef,
 }: CustomiseMenuProps) {
 
 // useState, useRef
@@ -26,20 +28,44 @@ export default function CustomiseMenu({
 
 // useEffect
 
-  useEffect(() => {
+//   useEffect(() => {
+//   if (!isOpen) return
+
+//   const handlePointerDown = (event: PointerEvent) => {
+//     const target = event.target as Node
+
+//     if (
+//       menuRef.current &&
+//       !menuRef.current.contains(target) &&
+//       buttonRef.current &&
+//       !buttonRef.current.contains(target)
+//     ) {
+//       setIsOpen(false)
+//     }
+//   }
+
+//   document.addEventListener('pointerdown', handlePointerDown)
+
+//   return () => {
+//     document.removeEventListener('pointerdown', handlePointerDown)
+//   }
+// }, [isOpen])
+
+useEffect(() => {
   if (!isOpen) return
 
   const handlePointerDown = (event: PointerEvent) => {
     const target = event.target as Node
 
     if (
-      menuRef.current &&
-      !menuRef.current.contains(target) &&
-      buttonRef.current &&
-      !buttonRef.current.contains(target)
+      menuRef.current?.contains(target) ||
+      buttonRef.current?.contains(target) ||
+      ignoreRef?.current?.contains(target)
     ) {
-      setIsOpen(false)
+      return
     }
+
+    setIsOpen(false)
   }
 
   document.addEventListener('pointerdown', handlePointerDown)
@@ -47,7 +73,7 @@ export default function CustomiseMenu({
   return () => {
     document.removeEventListener('pointerdown', handlePointerDown)
   }
-}, [isOpen])
+}, [isOpen, ignoreRef])
 
 
 // Variables

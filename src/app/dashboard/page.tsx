@@ -12,6 +12,9 @@ import UnlockToast from '@/components/UnlockToast'
 import FlipToast from '@/components/FlipToast'
 
 export default function DashboardPage() {
+
+  // useState
+
   const [status, setStatus] = useState<boolean>(false)
   const [flipCount, setFlipCount] = useState<number>(0)
   const [appearance, setAppearance] = useState<Appearance>(defaultAppearance)
@@ -23,8 +26,12 @@ export default function DashboardPage() {
   const [unlockToasts, setUnlockToasts] = useState<string[]>([])
   const [flipToastKey, setFlipToastKey] = useState<number | null>(null)
 
-    const flipTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-    const appearanceTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  // useRef
+
+  const appearanceTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const flipTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const flipButtonRef = useRef<HTMLButtonElement | null>(null)
 
     const reloadProfile = () => {
       const profile = loadProfile()
@@ -215,6 +222,7 @@ return (
     appearance={appearance}
     />
     <button
+      ref={flipButtonRef}
       onClick={handleFlip}
       disabled={flipPending}
       aria-pressed={status}
@@ -236,6 +244,7 @@ return (
       appearance={appearance}
       unlocks={unlocks}
       onChange={handleAppearanceChange}
+      ignoreRef={flipButtonRef}
     />
 
     </Section>
