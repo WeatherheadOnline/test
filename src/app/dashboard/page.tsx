@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import BitDisplay from '@/components/BitDisplay'
 import Section from '@/components/Section'
@@ -15,76 +15,72 @@ export default function DashboardPage() {
     const [saving, setSaving] = useState(false)
     const [appearance, setAppearance] = useState<Appearance>(defaultAppearance)
 
-  useEffect(() => {
-    const loadStatus = async () => {
-        const {
-            data: { user },
-        } = await supabase.auth.getUser()
+    const flipTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-        if (!user) {
-            setLoading(false)
-            return
-        }
+    const reloadProfile = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
 
-        const { data, error } = await supabase
-            .from('profiles')
-            .select('status, flip_count, appearance')
-            .eq('id', user.id)
-            .single()
+      if (!user) return
 
-        if (!error && data) {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('status, flip_count, appearance')
+        .eq('id', user.id)
+        .single()
+
+      if (!error && data) {
         setStatus(data.status)
         setFlipCount(data.flip_count)
         setAppearance({
-            ...defaultAppearance,
-            ...data.appearance,
+          ...defaultAppearance,
+          ...data.appearance,
         })
-        }
-
-
-      setLoading(false)
+      }
     }
 
-    loadStatus()
+
+  useEffect(() => {
+    reloadProfile().finally(() => setLoading(false))
   }, [])
+
 
   if (loading) return <p>Loading…</p>
   if (status === null) return <p>Not logged in</p>
 
-const handleFlip = async () => {
+
+
+  const handleFlip = () => {
   if (status === null || saving) return
 
-  const nextStatus = !status
-  const nextFlipCount = flipCount + 1
+  // optimistic UI update
+  setStatus(prev => !prev)
+  setFlipCount(prev => prev + 1)
 
-  // Optimistic UI update
-  setStatus(nextStatus)
-  setFlipCount(nextFlipCount)
-  setSaving(true)
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) return
-
-  const { error } = await supabase
-    .from('profiles')
-    .update({
-      status: nextStatus,
-      flip_count: nextFlipCount,
-    })
-    .eq('id', user.id)
-
-  if (error) {
-    // rollback on failure
-    setStatus(status)
-    setFlipCount(flipCount)
-    console.error(error)
+  // debounce backend write
+  if (flipTimeoutRef.current) {
+    clearTimeout(flipTimeoutRef.current)
   }
 
-  setSaving(false)
+  flipTimeoutRef.current = setTimeout(async () => {
+    setSaving(true)
+
+    const { data, error } = await supabase.rpc('flip_bit')
+
+    if (error || !data || data.length === 0) {
+      console.error(error)
+      await reloadProfile() // rollback
+    } else {
+      // reconcile with authoritative values
+      setStatus(data[0].status)
+      setFlipCount(data[0].flip_count)
+    }
+
+    setSaving(false)
+  }, 400)
 }
+
 
 //   The return statement
 
@@ -107,15 +103,11 @@ return (
     >
         Flip bit
     </button>
-
-
+    
     <CustomiseMenu
       appearance={appearance}
       onChange={setAppearance}
     />
-
-
-
 
     <p aria-live="polite" style={{ marginTop: '1rem' }}>
         Flipped <strong>{flipCount}</strong> times
