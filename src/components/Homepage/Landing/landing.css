@@ -6,9 +6,8 @@
     width: 50%;
 }
 
-.landing-right-side span {
+.landing-right-side div:first-child span {
     display: block;
-    text-align: center;
 }
 
 .landing-left-side {

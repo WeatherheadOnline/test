@@ -53,3 +53,12 @@ h2 {
   font-family: Caprasimo, sans-serif;
   font-size: 2rem;
 }
+
+.text-align-center {
+  text-align: center;
+}
+
+.error {
+  color: red;
+  margin-top: 8px;
+}

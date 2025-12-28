@@ -1,20 +1,21 @@
 'use client'
 
-import React from 'react'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 
 export default function LogoutButton() {
-    const logoutFunction = () => {
-        async () => {
-            await supabase.auth.signOut()
-            alert("Logged out")
-            window.location.href = '/'
+  const router = useRouter()
 
-        }
-    }
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+
+    // ✅ redirect to homepage
+    router.push('/')
+  }
+
   return (
-    <button onClick={logoutFunction}>
-        Log out
+    <button onClick={handleLogout}>
+      Log out
     </button>
-    )
+  )
 }

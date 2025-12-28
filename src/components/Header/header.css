@@ -91,7 +91,8 @@ nav {
         gap: 0.5rem calc(10vw - 3rem);
     }
 }
-nav p {
+nav a {
+    text-decoration: none;
     @media screen and (any-hover: none) and (orientation: landscape) {
         text-align: center;
         margin: 1vh;
@@ -102,4 +103,3 @@ nav p {
         padding: 0.2rem 0.5rem;
     }
 }
-nav a {text-decoration: none;}
