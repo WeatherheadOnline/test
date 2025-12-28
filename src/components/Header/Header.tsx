@@ -16,9 +16,9 @@ export default function Header() {
         </div>
 
         <nav>
-            <a className="navlink" id="aboutLink" href=""><p>Settings</p></a>
-            <a className="navlink" id="effectsLink" href="./dashboard"><p>Dashboard</p></a>
-            <a className="navlink" id="effectsLink" href="./"><p>Home</p></a>
+            <a className="navlink" id="" href=""><p>Settings</p></a>
+            <a className="navlink" id="" href="./dashboard"><p>Dashboard</p></a>
+            <a className="navlink" id="" href="./"><p>Home</p></a>
             {/* <LogoutButton /> */}
             <button
                 onClick={async () => {

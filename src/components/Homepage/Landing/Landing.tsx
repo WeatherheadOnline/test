@@ -1,6 +1,5 @@
-import LoginForm from "@/components/Login/Login"
+import LoginForm from "@/components/LoginComponent/LoginComponent"
 import './landing.css'
-import LogoutButton from "@/components/LogoutButton/LogoutButton"
 
 export default function Landing() {
     return (
@@ -15,7 +14,6 @@ export default function Landing() {
             <p className="landing-tagline"><span>Post a zero or a one.</span><span>Then you're done.</span></p>
           </div>
           <LoginForm />
-          <LogoutButton />
         </div>
       </section>
     )

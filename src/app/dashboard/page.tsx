@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useRef } from "react";
 import BitDisplay from "@/components/BitDisplay/BitDisplay";
-import Section from "@/components/Section";
 import { Appearance } from "@/types/appearance";
 import { defaultAppearance } from "@/lib/defaultAppearance";
 import CustomiseMenu from "@/components/CustomiseMenu/CustomiseMenu";

@@ -1,8 +1,4 @@
 /**
- * Single source of truth for all unlocks
- */
-
-/**
  * Each entry represents:
  * - when it unlocks (flipsRequired)
  * - what it unlocks (ids)

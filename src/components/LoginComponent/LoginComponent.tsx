@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import './login.css'
+import './loginComponent.css'
 
 export default function LoginForm() {
   const [email, setEmail] = useState('')
