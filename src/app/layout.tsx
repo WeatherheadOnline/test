@@ -22,10 +22,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head><title>Hello</title></head>
       <body className={`caprasimo.variable`}>
-        {children}
         <Header />
+        {children}
       </body>
     </html>
   );

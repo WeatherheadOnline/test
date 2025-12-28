@@ -1,31 +1,72 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
-import Link from 'next/link'
-import LogoutButton from '../LogoutButton/LogoutButton'
-import './header.css'
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
+import Link from "next/link";
+import LogoutButton from "../LogoutButton/LogoutButton";
+import "./header.css";
 
 export default function Header() {
-  const [loggedIn, setLoggedIn] = useState(false)
+  const [loggedIn, setLoggedIn] = useState(false);
+const [ready, setReady] = useState(false)
+
+//   useEffect(() => {
+//     // Initial session check
+//     supabase.auth.getUser().then(({ data }) => {
+//       setLoggedIn(!!data.session);
+//     });
+
+//     // Listen for auth changes
+//     const {
+//       data: { subscription },
+//     } = supabase.auth.onAuthStateChange((_event, session) => {
+//       setLoggedIn(!!session);
+//     });
+
+//     return () => {
+//       subscription.unsubscribe();
+//     };
+//   }, []);
+
+useEffect(() => {
+  let mounted = true
+
+  const init = async () => {
+    // 1️⃣ Wait for Supabase to rehydrate session
+    const { data } = await supabase.auth.getUser()
+
+    if (!mounted) return
+
+    setLoggedIn(!!data.user)
+    setReady(true)
+  }
+
+  init()
+
+  // 2️⃣ Listen for future auth changes
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange((_event, session) => {
+    setLoggedIn(!!session?.user)
+  })
+
+  return () => {
+    mounted = false
+    subscription.unsubscribe()
+  }
+}, [])
 
   useEffect(() => {
-    // Initial session check
-    supabase.auth.getSession().then(({ data }) => {
-      setLoggedIn(!!data.session)
-    })
+  supabase.auth.getUser().then(({ data }) => {
+    setLoggedIn(!!data.user)
+    setReady(true)
+  })
+}, [])
 
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setLoggedIn(!!session)
-    })
-
-    return () => {
-      subscription.unsubscribe()
-    }
-  }, [])
+// if (!ready) return null
+if (!ready) {
+  return <header style={{ height: 64 }} />
+}
 
   return (
     <header>
@@ -35,28 +76,16 @@ export default function Header() {
         </a>
       </div>
 
-
-<nav>
-  <Link className="navlink" href="/dashboard">Dashboard</Link>
-  <Link className="navlink" href="/">Home</Link>
+      <nav>
+        <Link className="navlink" href="/dashboard">
+          Dashboard
+        </Link>
+        <Link className="navlink" href="/">
+          Home
+        </Link>
         {/* Only this depends on auth */}
-  {loggedIn && <LogoutButton />}
-</nav>
-
-        {/* <div id="menu-wrapper">
-            <div id="hamburger">
-                <img src="../../assets/hamburger.png" />
-            </div>
-            <div id="menu">
-                <span id="closeMenu">&times;</span>
-                <a href="#Home"><h4>Home</h4></a>
-                <a href="#About"><h4>About</h4></a>
-                <a href="#Effects"><h4>Special Effects</h4></a>
-                <a href="#Portfolio"><h4>Portfolio</h4></a>
-                <a href="#Contact"><h4>Contact</h4></a>
-            </div>
-        </div>
-        <p></p> */}
+        {loggedIn && <LogoutButton />}
+      </nav>
     </header>
-  )
+  );
 }
