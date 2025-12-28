@@ -26,7 +26,11 @@ export default function Home() {
       return;
     }
 
-    const normalizedUsername = username.trim().toLowerCase();
+
+//  Preserve user-preferred username case
+    const rawUsername = username.trim()
+    const normalizedUsername = rawUsername.toLowerCase()
+    const displayName = rawUsername
 
     // 1. Create auth user
     const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -48,18 +52,34 @@ export default function Home() {
     }
 
     // 2. Create profile row
+    // const { error: profileError } = await supabase
+    //   .from("profiles")
+    //   .update({
+    //     id: authData.user.id,
+    //     username: normalizedUsername,
+    //     status: true,
+    //     flip_count: 0,
+    //     appearance: {},
+    //     unlocks: [],
+    //     accessories: {},
+    //   })
+    //   .eq("id", authData.user.id);
+
     const { error: profileError } = await supabase
-      .from("profiles")
-      .update({
-        id: authData.user.id,
-        username: normalizedUsername,
-        status: true,
-        flip_count: 0,
-        appearance: {},
-        unlocks: [],
-        accessories: {},
-      })
-      .eq("id", authData.user.id);
+  .from("profiles")
+  .upsert(
+    {
+      id: authData.user.id,
+      username: normalizedUsername,   // canonical (lowercase)
+      display_name: displayName,      // 👈 STORE PREFERRED CASE
+      status: true,
+      flip_count: 0,
+      appearance: {},
+      unlocks: [],
+      accessories: {},
+    },
+    { onConflict: "id" }
+  );
 
     if (profileError) {
       // 🔴 UNIQUE violation (username taken)

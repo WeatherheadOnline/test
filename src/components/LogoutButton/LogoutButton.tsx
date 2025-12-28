@@ -9,7 +9,7 @@ export default function LogoutButton() {
   const handleLogout = async () => {
     await supabase.auth.signOut()
 
-    // ✅ redirect to homepage
+    //  redirect to homepage
     router.push('/')
   }
 

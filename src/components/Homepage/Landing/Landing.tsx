@@ -1,63 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
-import type { User } from "@supabase/supabase-js";
 import LoginForm from "@/components/LoginForm/LoginForm";
+import { useUser } from "@/providers/UserProvider";
 import "./landing.css";
 
 export default function Landing() {
-  const [loading, setLoading] = useState(true);
-  const [loggedIn, setLoggedIn] = useState(false);
-  const [username, setUsername] = useState<string | null>(null);
-
-  useEffect(() => {
-    let mounted = true;
-
-    const loadUser = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (!mounted) return;
-
-      if (!session) {
-        setLoggedIn(false);
-        setUsername(null);
-        setLoading(false);
-        return;
-      }
-
-      setLoggedIn(true);
-
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("username")
-        .eq("id", session.user.id)
-        .single();
-
-      if (!mounted) return;
-
-      if (!error && data) {
-        setUsername(data.username);
-      }
-
-      setLoading(false);
-    };
-
-    loadUser();
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(() => {
-      loadUser();
-    });
-
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
-  }, []);
+  const { user, profile, loading } = useUser();
 
   return (
     <section className="page-section landing-section">
@@ -85,9 +34,14 @@ export default function Landing() {
           </p>
         </div>
 
-        {!loading && loggedIn && username && <h2>Welcome {username}</h2>}
-        {loggedIn && !username && <h2>Welcome</h2>}
-        {!loggedIn && <LoginForm />}
+        {!loading && user && (
+          <h2>
+  Welcome
+  {profile?.display_name ? ` ${profile.display_name}` : ""}
+</h2>
+        )}
+
+        {!loading && !user && <LoginForm />}
       </div>
     </section>
   );

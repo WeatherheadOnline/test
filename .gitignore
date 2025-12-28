@@ -42,3 +42,4 @@ next-env.d.ts
 
 # Mine (Eddie's)
 /scratch/
+/src - backup before reverting useuser stuff/

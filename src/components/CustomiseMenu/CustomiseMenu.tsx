@@ -108,9 +108,7 @@ export default function CustomiseMenu({
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
           style={{
-            // visibility: isOpen ? "visible" : "hidden",
             display: isOpen ? "block" : "none",
-            // transform: isOpen ? 'translateY(0)' : 'translateY(100%)',
           }}
         >
           {/* Fill section */}

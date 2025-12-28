@@ -17,7 +17,9 @@ export async function POST(req: Request) {
       )
     }
 
-    let email = identifier.trim().toLowerCase()
+    const rawIdentifier = identifier.trim()
+
+    let email: string
 
     // 🔐 Admin client (lookup only)
     const supabaseAdmin = createClient(
@@ -25,73 +27,65 @@ export async function POST(req: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
-    if (!isEmail(email)) {
-      const { data: profile } = await supabaseAdmin
+    if (isEmail(rawIdentifier)) {
+      // Email login
+      email = rawIdentifier
+    } else {
+      // Username login (canonicalized)
+      const canonicalUsername = rawIdentifier.toLowerCase()
+
+      const { data: profile, error } = await supabaseAdmin
         .from('profiles')
         .select('id')
-        .eq('username', email)
+        .eq('username', canonicalUsername)
         .single()
 
-      if (!profile) {
+      if (error || !profile) {
         return NextResponse.json(
           { ok: false, error: 'Invalid username or password' },
           { status: 401 }
         )
       }
 
-      const { data: userData } =
+      const { data: userData, error: userError } =
         await supabaseAdmin.auth.admin.getUserById(profile.id)
 
-      email = userData.user.email!
+      if (userError || !userData.user?.email) {
+        return NextResponse.json(
+          { ok: false, error: 'Invalid username or password' },
+          { status: 401 }
+        )
+      }
+
+      email = userData.user.email
     }
-
-    // ✅ Cookie-aware auth client
-    // const cookieStore = cookies()
-
-    // const supabase = createServerClient(
-    //   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    //   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    //   {
-    //     cookies: {
-    //       get(name: string) {
-    //         return cookieStore.get(name)?.value
-    //       },
-    //       set(name: string, value: string, options: any) {
-    //         cookieStore.set({ name, value, ...options })
-    //       },
-    //       remove(name: string, options: any) {
-    //         cookieStore.set({ name, value: '', ...options })
-    //       },
-    //     },
-    //   }
-    // )
 
     const cookieStore = await cookies()
 
-const supabase = createServerClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  {
-    cookies: {
-      get(name: string) {
-        return cookieStore.get(name)?.value
-      },
-      set(name: string, value: string, options: any) {
-        cookieStore.set({ name, value, ...options })
-      },
-      remove(name: string, options: any) {
-        cookieStore.set({ name, value: '', ...options })
-      },
-    },
-  }
-)
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value
+          },
+          set(name: string, value: string, options: any) {
+            cookieStore.set({ name, value, ...options })
+          },
+          remove(name: string, options: any) {
+            cookieStore.set({ name, value: '', ...options })
+          },
+        },
+      }
+    )
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
 
-    if (error) {
+    if (signInError) {
       return NextResponse.json(
         { ok: false, error: 'Invalid username or password' },
         { status: 401 }
