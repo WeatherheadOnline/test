@@ -5,26 +5,29 @@ import BitDisplay from "@/components/BitDisplay/BitDisplay";
 import { Appearance } from "@/types/appearance";
 import { defaultAppearance } from "@/lib/defaultAppearance";
 import CustomiseMenu from "@/components/CustomiseMenu/CustomiseMenu";
-import { loadProfile, saveProfile } from "@/lib/localProfile";
 import { getUnlocksForFlipCount } from "@/lib/unlocks";
 import UnlockToast from "@/components/UnlockToast";
 import FlipToast from "@/components/FlipToast";
 import "@/styles/globals.css";
 import "./dashboard.css";
+import { useUser } from "@/providers/UserProvider";
+import { supabase } from "@/lib/supabase";
 
 export default function DashboardPage() {
+  const { user, profile, loading } = useUser();
+
   // useState
+
+  // const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [flipPending, setFlipPending] = useState(false);
+  const [unlockToasts, setUnlockToasts] = useState<string[]>([]);
+  const [flipToastKey, setFlipToastKey] = useState<number | null>(null);
 
   const [status, setStatus] = useState<boolean>(false);
   const [flipCount, setFlipCount] = useState<number>(0);
   const [appearance, setAppearance] = useState<Appearance>(defaultAppearance);
-
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [flipPending, setFlipPending] = useState(false);
   const [unlocks, setUnlocks] = useState<string[]>([]);
-  const [unlockToasts, setUnlockToasts] = useState<string[]>([]);
-  const [flipToastKey, setFlipToastKey] = useState<number | null>(null);
 
   // useRef
 
@@ -32,50 +35,66 @@ export default function DashboardPage() {
   const flipTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const flipButtonRef = useRef<HTMLButtonElement | null>(null);
 
-  const reloadProfile = () => {
-    const profile = loadProfile();
 
-    setStatus(profile.status);
-    setFlipCount(profile.flipCount);
-    setAppearance(profile.appearance);
-    setUnlocks(profile.unlocks);
-  };
+  useEffect(() => {
+  if (!appearance.fill) return;
 
-  const profile = loadProfile();
+  if (
+    appearance.fill.style === "gradient" &&
+    !unlocks.includes("fill:gradient")
+  ) {
+    setAppearance((prev) => ({
+      ...prev,
+      fill: {
+        ...prev.fill,
+        style: "solid",
+      },
+    }));
+  }
+}, [appearance.fill.style, unlocks]);
 
   const saveAppearanceDebounced = (nextAppearance: Appearance) => {
+    if (!user) return;
+
     if (appearanceTimeoutRef.current) {
       clearTimeout(appearanceTimeoutRef.current);
     }
 
-    appearanceTimeoutRef.current = setTimeout(() => {
-      const profile = loadProfile();
-
-      saveProfile({
-        ...profile,
-        appearance: nextAppearance,
-      });
+    appearanceTimeoutRef.current = setTimeout(async () => {
+      await supabase
+        .from("profiles")
+        .update({ appearance: nextAppearance })
+        .eq("id", user.id);
     }, 400);
   };
 
-  useEffect(() => {
-    reloadProfile();
-    setLoading(false);
-  }, []);
 
-  useEffect(() => {
-    const profile = loadProfile();
+useEffect(() => {
+  if (!profile) return;
 
-    if (
-      appearance.fill.style === "gradient" &&
-      !profile.unlocks.includes("fill:gradient")
-    ) {
-      setAppearance({
-        ...appearance,
-        fill: { ...appearance.fill, style: "solid" },
-      });
-    }
-  }, []);
+  setStatus(profile.status ?? false);
+  setFlipCount(profile.flip_count ?? 0);
+
+  setAppearance({
+    ...defaultAppearance,
+    ...(profile.appearance ?? {}),
+    fill: {
+      ...defaultAppearance.fill,
+      ...(profile.appearance?.fill ?? {}),
+    },
+    border: {
+      ...defaultAppearance.border,
+      ...(profile.appearance?.border ?? {}),
+    },
+    shadow: {
+      ...defaultAppearance.shadow,
+      ...(profile.appearance?.shadow ?? {}),
+    },
+  });
+
+  setUnlocks(profile.unlocks ?? []);
+}, [profile]);
+
 
   useEffect(() => {
     if (flipToastKey === null) return;
@@ -88,7 +107,7 @@ export default function DashboardPage() {
   }, [flipToastKey]);
 
   if (loading) return <p>Loading…</p>;
-  if (status === null) return <p>Not logged in</p>;
+  if (!user || !profile) return <p>Not logged in</p>;
 
   const unlockIdToLabel = (id: string): string | null => {
     if (id.startsWith("fill:")) return "Fill";
@@ -98,7 +117,7 @@ export default function DashboardPage() {
   };
 
   const handleFlip = () => {
-    if (flipPending) return;
+    if (flipPending || !user) return;
 
     // force-remount flip toast
     setFlipToastKey(Date.now());
@@ -113,22 +132,16 @@ export default function DashboardPage() {
       clearTimeout(flipTimeoutRef.current);
     }
 
-    flipTimeoutRef.current = setTimeout(() => {
-      setFlipPending(false);
+    flipTimeoutRef.current = setTimeout(async () => {
       setSaving(true);
 
-      const profile = loadProfile();
+      const nextStatus = !status;
+      const nextFlipCount = flipCount + 1;
 
-      const nextFlipCount = profile.flipCount + 1;
+      const nextUnlocks = getUnlocksForFlipCount(nextFlipCount, unlocks);
 
-      const nextUnlocks = getUnlocksForFlipCount(
-        nextFlipCount,
-        profile.unlocks
-      );
-
-      const newlyUnlocked = nextUnlocks.filter(
-        (id) => !profile.unlocks.includes(id)
-      );
+      // newly unlocked → toasts
+      const newlyUnlocked = nextUnlocks.filter((id) => !unlocks.includes(id));
 
       if (newlyUnlocked.length > 0) {
         const labels = newlyUnlocked
@@ -146,22 +159,32 @@ export default function DashboardPage() {
         }
       }
 
-      const nextProfile = {
-        ...profile,
-        status: !profile.status,
-        flipCount: nextFlipCount,
-        appearance: profile.appearance,
-        unlocks: nextUnlocks,
-      };
+      // persist to Supabase
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          status: nextStatus,
+          flip_count: nextFlipCount,
+          unlocks: nextUnlocks,
+        })
+        .eq("id", user.id);
 
-      saveProfile(nextProfile);
+      if (error) {
+        console.error("Failed to save flip:", error);
 
-      // reconcile UI with persisted state
-      setStatus(nextProfile.status);
-      setFlipCount(nextProfile.flipCount);
-      setUnlocks(nextProfile.unlocks);
+        // rollback UI if save fails
+        setStatus(status);
+        setFlipCount(flipCount);
+        setUnlocks(unlocks);
+      } else {
+        // reconcile UI with authoritative state
+        setStatus(nextStatus);
+        setFlipCount(nextFlipCount);
+        setUnlocks(nextUnlocks);
+      }
 
       setSaving(false);
+      setFlipPending(false);
     }, 250);
   };
 
@@ -169,13 +192,13 @@ export default function DashboardPage() {
     setAppearance(next); // optimistic
     saveAppearanceDebounced(next); // persistent
   };
+  
 
   //   The return statement
 
   return (
     <main>
-      <section className='page-section'>
-
+      <section className="page-section">
         {/* These things are outside the section-wrapper that constrains content width */}
 
         {/* Unlock toasts */}
@@ -222,11 +245,9 @@ export default function DashboardPage() {
           <p>bits</p>
         </div>
 
-
         {/* Here starts the section wrapper */}
 
         <div className="dashboard-container section-wrapper">
-
           <div className="bit-flip-wrapper">
             <BitDisplay value={status ? "1" : "0"} appearance={appearance} />
             {/* Flip switch: */}

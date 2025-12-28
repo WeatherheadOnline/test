@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import {
   createContext,
@@ -6,85 +6,107 @@ import {
   useEffect,
   useState,
   ReactNode,
-} from 'react'
-import { supabase } from '@/lib/supabase'
-import type { Session, User } from '@supabase/supabase-js'
+} from "react";
+import { supabase } from "@/lib/supabase";
+import type { Session, User } from "@supabase/supabase-js";
+
+// Can I delete this?
+type UserContextValue = {
+  user: User | null;
+  session: Session | null;
+  profile: Profile | null;
+  loading: boolean;
+};
+
+type DashboardProfile = {
+  status: boolean;
+  flip_count: number;
+  appearance: any;
+  unlocks: string[];
+
+  // future
+  background_pattern?: string | null;
+  background_color?: string | null;
+  accessories?: any;
+};
 
 type Profile = {
-  username: string | null
-  display_name: string | null
-}
+  username: string | null;
+  display_name: string | null;
+} & Partial<DashboardProfile>;
 
-type UserContextValue = {
-  user: User | null
-  session: Session | null
-  profile: Profile | null
-  loading: boolean
-}
-
-const UserContext = createContext<UserContextValue | undefined>(undefined)
+const UserContext = createContext<UserContextValue | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
-  const [session, setSession] = useState<Session | null>(null)
-  const [profile, setProfile] = useState<Profile | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let mounted = true
+    let mounted = true;
 
     const loadInitialSession = async () => {
-      const { data } = await supabase.auth.getSession()
+      const { data } = await supabase.auth.getSession();
 
-      if (!mounted) return
+      if (!mounted) return;
 
-      setSession(data.session)
-      setUser(data.session?.user ?? null)
+      setSession(data.session);
+      setUser(data.session?.user ?? null);
 
       if (data.session?.user) {
-        await loadProfile(data.session.user.id)
+        await loadProfile(data.session.user.id);
       }
 
-      setLoading(false)
-    }
+      setLoading(false);
+    };
 
     const loadProfile = async (userId: string) => {
       const { data, error } = await supabase
-        .from('profiles')
-        .select('username, display_name')
-        .eq('id', userId)
-        .single()
+        .from("profiles")
+        .select(
+          `
+            username,
+            display_name,
+            status,
+            flip_count,
+            appearance,
+            unlocks,
+            background_pattern,
+            background_color,
+            accessories
+            `
+        )
+        .eq("id", userId)
+        .single();
 
       if (!error && data) {
-        setProfile({
-  username: data.username,
-  display_name: data.display_name,
-})
+        setProfile(data);
       } else {
-        setProfile(null)
+        setProfile(null);
       }
-    }
+    };
 
-    loadInitialSession()
+    loadInitialSession();
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setSession(session)
-      setUser(session?.user ?? null)
+      setSession(session);
+      setUser(session?.user ?? null);
 
       if (session?.user) {
-        await loadProfile(session.user.id)
+        await loadProfile(session.user.id);
       } else {
-        setProfile(null)
+        setProfile(null);
       }
-    })
+    });
 
     return () => {
-      mounted = false
-      subscription.unsubscribe()
-    }
-  }, [])
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
 
   return (
     <UserContext.Provider
@@ -97,13 +119,13 @@ export function UserProvider({ children }: { children: ReactNode }) {
     >
       {children}
     </UserContext.Provider>
-  )
+  );
 }
 
 export function useUser() {
-  const ctx = useContext(UserContext)
+  const ctx = useContext(UserContext);
   if (!ctx) {
-    throw new Error('useUser must be used inside UserProvider')
+    throw new Error("useUser must be used inside UserProvider");
   }
-  return ctx
+  return ctx;
 }

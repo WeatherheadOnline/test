@@ -1,12 +1,17 @@
-import { Appearance } from '@/types/appearance'
-import './bitDisplay.css'
+import { Appearance } from "@/types/appearance";
+import "./bitDisplay.css";
 
 type BitDisplayProps = {
-  value: '0' | '1'
-  appearance: Appearance
-}
+  value: "0" | "1";
+  appearance: Appearance;
+};
 
 export default function BitDisplay({ value, appearance }: BitDisplayProps) {
+
+  if (!appearance.fill || !appearance.border || !appearance.shadow) {
+  return null;
+}
+
   /**
    * --------------------
    * Fill styles
@@ -14,57 +19,57 @@ export default function BitDisplay({ value, appearance }: BitDisplayProps) {
    */
 
   const fillStyle: React.CSSProperties = (() => {
-    const { style, primaryColor, secondaryColor } = appearance.fill
+    const { style, primaryColor, secondaryColor } = appearance.fill;
 
     switch (style) {
-      case 'solid':
+      case "solid":
         return {
           color: primaryColor,
-        }
+        };
 
-      case 'gradient':
+      case "gradient":
         return {
-          color: 'transparent',
+          color: "transparent",
           backgroundImage: `linear-gradient(135deg, ${primaryColor}, ${
             secondaryColor ?? primaryColor
           })`,
-          WebkitBackgroundClip: 'text',
-          backgroundClip: 'text',
-        }
+          WebkitBackgroundClip: "text",
+          backgroundClip: "text",
+        };
 
-case 'stripes': {
-  const direction =
-    appearance.fill.direction === 'horizontal'
-      ? '0deg'
-      : appearance.fill.direction === 'vertical'
-      ? '90deg'
-      : '45deg'
+      case "stripes": {
+        const direction =
+          appearance.fill.direction === "horizontal"
+            ? "0deg"
+            : appearance.fill.direction === "vertical"
+            ? "90deg"
+            : "45deg";
 
-  const stripeWidth =
-    appearance.fill.thickness === 'thin'
-      ? 8
-      : appearance.fill.thickness === 'thick'
-      ? 24
-      : 16
+        const stripeWidth =
+          appearance.fill.thickness === "thin"
+            ? 8
+            : appearance.fill.thickness === "thick"
+            ? 24
+            : 16;
 
-  return {
-    color: 'transparent',
-    backgroundImage: `repeating-linear-gradient(
+        return {
+          color: "transparent",
+          backgroundImage: `repeating-linear-gradient(
       ${direction},
       ${primaryColor},
       ${primaryColor} ${stripeWidth}px,
       ${secondaryColor ?? primaryColor} ${stripeWidth}px,
       ${secondaryColor ?? primaryColor} ${stripeWidth * 2}px
     )`,
-    WebkitBackgroundClip: 'text',
-    backgroundClip: 'text',
-  }
-}
+          WebkitBackgroundClip: "text",
+          backgroundClip: "text",
+        };
+      }
 
       default:
-        return {}
+        return {};
     }
-  })()
+  })();
 
   /**
    * --------------------
@@ -73,26 +78,22 @@ case 'stripes': {
    */
 
   const strokeStyle: React.CSSProperties = (() => {
-    const { style, thickness, primaryColor } = appearance.border
+    const { style, thickness, primaryColor } = appearance.border;
 
-    if (style === 'none') {
+    if (style === "none") {
       return {
-        WebkitTextStrokeWidth: '0px',
-      }
+        WebkitTextStrokeWidth: "0px",
+      };
     }
 
     const width =
-      thickness === 'thin'
-        ? '4px'
-        : thickness === 'medium'
-        ? '8px'
-        : '12px'
+      thickness === "thin" ? "4px" : thickness === "medium" ? "8px" : "12px";
 
     return {
       WebkitTextStrokeWidth: width,
-      WebkitTextStrokeColor: primaryColor ?? '#000000',
-    }
-  })()
+      WebkitTextStrokeColor: primaryColor ?? "#000000",
+    };
+  })();
 
   /**
    * --------------------
@@ -102,33 +103,32 @@ case 'stripes': {
 
   const shadowStyle: React.CSSProperties = (() => {
     switch (appearance.shadow.style) {
-      case 'none':
+      case "none":
         return {
-          textShadow: 'none',
-        }
+          textShadow: "none",
+        };
 
-      case 'soft':
+      case "soft":
         return {
-          textShadow: '0 24px 40px rgba(0,0,0,0.35)',
-        }
+          textShadow: "0 24px 40px rgba(0,0,0,0.35)",
+        };
 
-      case 'hard':
+      case "hard":
         return {
-          textShadow: '0 16px 0 rgba(0,0,0,0.6)',
-        }
+          textShadow: "0 16px 0 rgba(0,0,0,0.6)",
+        };
 
-      case 'grounded':
+      case "grounded":
         return {
-          textShadow:
-            '0 32px 30px rgba(0,0,0,0.4)',
-          transform: 'translateY(-0.1em) scaleY(0.5) skewX(20deg)',
-          transformOrigin: 'bottom center',
-        }
+          textShadow: "0 32px 30px rgba(0,0,0,0.4)",
+          transform: "translateY(-0.1em) scaleY(0.5) skewX(20deg)",
+          transformOrigin: "bottom center",
+        };
 
       default:
-        return {}
+        return {};
     }
-  })()
+  })();
 
   return (
     <div
@@ -136,7 +136,7 @@ case 'stripes': {
       role="img"
       aria-label={`Your bit is ${value}`}
       style={{
-        position: 'relative',
+        position: "relative",
         lineHeight: 1,
         fontWeight: 800,
       }}
@@ -145,9 +145,9 @@ case 'stripes': {
       <span
         aria-hidden
         style={{
-          position: 'absolute',
+          position: "absolute",
           inset: 0,
-          color: 'transparent',
+          color: "transparent",
           zIndex: 1,
           ...shadowStyle,
         }}
@@ -159,9 +159,9 @@ case 'stripes': {
       <span
         aria-hidden
         style={{
-          position: 'absolute',
+          position: "absolute",
           inset: 0,
-          color: 'transparent',
+          color: "transparent",
           zIndex: 2,
           ...strokeStyle,
         }}
@@ -172,7 +172,7 @@ case 'stripes': {
       {/* Fill layer */}
       <span
         style={{
-          position: 'relative',
+          position: "relative",
           zIndex: 3,
           ...fillStyle,
         }}
@@ -180,5 +180,5 @@ case 'stripes': {
         {value}
       </span>
     </div>
-  )
+  );
 }
