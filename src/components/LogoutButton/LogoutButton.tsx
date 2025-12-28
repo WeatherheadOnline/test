@@ -7,7 +7,9 @@ export default function LogoutButton() {
     const logoutFunction = () => {
         async () => {
             await supabase.auth.signOut()
+            alert("Logged out")
             window.location.href = '/'
+
         }
     }
   return (

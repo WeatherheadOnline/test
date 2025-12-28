@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import LogoutButton from '@/components/LogoutButton/LogoutButton'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -53,6 +54,15 @@ export default function LoginPage() {
       {error && <p style={{ color: 'red' }}>{error}</p>}
       <button onClick={() => setIsSignUp(!isSignUp)} style={{ marginTop: '1rem' }}>
         {isSignUp ? 'Already have an account? Login' : "Don't have an account? Sign Up"}
+      </button>
+      <button
+        onClick={async () => {
+          await supabase.auth.signOut()
+          alert("Logged out")
+        }}
+      >
+        Log out
+
       </button>
     </main>
   )

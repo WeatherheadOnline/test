@@ -1,6 +1,6 @@
 header {
     isolation: isolate;
-    z-index: 2;
+    z-index: 100;
     position: fixed;
     height: max-content;
     width: 100vw;
