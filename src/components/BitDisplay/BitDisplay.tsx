@@ -1,4 +1,5 @@
 import { Appearance } from '@/types/appearance'
+import './bitDisplay.css'
 
 type BitDisplayProps = {
   value: '0' | '1'
@@ -131,11 +132,11 @@ case 'stripes': {
 
   return (
     <div
+      className="giant-bit"
       role="img"
       aria-label={`Your bit is ${value}`}
       style={{
         position: 'relative',
-        fontSize: '18rem',
         lineHeight: 1,
         fontWeight: 800,
       }}

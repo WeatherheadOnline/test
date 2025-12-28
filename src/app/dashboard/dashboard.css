@@ -1,4 +1,5 @@
 .flip-count-card {
+    /* visibility: hidden; */
     position: absolute;
     left: 0;
     top: 5rem;
@@ -17,5 +18,40 @@
 
 .bit-count-binary {
     font-family: Caprasimo, sans-serif
+}
+
+.dashboard-container {
+
+}
+
+.bit-flip-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+@keyframes unlock-toast-exit {
+  from {
+    opacity: 0.95;
+    transform: translateY(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes flip-toast-exit {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
 }
 

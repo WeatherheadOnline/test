@@ -1,3 +1,4 @@
-.giant-bit-container {
-  font-size: clamp(12rem, 30vw, 30rem);
+.giant-bit {
+  font-size: clamp(20rem, 35vw, 30rem);
+  font-family: Caprasimo;
 }

@@ -1,0 +1,30 @@
+.feed-cards-wrapper {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.feed-card {
+    display: flex;
+    padding: 1rem;
+    width: 15rem;
+    gap: 1rem;
+    border: 1px solid black;
+}
+
+.feed-bit {
+    font-family: Caprasimo, sans-serif;
+    font-size: 3rem;
+    font-weight: bold;
+}
+
+.feed-username {
+    word-break: break-all;
+}
+
+.feed-text {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}

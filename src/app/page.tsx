@@ -2,6 +2,9 @@
 
 import { useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
+import Landing from '@/components/Homepage/Landing/Landing'
+import What from '@/components/Homepage/What/What'
+import Feed from '@/components/Feed/Feed'
 
 export default function Home() {
   useEffect(() => {
@@ -12,8 +15,9 @@ export default function Home() {
 
   return (
     <main>
-      <h1>onebit</h1>
-      <p>Check the console</p>
+      <Landing />
+      <What />
+      <Feed />
     </main>
   )
 }

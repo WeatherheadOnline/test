@@ -7,7 +7,7 @@ type SectionProps = {
 
 export default function Section({
   children,
-  minHeight = 'auto',
+  minHeight = '100vh',
 }: SectionProps) {
   return (
     <section
