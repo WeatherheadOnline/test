@@ -42,6 +42,21 @@ export default function Header() {
         {/* Only this depends on auth */}
   {loggedIn && <LogoutButton />}
 </nav>
+
+        {/* <div id="menu-wrapper">
+            <div id="hamburger">
+                <img src="../../assets/hamburger.png" />
+            </div>
+            <div id="menu">
+                <span id="closeMenu">&times;</span>
+                <a href="#Home"><h4>Home</h4></a>
+                <a href="#About"><h4>About</h4></a>
+                <a href="#Effects"><h4>Special Effects</h4></a>
+                <a href="#Portfolio"><h4>Portfolio</h4></a>
+                <a href="#Contact"><h4>Contact</h4></a>
+            </div>
+        </div>
+        <p></p> */}
     </header>
   )
 }

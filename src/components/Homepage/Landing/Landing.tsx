@@ -7,25 +7,75 @@ import LoginForm from '@/components/LoginComponent/LoginComponent'
 import './landing.css'
 
 export default function Landing() {
-  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [loggedIn, setLoggedIn] = useState(false)
+  const [username, setUsername] = useState<string | null>(null)
+
+  // const [user, setUser] = useState<User | null>(null)
+
+  // useEffect(() => {
+  //   // Initial session check
+  //   supabase.auth.getSession().then(({ data }) => {
+  //     setUser(data.session?.user ?? null)
+  //   })
+
+  //   // React to login/logout
+  //   const {
+  //     data: { subscription },
+  //   } = supabase.auth.onAuthStateChange((_event, session) => {
+  //     setUser(session?.user ?? null)
+  //   })
+
+  //   return () => {
+  //     subscription.unsubscribe()
+  //   }
+  // }, [])
 
   useEffect(() => {
-    // Initial session check
-    supabase.auth.getSession().then(({ data }) => {
-      setUser(data.session?.user ?? null)
-    })
+  let mounted = true
 
-    // React to login/logout
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
-    })
+  const loadUser = async () => {
+    const { data: { session } } = await supabase.auth.getSession()
 
-    return () => {
-      subscription.unsubscribe()
+    if (!mounted) return
+
+    if (!session) {
+      setLoggedIn(false)
+      setUsername(null)
+      setLoading(false)
+      return
     }
-  }, [])
+
+    setLoggedIn(true)
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('username')
+      .eq('id', session.user.id)
+      .single()
+
+    if (!mounted) return
+
+    if (!error && data) {
+      setUsername(data.username)
+    }
+
+    setLoading(false)
+  }
+
+  loadUser()
+
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange(() => {
+    loadUser()
+  })
+
+  return () => {
+    mounted = false
+    subscription.unsubscribe()
+  }
+}, [])
 
   return (
     <section className="page-section landing-section">
@@ -45,13 +95,20 @@ export default function Landing() {
           </p>
         </div>
 
-{user ? (
+{/* {user ? (
         <div>
           <p>You are logged in as <span>{user.email}</span></p>
         </div>
       ) : (
         <LoginForm />
-      )}
+      )} */}
+
+{!loading && loggedIn && username && (
+  <h2>Welcome {username}</h2>
+)}
+{loggedIn && !username && <h2>Welcome</h2>}
+{!loggedIn && <LoginForm />}
+
 
         {/* {!loggedIn && <LoginForm />} */}
       </div>

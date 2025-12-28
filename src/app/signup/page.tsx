@@ -83,6 +83,11 @@ const handleSignup = async (e: React.FormEvent) => {
   setLoading(false)
   // ✅ success — auth + profile created
   router.push('/dashboard')
+//   Later, change push('/dashboard') to this:
+// if (!authData.session) {
+//   router.push('/check-your-email')
+//   return
+// }
 }
 
     return (
