@@ -5,6 +5,7 @@
   display: grid;
   place-items: center;
   z-index: 2000;
+  overflow: hidden;
 }
 
 .share-modal {
@@ -26,4 +27,9 @@
 
 .share-close {
   margin-top: 0.5rem;
+}
+
+.share-modal:focus {
+  outline: 2px solid #000;
+  outline-offset: 2px;
 }
