@@ -1,27 +1,64 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import "./feed.css";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/providers/UserProvider";
 
 type FeedProfile = {
+  id: string;
   username: string;
   display_name: string | null;
   status: boolean;
   flip_count: number;
+  isFollowing: boolean;
 };
 
 export default function Feed() {
   const PAGE_SIZE = 4;
+  const UNFOLLOW_CONFIRM_TIMEOUT = 4000;
 
-  const { profile, loading: userLoading } = useUser();
+  const { user, profile, loading: userLoading } = useUser();
 
   const [profiles, setProfiles] = useState<FeedProfile[]>([]);
   const [offset, setOffset] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
+  const [onlyFollowing, setOnlyFollowing] = useState(false);
+
+  // two-stage unfollow state
+  const [pendingUnfollowId, setPendingUnfollowId] = useState<string | null>(
+    null
+  );
+  const unfollowTimeoutRef = useRef<number | null>(null);
+
+  /* -----------------------------------------
+     Helpers
+  ------------------------------------------*/
+
+  const fetchFollowingIds = async (): Promise<Set<string>> => {
+    if (!user) return new Set();
+
+    const { data } = await supabase
+      .from("followers")
+      .select("following_id")
+      .eq("follower_id", user.id);
+
+    return new Set((data ?? []).map((f) => f.following_id));
+  };
+
+  const resetPendingUnfollow = () => {
+    setPendingUnfollowId(null);
+    if (unfollowTimeoutRef.current) {
+      window.clearTimeout(unfollowTimeoutRef.current);
+      unfollowTimeoutRef.current = null;
+    }
+  };
+
+  /* -----------------------------------------
+     Initial page load
+  ------------------------------------------*/
 
   const loadInitialPage = async () => {
     setLoading(true);
@@ -31,16 +68,17 @@ export default function Feed() {
       .from("profiles")
       .select(
         `
-      username,
-      display_name,
-      status,
-      flip_count
-    `
+        id,
+        username,
+        display_name,
+        status,
+        flip_count
+      `
       )
       .order("created_at", { ascending: false })
       .range(0, PAGE_SIZE - 1);
 
-    if (error) {
+    if (error || !data) {
       setError("Failed to load feed");
       setProfiles([]);
       setHasMore(false);
@@ -48,11 +86,18 @@ export default function Feed() {
       return;
     }
 
+    const followingIds = await fetchFollowingIds();
+
     const filtered = profile?.username
       ? data.filter((p) => p.username !== profile.username)
       : data;
 
-    setProfiles(filtered);
+    const merged: FeedProfile[] = filtered.map((p) => ({
+      ...p,
+      isFollowing: followingIds.has(p.id),
+    }));
+
+    setProfiles(merged);
     setOffset(PAGE_SIZE);
     setHasMore(data.length === PAGE_SIZE);
     setLoading(false);
@@ -63,6 +108,10 @@ export default function Feed() {
     loadInitialPage();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userLoading, profile?.username]);
+
+  /* -----------------------------------------
+     Pagination
+  ------------------------------------------*/
 
   const loadMore = async () => {
     if (loading || !hasMore) return;
@@ -76,26 +125,34 @@ export default function Feed() {
       .from("profiles")
       .select(
         `
-      username,
-      display_name,
-      status,
-      flip_count
-    `
+        id,
+        username,
+        display_name,
+        status,
+        flip_count
+      `
       )
       .order("created_at", { ascending: false })
       .range(from, to);
 
-    if (error) {
+    if (error || !data) {
       setError("Failed to load feed");
       setLoading(false);
       return;
     }
 
+    const followingIds = await fetchFollowingIds();
+
     const filtered = profile?.username
       ? data.filter((p) => p.username !== profile.username)
       : data;
 
-    setProfiles((prev) => [...prev, ...filtered]);
+    const merged: FeedProfile[] = filtered.map((p) => ({
+      ...p,
+      isFollowing: followingIds.has(p.id),
+    }));
+
+    setProfiles((prev) => [...prev, ...merged]);
     setOffset((prev) => prev + PAGE_SIZE);
 
     if (data.length < PAGE_SIZE) {
@@ -105,45 +162,91 @@ export default function Feed() {
     setLoading(false);
   };
 
-  const sortAndFilter = () => {};
+  /* -----------------------------------------
+     Follow / unfollow
+  ------------------------------------------*/
 
-  const showFollowingCard = () => {}
+  const confirmUnfollow = async (person: FeedProfile) => {
+    if (!user) return;
 
-  // The return statement
+    await supabase
+      .from("followers")
+      .delete()
+      .eq("follower_id", user.id)
+      .eq("following_id", person.id);
+
+    setProfiles((prev) =>
+      prev.map((p) => (p.id === person.id ? { ...p, isFollowing: false } : p))
+    );
+
+    resetPendingUnfollow();
+  };
+
+  const handleFollowClick = async (person: FeedProfile) => {
+    if (!user) return;
+
+    await supabase.from("followers").insert({
+      follower_id: user.id,
+      following_id: person.id,
+    });
+
+    setProfiles((prev) =>
+      prev.map((p) => (p.id === person.id ? { ...p, isFollowing: true } : p))
+    );
+  };
+
+  const handleFollowingClick = (person: FeedProfile) => {
+    // stage 1: ask for confirmation
+    setPendingUnfollowId(person.id);
+
+    if (unfollowTimeoutRef.current) {
+      window.clearTimeout(unfollowTimeoutRef.current);
+    }
+
+    unfollowTimeoutRef.current = window.setTimeout(() => {
+      resetPendingUnfollow();
+    }, UNFOLLOW_CONFIRM_TIMEOUT);
+  };
+
+  /* -----------------------------------------
+     Client-side filter
+  ------------------------------------------*/
+
+  const visibleProfiles = useMemo(() => {
+    if (!onlyFollowing) return profiles;
+    return profiles.filter((p) => p.isFollowing);
+  }, [profiles, onlyFollowing]);
+
+  /* -----------------------------------------
+     Render
+  ------------------------------------------*/
 
   return (
-    <section className="page-section">
+    <section className="page-section" onClick={resetPendingUnfollow}>
       <div className="section-wrapper">
         <h2>What people are flipping</h2>
+
         <div className="feed-controls">
           <label>
-            <input type="checkbox"></input>
+            <input
+              type="checkbox"
+              checked={onlyFollowing}
+              onChange={(e) => setOnlyFollowing(e.target.checked)}
+            />
             Only show people I'm following
           </label>
-          <form onSubmit={sortAndFilter}>
-            <label htmlFor="sortOptions">Sort by:</label>
-            <div className="dropdowns-wrapper">
-              <select name="sortOptions" id="sortOptions">
-                <option value="">Please select...</option>
-                <option value="bitAscending">Bit (0 - 1)</option>
-                <option value="bitDescending">Bit (1 - 0)</option>
-                <option value="usernameAscending">Username (A - Z)</option>
-                <option value="usernameDescending">Username (Z - A)</option>
-                <option value="flipsDescending">Most flips</option>
-                <option value="flipsAscending">Least flips</option>
-              </select>
-            </div>
-            <button>Sort</button>
-            <p>(Add a filter)</p>
-            <button>Filter</button>
-          </form>
         </div>
+
         {loading && <p>Loading feed…</p>}
         {error && <p>{error}</p>}
 
         <div className="feed-cards-wrapper">
-          {profiles.map((person) => (
-            <article className="feed-card" key={person.username}>
+          {visibleProfiles.map((person) => (
+            <article
+              className="feed-card"
+              key={person.username}
+              onClick={(e) => e.stopPropagation()}
+            >
               <p className="feed-bit">{person.status ? "1" : "0"}</p>
 
               <div className="feed-text">
@@ -155,13 +258,33 @@ export default function Feed() {
                 </p>
               </div>
 
-              {/* Set to true iff this is a user you follow */}
-              {true && <button className="feed-following-badge">Following</button>}
-
-              {/* Set to true when user clicks button.feed-following-badge  */}
-              {/* Button onClick => unfollow this user */}
-              {/* Set to false when user clicks outside div.follow-modal */}
-              {false && <div className="follow-modal"><p>this user's name</p><button>Unfollow?</button></div>}
+              {person.isFollowing ? (
+                <button
+                  className={`feed-following-badge ${
+                    pendingUnfollowId === person.id ? "is-confirming" : ""
+                  }`}
+                  aria-label={
+                    pendingUnfollowId === person.id
+                      ? `Confirm unfollow ${person.username}`
+                      : `Following ${person.username}. Click to unfollow`
+                  }
+                  onClick={() =>
+                    pendingUnfollowId === person.id
+                      ? confirmUnfollow(person)
+                      : handleFollowingClick(person)
+                  }
+                >
+                  {pendingUnfollowId === person.id ? "Unfollow?" : "Following"}
+                </button>
+              ) : (
+                <button
+                  className="feed-follow-button"
+                  onClick={() => handleFollowClick(person)}
+                  aria-label={`Follow ${person.username}`}
+                >
+                  Follow
+                </button>
+              )}
             </article>
           ))}
         </div>

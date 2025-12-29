@@ -17,7 +17,7 @@ form {
 .feed-card {
     display: flex;
     padding: 1rem;
-    width: 15rem;
+    width: 20rem;
     gap: 1rem;
     border: 1px solid black;
     position: relative;
@@ -40,14 +40,18 @@ form {
 }
 
 .feed-following-badge {
-    position: absolute;
+    /* position: absolute;
     bottom: 0;
     right: 0;
     font-size: 0.8em;
-    padding: 0.1em;
+    padding: 0.1em; */
+    background-color: pink;
+}
+.feed-follow-button {
+    background-color: lightblue;
 }
 
-.follow-modal {
+/* .follow-modal {
     position: absolute;
     height: 100%;
     width: 100%;
@@ -60,4 +64,41 @@ form {
     align-items: center;
     justify-content: center;
     gap: 1rem;
+} */
+
+
+/* ~~~~~~~~~~~~~~~~~~~~~~ */
+
+/* Added for follow/unfollow button animation: */
+
+.feed-following-badge {
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    transform 120ms ease,
+    box-shadow 120ms ease;
+}
+
+/* Confirmation state */
+.feed-following-badge.is-confirming {
+  background-color: rgba(220, 38, 38, 0.1); /* soft red tint */
+  color: #b91c1c;
+  transform: scale(1.04);
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.25);
+}
+
+/* Optional hover refinement */
+.feed-following-badge.is-confirming:hover {
+  background-color: rgba(220, 38, 38, 0.15);
+}
+
+/* Accessibility: respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .feed-following-badge {
+    transition: none;
+  }
+
+  .feed-following-badge.is-confirming {
+    transform: none;
+  }
 }
