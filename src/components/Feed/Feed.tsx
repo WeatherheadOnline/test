@@ -18,7 +18,14 @@ type FeedProfile = {
 export default function Feed() {
   const PAGE_SIZE = 4;
 
-  const { user, profile, loading: userLoading } = useUser();
+
+const {
+  user,
+  profile,
+  loading: userLoading,
+  followingIds,
+  refreshFollowing,
+} = useUser();
 
   const [profiles, setProfiles] = useState<FeedProfile[]>([]);
   const [offset, setOffset] = useState(0);
@@ -31,25 +38,13 @@ export default function Feed() {
      Data fetching
   ------------------------------------------*/
 
+
 const fetchFeedPage = async (
   from: number,
   to: number
 ): Promise<FeedProfile[]> => {
   if (!user) return [];
 
-  // 1. Fetch following ids ONCE per page load
-  const { data: followingRows, error: followErr } = await supabase
-    .from("followers")
-    .select("following_id")
-    .eq("follower_id", user.id);
-
-  if (followErr) throw followErr;
-
-  const followingIds = new Set(
-    (followingRows ?? []).map((f) => f.following_id)
-  );
-
-  // 2. Build base profiles query
   let query = supabase
     .from("profiles")
     .select(
@@ -63,26 +58,21 @@ const fetchFeedPage = async (
     )
     .order("created_at", { ascending: false });
 
-  // 3. Exclude current user at query level
+  // Exclude self
   if (profile?.username) {
     query = query.neq("username", profile.username);
   }
 
-  // 4. Server-side "only following"
+  // Server-side only-following
   if (onlyFollowing) {
-    if (followingIds.size === 0) {
-      return [];
-    }
-
+    if (followingIds.size === 0) return [];
     query = query.in("id", Array.from(followingIds));
   }
 
-  // 5. Pagination LAST
   const { data, error } = await query.range(from, to);
 
   if (error || !data) throw error;
 
-  // 6. Attach follow state
   return data.map((p) => ({
     ...p,
     isFollowing: followingIds.has(p.id),
@@ -230,6 +220,7 @@ const fetchFeedPage = async (
                       p.id === person.id ? { ...p, isFollowing: true } : p
                     )
                   );
+                    refreshFollowing();
                 }}
 
 
@@ -249,6 +240,7 @@ onUnfollow={async () => {
           p.id === person.id ? { ...p, isFollowing: false } : p
         )
   );
+    refreshFollowing();
 }}
 
 

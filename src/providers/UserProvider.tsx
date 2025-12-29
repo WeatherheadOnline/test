@@ -15,6 +15,8 @@ type UserContextValue = {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
+  followingIds: Set<string>;
+  refreshFollowing: () => Promise<void>;
 };
 
 type DashboardProfile = {
@@ -34,6 +36,11 @@ type Profile = {
   display_name: string | null;
 } & Partial<DashboardProfile>;
 
+type FollowingContext = {
+  followingIds: Set<string>;
+  refreshFollowing: () => Promise<void>;
+};
+
 const UserContext = createContext<UserContextValue | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
@@ -41,9 +48,23 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
 
+const loadFollowing = async (userId: string) => {
+const { data, error } = await supabase
+.from("followers")
+.select("following_id")
+.eq("follower_id", userId);
+
+if (!error && data) {
+setFollowingIds(new Set(data.map((f) => f.following_id)));
+} else {
+setFollowingIds(new Set());
+}
+};
   useEffect(() => {
     let mounted = true;
+
 
     const loadInitialSession = async () => {
       const { data } = await supabase.auth.getSession();
@@ -53,9 +74,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
       setSession(data.session);
       setUser(data.session?.user ?? null);
 
-      if (data.session?.user) {
-        await loadProfile(data.session.user.id);
-      }
+if (data.session?.user) {
+  await loadProfile(data.session.user.id);
+  await loadFollowing(data.session.user.id);
+}
 
       setLoading(false);
     };
@@ -94,11 +116,13 @@ export function UserProvider({ children }: { children: ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
 
-      if (session?.user) {
-        await loadProfile(session.user.id);
-      } else {
-        setProfile(null);
-      }
+if (session?.user) {
+  await loadProfile(session.user.id);
+  await loadFollowing(session.user.id);
+} else {
+  setProfile(null);
+  setFollowingIds(new Set());
+}
     });
 
     return () => {
@@ -108,14 +132,18 @@ export function UserProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <UserContext.Provider
-      value={{
-        user,
-        session,
-        profile,
-        loading,
-      }}
-    >
+<UserContext.Provider
+  value={{
+    user,
+    session,
+    profile,
+    loading,
+    followingIds,
+    refreshFollowing: async () => {
+      if (user) await loadFollowing(user.id);
+    },
+  }}
+>
       {children}
     </UserContext.Provider>
   );
