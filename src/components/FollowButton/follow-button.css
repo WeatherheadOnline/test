@@ -1,0 +1,45 @@
+/* original version */
+
+.feed-following-badge {
+    /* position: absolute;
+    bottom: 0;
+    right: 0;
+    font-size: 0.8em;
+    padding: 0.1em; */
+    background-color: pink;
+}
+.feed-follow-button {
+    background-color: lightblue;
+}
+
+/* added for animation */
+
+.feed-following-badge {
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    transform 120ms ease,
+    box-shadow 120ms ease;
+}
+
+/* Confirmation state */
+.feed-following-badge.is-confirming {
+  background-color: rgba(220, 38, 38, 0.1);
+  color: #b91c1c;
+  transform: scale(1.04);
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.25);
+}
+
+.feed-following-badge.is-confirming:hover {
+  background-color: rgba(220, 38, 38, 0.15);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .feed-following-badge {
+    transition: none;
+  }
+
+  .feed-following-badge.is-confirming {
+    transform: none;
+  }
+}

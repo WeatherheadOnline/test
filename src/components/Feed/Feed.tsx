@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import "./feed.css";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/providers/UserProvider";
+import FollowButton from "../FollowButton/FollowButton";
 
 type FeedProfile = {
   id: string;
@@ -27,12 +28,6 @@ export default function Feed() {
   const [hasMore, setHasMore] = useState(true);
   const [onlyFollowing, setOnlyFollowing] = useState(false);
 
-  // two-stage unfollow state
-  const [pendingUnfollowId, setPendingUnfollowId] = useState<string | null>(
-    null
-  );
-  const unfollowTimeoutRef = useRef<number | null>(null);
-
   /* -----------------------------------------
      Helpers
   ------------------------------------------*/
@@ -46,14 +41,6 @@ export default function Feed() {
       .eq("follower_id", user.id);
 
     return new Set((data ?? []).map((f) => f.following_id));
-  };
-
-  const resetPendingUnfollow = () => {
-    setPendingUnfollowId(null);
-    if (unfollowTimeoutRef.current) {
-      window.clearTimeout(unfollowTimeoutRef.current);
-      unfollowTimeoutRef.current = null;
-    }
   };
 
   /* -----------------------------------------
@@ -195,19 +182,6 @@ export default function Feed() {
     );
   };
 
-  const handleFollowingClick = (person: FeedProfile) => {
-    // stage 1: ask for confirmation
-    setPendingUnfollowId(person.id);
-
-    if (unfollowTimeoutRef.current) {
-      window.clearTimeout(unfollowTimeoutRef.current);
-    }
-
-    unfollowTimeoutRef.current = window.setTimeout(() => {
-      resetPendingUnfollow();
-    }, UNFOLLOW_CONFIRM_TIMEOUT);
-  };
-
   /* -----------------------------------------
      Client-side filter
   ------------------------------------------*/
@@ -222,7 +196,7 @@ export default function Feed() {
   ------------------------------------------*/
 
   return (
-    <section className="page-section" onClick={resetPendingUnfollow}>
+    <section className="page-section">
       <div className="section-wrapper">
         <h2>What people are flipping</h2>
 
@@ -258,33 +232,39 @@ export default function Feed() {
                 </p>
               </div>
 
-              {person.isFollowing ? (
-                <button
-                  className={`feed-following-badge ${
-                    pendingUnfollowId === person.id ? "is-confirming" : ""
-                  }`}
-                  aria-label={
-                    pendingUnfollowId === person.id
-                      ? `Confirm unfollow ${person.username}`
-                      : `Following ${person.username}. Click to unfollow`
-                  }
-                  onClick={() =>
-                    pendingUnfollowId === person.id
-                      ? confirmUnfollow(person)
-                      : handleFollowingClick(person)
-                  }
-                >
-                  {pendingUnfollowId === person.id ? "Unfollow?" : "Following"}
-                </button>
-              ) : (
-                <button
-                  className="feed-follow-button"
-                  onClick={() => handleFollowClick(person)}
-                  aria-label={`Follow ${person.username}`}
-                >
-                  Follow
-                </button>
-              )}
+              <FollowButton
+                isFollowing={person.isFollowing}
+                username={person.username}
+                onFollow={async () => {
+                  if (!user) return;
+
+                  await supabase.from("followers").insert({
+                    follower_id: user.id,
+                    following_id: person.id,
+                  });
+
+                  setProfiles((prev) =>
+                    prev.map((p) =>
+                      p.id === person.id ? { ...p, isFollowing: true } : p
+                    )
+                  );
+                }}
+                onUnfollow={async () => {
+                  if (!user) return;
+
+                  await supabase
+                    .from("followers")
+                    .delete()
+                    .eq("follower_id", user.id)
+                    .eq("following_id", person.id);
+
+                  setProfiles((prev) =>
+                    prev.map((p) =>
+                      p.id === person.id ? { ...p, isFollowing: false } : p
+                    )
+                  );
+                }}
+              />
             </article>
           ))}
         </div>
