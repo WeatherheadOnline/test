@@ -10,7 +10,6 @@ import {
 import { supabase } from "@/lib/supabase";
 import type { Session, User } from "@supabase/supabase-js";
 
-// Can I delete this?
 type UserContextValue = {
   user: User | null;
   session: Session | null;

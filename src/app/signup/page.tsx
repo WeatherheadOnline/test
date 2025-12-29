@@ -51,19 +51,6 @@ export default function Home() {
       return;
     }
 
-    // 2. Create profile row
-    // const { error: profileError } = await supabase
-    //   .from("profiles")
-    //   .update({
-    //     id: authData.user.id,
-    //     username: normalizedUsername,
-    //     status: true,
-    //     flip_count: 0,
-    //     appearance: {},
-    //     unlocks: [],
-    //     accessories: {},
-    //   })
-    //   .eq("id", authData.user.id);
 
     const { error: profileError } = await supabase
   .from("profiles")
@@ -71,7 +58,7 @@ export default function Home() {
     {
       id: authData.user.id,
       username: normalizedUsername,   // canonical (lowercase)
-      display_name: displayName,      // 👈 STORE PREFERRED CASE
+      display_name: displayName,      // STORE PREFERRED CASE
       status: true,
       flip_count: 0,
       appearance: {},
@@ -82,7 +69,7 @@ export default function Home() {
   );
 
     if (profileError) {
-      // 🔴 UNIQUE violation (username taken)
+      // UNIQUE violation (username taken)
       if (profileError.code === "23505") {
         setError("That username is taken");
       } else {
@@ -96,7 +83,7 @@ export default function Home() {
     }
 
     setLoading(false);
-    // ✅ success — auth + profile created
+    // success — auth + profile created
     router.push("/dashboard");
     //   Later, change push('/dashboard') to this:
     // if (!authData.session) {
