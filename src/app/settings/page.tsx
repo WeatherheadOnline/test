@@ -4,8 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/providers/UserProvider";
-import "./settings.css";
 import "@/styles/globals.css"
+import "./settings.css";
 
 export default function Settings() {
   const { user, loading } = useUser();

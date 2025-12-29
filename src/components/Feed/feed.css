@@ -1,3 +1,12 @@
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem 0;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
 .feed-cards-wrapper {
     display: flex;
     gap: 2rem;

@@ -80,8 +80,8 @@ header {
     }
 }
 nav {
-    display: none;
-    @media screen and (any-hover: hover) and (min-width: 786px) {
+    /* display: none; */
+    /* @media screen and (any-hover: hover) and (min-width: 786px) { */
         width: calc(100% - 4rem - var(--hud-padding-desktop));
         display: flex;
         flex-wrap: wrap;
@@ -89,7 +89,7 @@ nav {
         margin-left: 0.5rem;
         justify-content: flex-end;
         gap: 0.5rem calc(10vw - 3rem);
-    }
+    /* } */
 }
 nav a {
     text-decoration: none;

@@ -8,7 +8,7 @@ export default function Home() {
   return (
     <main>
       <Landing />
-      <What />
+      {/* <What /> */}
       <Feed />
     </main>
   )

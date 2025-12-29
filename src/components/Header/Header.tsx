@@ -32,6 +32,14 @@ export default function Header() {
           Settings
         </Link>
         {user && <LogoutButton />}
+        {!user && (
+        <Link className="navlink" href="/signup">
+          Sign up
+        </Link>
+
+        )
+        
+        }
       </nav>
     </header>
   );

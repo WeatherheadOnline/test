@@ -59,11 +59,6 @@ export default function Home() {
       id: authData.user.id,
       username: normalizedUsername,   // canonical (lowercase)
       display_name: displayName,      // STORE PREFERRED CASE
-      status: true,
-      flip_count: 0,
-      appearance: {},
-      unlocks: [],
-      accessories: {},
     },
     { onConflict: "id" }
   );
