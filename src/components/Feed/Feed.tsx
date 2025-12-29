@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./feed.css";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/providers/UserProvider";
@@ -17,7 +17,6 @@ type FeedProfile = {
 
 export default function Feed() {
   const PAGE_SIZE = 4;
-  const UNFOLLOW_CONFIRM_TIMEOUT = 4000;
 
   const { user, profile, loading: userLoading } = useUser();
 
@@ -29,65 +28,157 @@ export default function Feed() {
   const [onlyFollowing, setOnlyFollowing] = useState(false);
 
   /* -----------------------------------------
-     Helpers
+     Data fetching
   ------------------------------------------*/
 
-  const fetchFollowingIds = async (): Promise<Set<string>> => {
-    if (!user) return new Set();
+const fetchFeedPage = async (
+  from: number,
+  to: number
+): Promise<FeedProfile[]> => {
+  if (!user) return [];
 
-    const { data } = await supabase
-      .from("followers")
-      .select("following_id")
-      .eq("follower_id", user.id);
+  // 1. Get following ids once
+  const { data: followingRows, error: followErr } = await supabase
+    .from("followers")
+    .select("following_id")
+    .eq("follower_id", user.id);
 
-    return new Set((data ?? []).map((f) => f.following_id));
-  };
+  if (followErr) throw followErr;
+
+  const followingIds = new Set(
+    (followingRows ?? []).map((f) => f.following_id)
+  );
+
+  // 2. Base profiles query
+  let query = supabase
+    .from("profiles")
+    .select(
+      `
+      id,
+      username,
+      display_name,
+      status,
+      flip_count
+      `
+    )
+    .order("created_at", { ascending: false });
+
+  // 3. Server-side "only following"
+  if (onlyFollowing) {
+    if (followingIds.size === 0) return [];
+    query = query.in("id", Array.from(followingIds));
+  }
+
+  const { data, error } = await query.range(from, to);
+
+  if (error || !data) throw error;
+
+  return data.map((p) => ({
+    ...p,
+    isFollowing: followingIds.has(p.id),
+  }));
+};
+
+  // const fetchFeedPage = async (
+  //   from: number,
+  //   to: number
+  // ): Promise<FeedProfile[]> => {
+  //   if (!user) return [];
+
+  //   if (onlyFollowing) {
+  //     // followers → profiles (INNER JOIN)
+  //     const { data, error } = await supabase
+  //       .from("followers")
+  //       .select(
+  //         `
+  //         following_id,
+  //         profiles:following_id (
+  //           id,
+  //           username,
+  //           display_name,
+  //           status,
+  //           flip_count
+  //         )
+  //       `
+  //       )
+  //       .eq("follower_id", user.id)
+  //       .order("created_at", { ascending: false })
+  //       .range(from, to);
+
+  //     if (error || !data) throw error;
+
+  //     return data
+  //       .map((row: any) => row.profiles)
+  //       .filter(Boolean)
+  //       .map((p: any) => ({
+  //         id: p.id,
+  //         username: p.username,
+  //         display_name: p.display_name,
+  //         status: p.status,
+  //         flip_count: p.flip_count,
+  //         isFollowing: true,
+  //       }));
+  //   }
+
+  //   // all users (LEFT JOIN followers)
+  //   const { data, error } = await supabase
+  //     .from("profiles")
+  //     .select(
+  //       `
+  //       id,
+  //       username,
+  //       display_name,
+  //       status,
+  //       flip_count,
+  //       followers!left (
+  //         follower_id
+  //       )
+  //     `
+  //     )
+  //     .eq("followers.follower_id", user.id)
+  //     .order("created_at", { ascending: false })
+  //     .range(from, to);
+
+  //   if (error || !data) throw error;
+
+  //   return data.map((p: any) => ({
+  //     id: p.id,
+  //     username: p.username,
+  //     display_name: p.display_name,
+  //     status: p.status,
+  //     flip_count: p.flip_count,
+  //     isFollowing: p.followers.length > 0,
+  //   }));
+  // };
 
   /* -----------------------------------------
-     Initial page load
+     Initial load
   ------------------------------------------*/
 
   const loadInitialPage = async () => {
+    if (!user || userLoading) return;
+
     setLoading(true);
     setError(null);
 
-    const { data, error } = await supabase
-      .from("profiles")
-      .select(
-        `
-        id,
-        username,
-        display_name,
-        status,
-        flip_count
-      `
-      )
-      .order("created_at", { ascending: false })
-      .range(0, PAGE_SIZE - 1);
+    try {
+      const data = await fetchFeedPage(0, PAGE_SIZE - 1);
 
-    if (error || !data) {
+      const filtered =
+        profile?.username != null
+          ? data.filter((p) => p.username !== profile.username)
+          : data;
+
+      setProfiles(filtered);
+      setOffset(PAGE_SIZE);
+      setHasMore(data.length === PAGE_SIZE);
+    } catch {
       setError("Failed to load feed");
       setProfiles([]);
       setHasMore(false);
+    } finally {
       setLoading(false);
-      return;
     }
-
-    const followingIds = await fetchFollowingIds();
-
-    const filtered = profile?.username
-      ? data.filter((p) => p.username !== profile.username)
-      : data;
-
-    const merged: FeedProfile[] = filtered.map((p) => ({
-      ...p,
-      isFollowing: followingIds.has(p.id),
-    }));
-
-    setProfiles(merged);
-    setOffset(PAGE_SIZE);
-    setHasMore(data.length === PAGE_SIZE);
-    setLoading(false);
   };
 
   useEffect(() => {
@@ -97,99 +188,52 @@ export default function Feed() {
   }, [userLoading, profile?.username]);
 
   /* -----------------------------------------
+     Reload when filter changes
+  ------------------------------------------*/
+
+  useEffect(() => {
+    if (userLoading) return;
+
+    setProfiles([]);
+    setOffset(0);
+    setHasMore(true);
+
+    loadInitialPage();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onlyFollowing]);
+
+  /* -----------------------------------------
      Pagination
   ------------------------------------------*/
 
   const loadMore = async () => {
-    if (loading || !hasMore) return;
+    if (loading || !hasMore || !user) return;
 
     setLoading(true);
 
     const from = offset;
     const to = from + PAGE_SIZE - 1;
 
-    const { data, error } = await supabase
-      .from("profiles")
-      .select(
-        `
-        id,
-        username,
-        display_name,
-        status,
-        flip_count
-      `
-      )
-      .order("created_at", { ascending: false })
-      .range(from, to);
+    try {
+      const data = await fetchFeedPage(from, to);
 
-    if (error || !data) {
+      const filtered =
+        profile?.username != null
+          ? data.filter((p) => p.username !== profile.username)
+          : data;
+
+      setProfiles((prev) => [...prev, ...filtered]);
+      setOffset((prev) => prev + PAGE_SIZE);
+
+      if (data.length < PAGE_SIZE) {
+        setHasMore(false);
+      }
+    } catch {
       setError("Failed to load feed");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    const followingIds = await fetchFollowingIds();
-
-    const filtered = profile?.username
-      ? data.filter((p) => p.username !== profile.username)
-      : data;
-
-    const merged: FeedProfile[] = filtered.map((p) => ({
-      ...p,
-      isFollowing: followingIds.has(p.id),
-    }));
-
-    setProfiles((prev) => [...prev, ...merged]);
-    setOffset((prev) => prev + PAGE_SIZE);
-
-    if (data.length < PAGE_SIZE) {
-      setHasMore(false);
-    }
-
-    setLoading(false);
   };
-
-  /* -----------------------------------------
-     Follow / unfollow
-  ------------------------------------------*/
-
-  const confirmUnfollow = async (person: FeedProfile) => {
-    if (!user) return;
-
-    await supabase
-      .from("followers")
-      .delete()
-      .eq("follower_id", user.id)
-      .eq("following_id", person.id);
-
-    setProfiles((prev) =>
-      prev.map((p) => (p.id === person.id ? { ...p, isFollowing: false } : p))
-    );
-
-    resetPendingUnfollow();
-  };
-
-  const handleFollowClick = async (person: FeedProfile) => {
-    if (!user) return;
-
-    await supabase.from("followers").insert({
-      follower_id: user.id,
-      following_id: person.id,
-    });
-
-    setProfiles((prev) =>
-      prev.map((p) => (p.id === person.id ? { ...p, isFollowing: true } : p))
-    );
-  };
-
-  /* -----------------------------------------
-     Client-side filter
-  ------------------------------------------*/
-
-  const visibleProfiles = useMemo(() => {
-    if (!onlyFollowing) return profiles;
-    return profiles.filter((p) => p.isFollowing);
-  }, [profiles, onlyFollowing]);
 
   /* -----------------------------------------
      Render
@@ -215,10 +259,10 @@ export default function Feed() {
         {error && <p>{error}</p>}
 
         <div className="feed-cards-wrapper">
-          {visibleProfiles.map((person) => (
+          {profiles.map((person) => (
             <article
               className="feed-card"
-              key={person.username}
+              key={person.id}
               onClick={(e) => e.stopPropagation()}
             >
               <p className="feed-bit">{person.status ? "1" : "0"}</p>
