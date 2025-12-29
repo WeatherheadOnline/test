@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import "./feed.css";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/providers/UserProvider";
@@ -13,71 +13,96 @@ type FeedProfile = {
 };
 
 export default function Feed() {
-  const PAGE_SIZE = 4;
+const PAGE_SIZE = 4
 
-  const { profile, loading: userLoading } = useUser();
+const { profile, loading: userLoading } = useUser()
 
-  const [profiles, setProfiles] = useState<FeedProfile[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [hasMore, setHasMore] = useState(true);
+const [profiles, setProfiles] = useState<FeedProfile[]>([])
+const [offset, setOffset] = useState(0)
+const [loading, setLoading] = useState(false)
+const [error, setError] = useState<string | null>(null)
+const [hasMore, setHasMore] = useState(true)
 
-  useEffect(() => {
-    if (userLoading) return;
+const loadInitialPage = async () => {
+  setLoading(true)
+  setError(null)
 
-    // Reset feed when user/profile changes
-    setProfiles([]);
-    setHasMore(true);
+  const { data, error } = await supabase
+    .from('profiles')
+    .select(`
+      username,
+      display_name,
+      status,
+      flip_count
+    `)
+    .order('created_at', { ascending: false })
+    .range(0, PAGE_SIZE - 1)
 
-    loadMore();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userLoading, profile?.username]);
+  if (error) {
+    setError('Failed to load feed')
+    setProfiles([])
+    setHasMore(false)
+    setLoading(false)
+    return
+  }
 
-  const loadMore = async () => {
-    if (loading || !hasMore) return;
+  const filtered = profile?.username
+    ? data.filter(p => p.username !== profile.username)
+    : data
 
-    setLoading(true);
+  setProfiles(filtered)
+  setOffset(PAGE_SIZE)
+  setHasMore(data.length === PAGE_SIZE)
+  setLoading(false)
+}
 
-    const from = profiles.length;
-    const to = from + PAGE_SIZE - 1;
+useEffect(() => {
+  if (userLoading) return
+  loadInitialPage()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [userLoading, profile?.username])
 
-    const { data, error } = await supabase
-      .from("profiles")
-      .select(
-        `
-    username,
-    display_name,
-    status,
-    flip_count
-  `
-      )
-      .order("created_at", { ascending: false })
-      .range(from, to);
 
-    if (error) {
-      setError("Failed to load feed");
-      setLoading(false);
-      return;
-    }
+  
+const loadMore = async () => {
+  if (loading || !hasMore) return
 
-    if (!data || data.length === 0) {
-      setHasMore(false);
-      setLoading(false);
-      return;
-    }
+  setLoading(true)
 
-    const filtered = profile?.username
-      ? data.filter((p) => p.username !== profile.username)
-      : data;
+  const from = offset
+  const to = from + PAGE_SIZE - 1
 
-    setProfiles((prev) => [...prev, ...filtered]);
+  const { data, error } = await supabase
+    .from('profiles')
+    .select(`
+      username,
+      display_name,
+      status,
+      flip_count
+    `)
+    .order('created_at', { ascending: false })
+    .range(from, to)
 
-    if (data.length < PAGE_SIZE) {
-      setHasMore(false);
-    }
+  if (error) {
+    setError('Failed to load feed')
+    setLoading(false)
+    return
+  }
 
-    setLoading(false);
-  };
+  const filtered = profile?.username
+    ? data.filter(p => p.username !== profile.username)
+    : data
+
+  setProfiles(prev => [...prev, ...filtered])
+  setOffset(prev => prev + PAGE_SIZE)
+
+  if (data.length < PAGE_SIZE) {
+    setHasMore(false)
+  }
+
+  setLoading(false)
+}
+
 
   const cardsToDisplay = profiles.map((person) => (
     <article className="feed-card" key={person.username}>
