@@ -17,6 +17,8 @@ type UserContextValue = {
   loading: boolean;
   followingIds: Set<string>;
   refreshFollowing: () => Promise<void>;
+  optimisticallyFollow: (userId: string) => void;
+  optimisticallyUnfollow: (userId: string) => void;
 };
 
 type DashboardProfile = {
@@ -62,6 +64,19 @@ setFollowingIds(new Set(data.map((f) => f.following_id)));
 setFollowingIds(new Set());
 }
 };
+
+const optimisticallyFollow = (userId: string) => {
+  setFollowingIds((prev) => new Set(prev).add(userId));
+};
+
+const optimisticallyUnfollow = (userId: string) => {
+  setFollowingIds((prev) => {
+    const next = new Set(prev);
+    next.delete(userId);
+    return next;
+  });
+};
+
   useEffect(() => {
     let mounted = true;
 
@@ -142,6 +157,8 @@ if (session?.user) {
     refreshFollowing: async () => {
       if (user) await loadFollowing(user.id);
     },
+    optimisticallyFollow,
+    optimisticallyUnfollow,
   }}
 >
       {children}

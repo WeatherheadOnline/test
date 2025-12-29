@@ -25,6 +25,8 @@ const {
   loading: userLoading,
   followingIds,
   refreshFollowing,
+  optimisticallyFollow,
+  optimisticallyUnfollow,
 } = useUser();
 
   const [profiles, setProfiles] = useState<FeedProfile[]>([]);
@@ -207,31 +209,69 @@ const fetchFeedPage = async (
               <FollowButton
                 isFollowing={person.isFollowing}
                 username={person.username}
-                onFollow={async () => {
-                  if (!user) return;
 
-                  await supabase.from("followers").insert({
-                    follower_id: user.id,
-                    following_id: person.id,
-                  });
 
-                  setProfiles((prev) =>
-                    prev.map((p) =>
-                      p.id === person.id ? { ...p, isFollowing: true } : p
-                    )
-                  );
-                    refreshFollowing();
-                }}
+
+// onFollow={async () => {
+//   if (!user) return;
+
+//   optimisticallyFollow(person.id);
+
+//   const { error } = await supabase.from("followers").insert({
+//     follower_id: user.id,
+//     following_id: person.id,
+//   });
+
+//   if (error) {
+//     optimisticallyUnfollow(person.id); // rollback
+//   }
+// }}
+
+onFollow={async () => {
+  if (!user) return;
+
+  // 1. Optimistically update context
+  optimisticallyFollow(person.id);
+
+  // 2. Optimistically update feed-local state
+  setProfiles((prev) =>
+    prev.map((p) =>
+      p.id === person.id ? { ...p, isFollowing: true } : p
+    )
+  );
+
+  // 3. Persist to DB
+  const { error } = await supabase.from("followers").insert({
+    follower_id: user.id,
+    following_id: person.id,
+  });
+
+  // 4. Rollback if needed
+  if (error) {
+    optimisticallyUnfollow(person.id);
+    setProfiles((prev) =>
+      prev.map((p) =>
+        p.id === person.id ? { ...p, isFollowing: false } : p
+      )
+    );
+  }
+}}
 
 
 onUnfollow={async () => {
   if (!user) return;
 
-  await supabase
+  optimisticallyUnfollow(person.id);
+
+  const { error } = await supabase
     .from("followers")
     .delete()
     .eq("follower_id", user.id)
     .eq("following_id", person.id);
+
+  if (error) {
+    optimisticallyFollow(person.id); // rollback
+  }
 
   setProfiles((prev) =>
     onlyFollowing
@@ -240,7 +280,6 @@ onUnfollow={async () => {
           p.id === person.id ? { ...p, isFollowing: false } : p
         )
   );
-    refreshFollowing();
 }}
 
 
