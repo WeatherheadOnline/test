@@ -19,7 +19,7 @@
   }
 }
 * {
-  outline: 1px solid green;
+  /* outline: 1px solid green; */
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -61,4 +61,16 @@ h2 {
 .error {
   color: red;
   margin-top: 8px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }

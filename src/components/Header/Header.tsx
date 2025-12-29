@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-// import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import LogoutButton from "../LogoutButton/LogoutButton";
 import "./header.css";
@@ -28,6 +27,9 @@ export default function Header() {
         </Link>
         <Link className="navlink" href="/">
           Home
+        </Link>
+        <Link className="navlink" href="/settings">
+          Settings
         </Link>
         {user && <LogoutButton />}
       </nav>
