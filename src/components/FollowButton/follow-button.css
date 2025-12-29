@@ -43,3 +43,23 @@
     transform: none;
   }
 }
+
+/* For loading state */
+
+.feed-follow-button:disabled,
+.feed-following-badge:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Pause emphasis animation while loading */
+.feed-following-badge.is-loading {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Optional: subtle pulse to indicate activity */
+.feed-following-badge.is-loading,
+.feed-follow-button:disabled {
+  transition: opacity 120ms ease;
+}

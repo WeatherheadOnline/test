@@ -19,6 +19,7 @@ export default function FollowButton({
   confirmTimeoutMs = 4000,
 }: FollowButtonProps) {
   const [confirming, setConfirming] = useState(false);
+  const [loading, setLoading] = useState(false);
   const timeoutRef = useRef<number | null>(null);
 
   const reset = () => {
@@ -33,7 +34,9 @@ export default function FollowButton({
     return () => reset();
   }, []);
 
-  const handleFollowingClick = () => {
+  const startConfirm = () => {
+    if (loading) return;
+
     setConfirming(true);
 
     if (timeoutRef.current) {
@@ -45,19 +48,39 @@ export default function FollowButton({
     }, confirmTimeoutMs);
   };
 
+  const handleFollow = async () => {
+    if (loading) return;
+
+    setLoading(true);
+    try {
+      await onFollow();
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleConfirmUnfollow = async () => {
-    await onUnfollow();
-    reset();
+    if (loading) return;
+
+    setLoading(true);
+    try {
+      await onUnfollow();
+    } finally {
+      setLoading(false);
+      reset();
+    }
   };
 
   if (!isFollowing) {
     return (
       <button
         className="feed-follow-button"
-        onClick={onFollow}
+        onClick={handleFollow}
+        disabled={loading}
         aria-label={`Follow ${username}`}
+        aria-busy={loading}
       >
-        Follow
+        {loading ? "Following…" : "Follow"}
       </button>
     );
   }
@@ -66,16 +89,26 @@ export default function FollowButton({
     <button
       className={`feed-following-badge ${
         confirming ? "is-confirming" : ""
-      }`}
+      } ${loading ? "is-loading" : ""}`}
+      onClick={confirming ? handleConfirmUnfollow : startConfirm}
+      onBlur={reset}
+      disabled={loading}
+      aria-busy={loading}
       aria-label={
-        confirming
+        loading
+          ? `Updating follow state for ${username}`
+          : confirming
           ? `Confirm unfollow ${username}`
           : `Following ${username}. Click to unfollow`
       }
-      onClick={confirming ? handleConfirmUnfollow : handleFollowingClick}
-      onBlur={reset}
     >
-      {confirming ? "Unfollow?" : "Following"}
+      {loading
+        ? confirming
+          ? "Unfollowing…"
+          : "Following…"
+        : confirming
+        ? "Unfollow?"
+        : "Following"}
     </button>
   );
 }
