@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./feed.css";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/providers/UserProvider";
@@ -13,110 +13,101 @@ type FeedProfile = {
 };
 
 export default function Feed() {
-const PAGE_SIZE = 4
+  const PAGE_SIZE = 4;
 
-const { profile, loading: userLoading } = useUser()
+  const { profile, loading: userLoading } = useUser();
 
-const [profiles, setProfiles] = useState<FeedProfile[]>([])
-const [offset, setOffset] = useState(0)
-const [loading, setLoading] = useState(false)
-const [error, setError] = useState<string | null>(null)
-const [hasMore, setHasMore] = useState(true)
+  const [profiles, setProfiles] = useState<FeedProfile[]>([]);
+  const [offset, setOffset] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(true);
 
-const loadInitialPage = async () => {
-  setLoading(true)
-  setError(null)
+  const loadInitialPage = async () => {
+    setLoading(true);
+    setError(null);
 
-  const { data, error } = await supabase
-    .from('profiles')
-    .select(`
+    const { data, error } = await supabase
+      .from("profiles")
+      .select(
+        `
       username,
       display_name,
       status,
       flip_count
-    `)
-    .order('created_at', { ascending: false })
-    .range(0, PAGE_SIZE - 1)
+    `
+      )
+      .order("created_at", { ascending: false })
+      .range(0, PAGE_SIZE - 1);
 
-  if (error) {
-    setError('Failed to load feed')
-    setProfiles([])
-    setHasMore(false)
-    setLoading(false)
-    return
-  }
+    if (error) {
+      setError("Failed to load feed");
+      setProfiles([]);
+      setHasMore(false);
+      setLoading(false);
+      return;
+    }
 
-  const filtered = profile?.username
-    ? data.filter(p => p.username !== profile.username)
-    : data
+    const filtered = profile?.username
+      ? data.filter((p) => p.username !== profile.username)
+      : data;
 
-  setProfiles(filtered)
-  setOffset(PAGE_SIZE)
-  setHasMore(data.length === PAGE_SIZE)
-  setLoading(false)
-}
+    setProfiles(filtered);
+    setOffset(PAGE_SIZE);
+    setHasMore(data.length === PAGE_SIZE);
+    setLoading(false);
+  };
 
-useEffect(() => {
-  if (userLoading) return
-  loadInitialPage()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-}, [userLoading, profile?.username])
+  useEffect(() => {
+    if (userLoading) return;
+    loadInitialPage();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userLoading, profile?.username]);
 
+  const loadMore = async () => {
+    if (loading || !hasMore) return;
 
-  
-const loadMore = async () => {
-  if (loading || !hasMore) return
+    setLoading(true);
 
-  setLoading(true)
+    const from = offset;
+    const to = from + PAGE_SIZE - 1;
 
-  const from = offset
-  const to = from + PAGE_SIZE - 1
-
-  const { data, error } = await supabase
-    .from('profiles')
-    .select(`
+    const { data, error } = await supabase
+      .from("profiles")
+      .select(
+        `
       username,
       display_name,
       status,
       flip_count
-    `)
-    .order('created_at', { ascending: false })
-    .range(from, to)
+    `
+      )
+      .order("created_at", { ascending: false })
+      .range(from, to);
 
-  if (error) {
-    setError('Failed to load feed')
-    setLoading(false)
-    return
-  }
+    if (error) {
+      setError("Failed to load feed");
+      setLoading(false);
+      return;
+    }
 
-  const filtered = profile?.username
-    ? data.filter(p => p.username !== profile.username)
-    : data
+    const filtered = profile?.username
+      ? data.filter((p) => p.username !== profile.username)
+      : data;
 
-  setProfiles(prev => [...prev, ...filtered])
-  setOffset(prev => prev + PAGE_SIZE)
+    setProfiles((prev) => [...prev, ...filtered]);
+    setOffset((prev) => prev + PAGE_SIZE);
 
-  if (data.length < PAGE_SIZE) {
-    setHasMore(false)
-  }
+    if (data.length < PAGE_SIZE) {
+      setHasMore(false);
+    }
 
-  setLoading(false)
-}
-
-
-  const cardsToDisplay = profiles.map((person) => (
-    <article className="feed-card" key={person.username}>
-      <p className="feed-bit">{person.status ? "1" : "0"}</p>
-      <div className="feed-text">
-        <p className="feed-username">
-          {person.display_name ?? person.username}
-        </p>
-        <p className="feed-flip-count">Flipped {person.flip_count} bits</p>
-      </div>
-    </article>
-  ));
+    setLoading(false);
+  };
 
   const sortAndFilter = () => {};
+
+  const showFollowingCard = () => {}
 
   // The return statement
 
@@ -149,7 +140,31 @@ const loadMore = async () => {
         </div>
         {loading && <p>Loading feed…</p>}
         {error && <p>{error}</p>}
-        <div className="feed-cards-wrapper">{cardsToDisplay}</div>
+
+        <div className="feed-cards-wrapper">
+          {profiles.map((person) => (
+            <article className="feed-card" key={person.username}>
+              <p className="feed-bit">{person.status ? "1" : "0"}</p>
+
+              <div className="feed-text">
+                <p className="feed-username">
+                  {person.display_name ?? person.username}
+                </p>
+                <p className="feed-flip-count">
+                  Flipped {person.flip_count} bits
+                </p>
+              </div>
+
+              {/* Set to true iff this is a user you follow */}
+              {true && <button className="feed-following-badge">Following</button>}
+
+              {/* Set to true when user clicks button.feed-following-badge  */}
+              {/* Button onClick => unfollow this user */}
+              {/* Set to false when user clicks outside div.follow-modal */}
+              {false && <div className="follow-modal"><p>this user's name</p><button>Unfollow?</button></div>}
+            </article>
+          ))}
+        </div>
 
         {hasMore && (
           <button
