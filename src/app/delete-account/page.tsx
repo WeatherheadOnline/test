@@ -1,15 +1,61 @@
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { supabase } from "@/lib/supabase";
+import { useUser } from "@/providers/UserProvider";
 import "@/styles/globals.css";
 import "./delete-account.css";
 
-export default function Settings() {
-  const handleDeleteAccount = (e) => {
+export default function DeleteAccountPage() {
+  const { user, loading } = useUser();
+  const router = useRouter();
+
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  if (loading) return <p>Loading…</p>;
+  if (!user) return <p>You must be logged in to delete your account.</p>;
+
+  const handleDeleteAccount = async (e: React.FormEvent) => {
     e.preventDefault();
-  };
-  const handleCancel = (e) => {
-    e.preventDefault();
+    console.log("DELETE SUBMIT FIRED");
+    setError(null);
+    setSubmitting(true);
+
+    try {
+      // 1 Re-authenticate
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email: user.email!,
+        password,
+      });
+
+      if (authError) {
+        setError("Incorrect password");
+        setSubmitting(false);
+        return;
+      }
+
+      // 2️ Call secure API route
+      const res = await fetch("/api/delete-account", {
+        method: "POST",
+        credentials: "include", //  REQUIRED
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to delete account");
+      }
+
+      // 3️ Sign out + redirect
+      await supabase.auth.signOut();
+      router.push("/");
+    } catch (err) {
+      console.error(err);
+      setError("Something went wrong. Please try again.");
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -18,7 +64,7 @@ export default function Settings() {
         <div className="section-wrapper">
           <h2>&#9888; Danger zone &#9888;</h2>
 
-          <form>
+          <form onSubmit={handleDeleteAccount}>
             <div>
               <p>Are you sure you want to delete your account?</p>
               <p>This action cannot be undone.</p>
@@ -35,19 +81,22 @@ export default function Settings() {
               id="confirm-pw-to-delete-account"
               type="password"
               placeholder="Confirm your password"
-            ></input>
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
 
-            <button onClick={handleCancel}>
+            {error && <p className="error">{error}</p>}
+
+            <div className="button-row">
               <Link className="navlink" href="/settings">
                 Cancel
               </Link>
-            </button>
 
-            <button onClick={handleDeleteAccount}>
-              <Link className="navlink" href="/">
-                &#9888; Delete my account
-              </Link>
-            </button>
+              <button type="submit" className="danger" disabled={submitting}>
+                ⚠ Delete my account
+              </button>
+            </div>
           </form>
         </div>
       </section>
