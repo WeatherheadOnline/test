@@ -13,53 +13,71 @@ type FeedProfile = {
 };
 
 export default function Feed() {
+  const PAGE_SIZE = 4;
+
   const { profile, loading: userLoading } = useUser();
 
   const [profiles, setProfiles] = useState<FeedProfile[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(true);
 
   useEffect(() => {
     if (userLoading) return;
 
-    const loadFeed = async () => {
-      setLoading(true);
+    // Reset feed when user/profile changes
+    setProfiles([]);
+    setHasMore(true);
 
-      const { data, error } = await supabase.from("profiles").select(`
-        username,
-        display_name,
-        status,
-        flip_count
-      `);
-
-      if (error) {
-        setError("Failed to load feed");
-        setProfiles([]);
-      } else if (data) {
-        const filtered = profile?.username
-          ? data.filter((p) => p.username !== profile.username)
-          : data;
-
-        setProfiles(filtered);
-      }
-
-      setLoading(false);
-    };
-
-    loadFeed();
+    loadMore();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userLoading, profile?.username]);
 
-  //   const cardsToDisplay = following.map((person) => {
-  //     return (
-  //       <article className="feed-card" key={person.username}>
-  //         <p className="feed-bit">{person.status ? "1" : "0"}</p>
-  //         <div className="feed-text">
-  //           <p className="feed-username">{person.username}</p>
-  //           <p className="feed-flip-count">Flipped {person.flip_count} bits</p>
-  //         </div>
-  //       </article>
-  //     );
-  //   });
+  const loadMore = async () => {
+    if (loading || !hasMore) return;
+
+    setLoading(true);
+
+    const from = profiles.length;
+    const to = from + PAGE_SIZE - 1;
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .select(
+        `
+    username,
+    display_name,
+    status,
+    flip_count
+  `
+      )
+      .order("created_at", { ascending: false })
+      .range(from, to);
+
+    if (error) {
+      setError("Failed to load feed");
+      setLoading(false);
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      setHasMore(false);
+      setLoading(false);
+      return;
+    }
+
+    const filtered = profile?.username
+      ? data.filter((p) => p.username !== profile.username)
+      : data;
+
+    setProfiles((prev) => [...prev, ...filtered]);
+
+    if (data.length < PAGE_SIZE) {
+      setHasMore(false);
+    }
+
+    setLoading(false);
+  };
 
   const cardsToDisplay = profiles.map((person) => (
     <article className="feed-card" key={person.username}>
@@ -107,6 +125,17 @@ export default function Feed() {
         {loading && <p>Loading feed…</p>}
         {error && <p>{error}</p>}
         <div className="feed-cards-wrapper">{cardsToDisplay}</div>
+
+        {hasMore && (
+          <button
+            type="button"
+            onClick={loadMore}
+            disabled={loading}
+            className="feed-load-more"
+          >
+            {loading ? "Loading…" : "Load more"}
+          </button>
+        )}
       </div>
     </section>
   );
