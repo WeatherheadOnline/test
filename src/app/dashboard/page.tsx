@@ -12,6 +12,7 @@ import "@/styles/globals.css";
 import "./dashboard.css";
 import { useUser } from "@/providers/UserProvider";
 import { supabase } from "@/lib/supabase";
+import Feed from "@/components/Feed/Feed";
 
 export default function DashboardPage() {
   const { user, profile, loading } = useUser();
@@ -338,6 +339,7 @@ useEffect(() => {
           />
         </div>
       </section>
+      <Feed />
     </main>
   );
 }
