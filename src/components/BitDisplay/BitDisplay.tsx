@@ -132,6 +132,7 @@ export default function BitDisplay({ value, appearance }: BitDisplayProps) {
 
   return (
     <div
+      id="bit-capture"
       className="giant-bit"
       role="img"
       aria-label={`Your bit is ${value}`}

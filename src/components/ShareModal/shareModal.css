@@ -1,0 +1,29 @@
+.share-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: grid;
+  place-items: center;
+  z-index: 2000;
+}
+
+.share-modal {
+  background: #fff;
+  padding: 1.5rem;
+  border-radius: 12px;
+  width: min(90vw, 360px);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.share-actions,
+.share-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.share-close {
+  margin-top: 0.5rem;
+}

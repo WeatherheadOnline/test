@@ -13,6 +13,7 @@ import "./dashboard.css";
 import { useUser } from "@/providers/UserProvider";
 import { supabase } from "@/lib/supabase";
 import Feed from "@/components/Feed/Feed";
+import ShareModal from '@/components/ShareModal/ShareModal'
 
 export default function DashboardPage() {
   const { user, profile, loading } = useUser();
@@ -29,6 +30,7 @@ export default function DashboardPage() {
   const [flipCount, setFlipCount] = useState<number>(0);
   const [appearance, setAppearance] = useState<Appearance>(defaultAppearance);
   const [unlocks, setUnlocks] = useState<string[]>([]);
+  const [shareOpen, setShareOpen] = useState(false);
 
   // useRef
 
@@ -334,13 +336,24 @@ useEffect(() => {
               </span>
             </button>
           </div>
-                  <img src="/assets/share.svg" />
+                 <img
+  src="/assets/share.svg"
+  role="button"
+  aria-label="Share"
+  onClick={() => setShareOpen(true)}
+/>
           <CustomiseMenu
             appearance={appearance}
             unlocks={unlocks}
             onChange={handleAppearanceChange}
             ignoreRef={flipButtonRef}
           />
+{shareOpen && (
+  <ShareModal
+    onClose={() => setShareOpen(false)}
+    homepageUrl={window.location.origin}
+  />
+)}
         </div>
       </section>
       <Feed />
