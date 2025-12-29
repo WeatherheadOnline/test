@@ -5,6 +5,7 @@ import Link from "next/link";
 import LogoutButton from "../LogoutButton/LogoutButton";
 import "./header.css";
 import { useUser } from '@/providers/UserProvider'
+import Image from 'next/image'
 
 export default function Header() {
   const { user, loading } = useUser()
@@ -17,7 +18,14 @@ export default function Header() {
     <header>
       <div id="logo">
         <Link className="navlink" id="homeLink" href="/">
-          <img src="../../assets/01_logo.svg" />
+          <Image
+            src="/assets/01_logo.svg"
+            alt="Logo"
+            width={40}
+            height={40}
+            />
+            {/* alternatively: */}
+            {/* <img src="/assets/01_logo.svg" /> */}
         </Link>
       </div>
 
@@ -38,7 +46,6 @@ export default function Header() {
         </Link>
 
         )
-        
         }
       </nav>
     </header>

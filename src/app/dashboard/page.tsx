@@ -249,8 +249,12 @@ useEffect(() => {
         {/* Here starts the section wrapper */}
 
         <div className="dashboard-container section-wrapper">
+
+
           <div className="bit-flip-wrapper">
+
             <BitDisplay value={status ? "1" : "0"} appearance={appearance} />
+
             {/* Flip switch: */}
             <button
               ref={flipButtonRef}
@@ -330,7 +334,7 @@ useEffect(() => {
               </span>
             </button>
           </div>
-
+                  <img src="/assets/share.svg" />
           <CustomiseMenu
             appearance={appearance}
             unlocks={unlocks}
