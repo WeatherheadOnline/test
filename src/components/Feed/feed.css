@@ -38,3 +38,34 @@ form {
     flex-direction: column;
     justify-content: space-between;
 }
+
+/* For the search input/buttons */
+
+.search-wrapper {
+  position: relative;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.search-clear {
+  position: absolute;
+  right: 4.5rem; /* adjust if needed */
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.search-clear:hover {
+  opacity: 1;
+}
+
+/* for "try broadening your search" hint */
+
+.feed-hint {
+  margin: 1rem 0;
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
