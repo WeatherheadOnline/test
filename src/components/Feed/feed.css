@@ -1,3 +1,7 @@
+* {
+  outline: 1px solid #888888;
+}
+
 form {
     display: flex;
     flex-direction: column;
@@ -83,4 +87,59 @@ form {
 
 .feed-clear-filters:hover {
   opacity: 1;
+}
+
+
+/* ~~~~~~~~~~~~~~~~~~~~~~ */
+/* added when mobile layout diverged */
+
+.feed-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+
+.desktop-controls {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.mobile-sliders-btn {
+  display: none;
+  background: none;
+  border: none;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .desktop-controls {
+    display: none;
+  }
+
+  .mobile-sliders-btn {
+    display: inline-flex;
+    margin-top: 0.5rem;
+  }
+}
+
+/* Slide-up sheet */
+.mobile-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 1000;
+}
+
+.mobile-sheet {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--background);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }

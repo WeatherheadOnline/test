@@ -39,6 +39,10 @@ export default function Feed() {
     optimisticallyUnfollow,
   } = useUser();
 
+  type StatusFilter = "all" | "true" | "false";
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+
+
   const [profiles, setProfiles] = useState<FeedProfile[]>([]);
   const [offset, setOffset] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -48,9 +52,9 @@ export default function Feed() {
   const [sortKey, setSortKey] = useState<SortKey>("last_flip_desc");
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState<string | null>(null);
-
-  type StatusFilter = "all" | "true" | "false";
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [pendingSortKey, setPendingSortKey] = useState<SortKey>(sortKey);
+  const [pendingStatusFilter, setPendingStatusFilter] = useState<StatusFilter>(statusFilter);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -62,6 +66,17 @@ export default function Feed() {
       prev === (trimmed || null) ? prev : trimmed || null
     );
   };
+
+  const applyMobileSortFilter = () => {
+  setSortKey(pendingSortKey);
+  setStatusFilter(pendingStatusFilter);
+  setIsMobileMenuOpen(false);
+};
+
+const mobileCommitSearch = () => {
+  commitSearch();
+  setIsMobileMenuOpen(false);
+};
 
   const clearFilters = () => {
     setOnlyFollowing(false);
@@ -204,20 +219,20 @@ export default function Feed() {
       <div className="section-wrapper">
         <h2>What people are flipping</h2>
 
-        <div className="feed-controls">
-          <label>
-            <input
-              type="checkbox"
-              checked={onlyFollowing}
-              onChange={(e) => setOnlyFollowing(e.target.checked)}
-            />
-            Only show people I'm following
-          </label>
+          <div className="feed-controls">
+  {/* Always visible */}
+  <label className="only-following">
+    <input
+      type="checkbox"
+      checked={onlyFollowing}
+      onChange={(e) => setOnlyFollowing(e.target.checked)}
+    />
+    Only show people I'm following
+  </label>
 
-          <select
-            value={sortKey}
-            onChange={(e) => setSortKey(e.target.value as SortKey)}
-          >
+  {/* Desktop controls */}
+  <div className="desktop-controls">
+    <select value={sortKey} onChange={(e) => setSortKey(e.target.value as SortKey)}>
             <option value="last_flip_desc">Recently flipped</option>
             <option value="last_flip_asc">Least recently flipped</option>
             <option value="username_asc">Username A–Z</option>
@@ -226,18 +241,18 @@ export default function Feed() {
             <option value="status_desc">Status 1 → 0</option>
             <option value="flip_asc">Flip count ↑</option>
             <option value="flip_desc">Flip count ↓</option>
-          </select>
+    </select>
 
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-          >
+    <select
+      value={statusFilter}
+      onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
+    >
             <option value="all">All statuses</option>
             <option value="true">Status = 1</option>
             <option value="false">Status = 0</option>
-          </select>
+    </select>
 
-          <div className="search-wrapper">
+    <div className="search-wrapper">
             <input
               type="text"
               placeholder="Search username or email"
@@ -270,8 +285,78 @@ export default function Feed() {
             <button type="button" onClick={commitSearch}>
               Search
             </button>
-          </div>
         </div>
+  </div>
+
+  {/* Mobile slider button */}
+  <button
+    className="mobile-sliders-btn"
+    aria-label="Open sort and filter menu"
+    onClick={() => setIsMobileMenuOpen(true)}
+  >
+    <img src="/assets/sliders.svg" alt="sort, filter, and search options" />
+  </button>
+</div>
+
+{isMobileMenuOpen && (
+  <div className="mobile-sheet-backdrop" onClick={() => setIsMobileMenuOpen(false)}>
+    <div
+      className="mobile-sheet"
+      role="dialog"
+      aria-modal="true"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <p>Search for a username</p>
+
+      <input
+        type="text"
+        value={searchInput}
+        onChange={(e) => setSearchInput(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && commitSearch()}
+      />
+
+      <button onClick={mobileCommitSearch}>
+  Search
+</button>
+
+      <div className="sheet-section">
+        <label>Sort by:</label>
+        <select
+          value={pendingSortKey}
+          onChange={(e) => setPendingSortKey(e.target.value as SortKey)}
+        >
+            <option value="last_flip_desc">Recently flipped</option>
+            <option value="last_flip_asc">Least recently flipped</option>
+            <option value="username_asc">Username A–Z</option>
+            <option value="username_desc">Username Z–A</option>
+            <option value="status_asc">Status 0 → 1</option>
+            <option value="status_desc">Status 1 → 0</option>
+            <option value="flip_asc">Flip count ↑</option>
+            <option value="flip_desc">Flip count ↓</option>
+        </select>
+
+        <label>Filter by:</label>
+        <select
+          value={pendingStatusFilter}
+          onChange={(e) =>
+            setPendingStatusFilter(e.target.value as StatusFilter)
+          }
+        >
+            <option value="all">All statuses</option>
+            <option value="true">Status = 1</option>
+            <option value="false">Status = 0</option>
+        </select>
+      </div>
+
+      <button onClick={applyMobileSortFilter}>
+        Apply sort / filter
+      </button>
+      <button onClick={() => setIsMobileMenuOpen(false)}>
+        Cancel
+      </button>
+    </div>
+  </div>
+)}
 
         {loading && <p>Loading feed…</p>}
         {error && <p>{error}</p>}
@@ -375,16 +460,6 @@ export default function Feed() {
           ))}
         </div>
 
-        {/* {hasMore && (
-          <button
-            type="button"
-            onClick={loadMore}
-            disabled={loading}
-            className="feed-load-more"
-          >
-            {loading ? "Loading…" : "Load more"}
-          </button>
-        )} */}
         {hasMore && !searchQuery && (
           <button
             type="button"
