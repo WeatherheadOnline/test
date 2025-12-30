@@ -119,83 +119,94 @@ useEffect(() => {
     return null;
   };
 
-  const handleFlip = () => {
-    if (flipPending || !user) return;
+const handleFlip = () => {
+  if (flipPending || !user) return;
 
-    // force-remount flip toast
-    setFlipToastKey(Date.now());
+  // force-remount flip toast
+  setFlipToastKey(Date.now());
 
-    setFlipPending(true);
+  setFlipPending(true);
 
-    // optimistic UI
-    setStatus((prev) => !prev);
-    setFlipCount((prev) => prev + 1);
+  // snapshot current state (prevents stale closure bugs)
+  const prevStatus = status;
+  const prevFlipCount = flipCount;
+  const prevUnlocks = unlocks;
 
-    if (flipTimeoutRef.current) {
-      clearTimeout(flipTimeoutRef.current);
+  // optimistic UI
+  const optimisticStatus = !prevStatus;
+  const optimisticFlipCount = prevFlipCount + 1;
+  const optimisticUnlocks = getUnlocksForFlipCount(
+    optimisticFlipCount,
+    prevUnlocks
+  );
+
+  setStatus(optimisticStatus);
+  setFlipCount(optimisticFlipCount);
+  setUnlocks(optimisticUnlocks);
+
+  // newly unlocked → toasts
+  const newlyUnlocked = optimisticUnlocks.filter(
+    (id) => !prevUnlocks.includes(id)
+  );
+
+  if (newlyUnlocked.length > 0) {
+    const labels = newlyUnlocked
+      .map(unlockIdToLabel)
+      .filter(Boolean) as string[];
+
+    if (labels.length > 0) {
+      setUnlockToasts((prev) => [...prev, ...labels]);
+
+      setTimeout(() => {
+        setUnlockToasts((prev) =>
+          prev.filter((label) => !labels.includes(label))
+        );
+      }, 2000);
     }
+  }
 
-    flipTimeoutRef.current = setTimeout(async () => {
-      setSaving(true);
+  (async () => {
+    setSaving(true);
 
-      const nextStatus = !status;
-      const nextFlipCount = flipCount + 1;
+    try {
+      // 🔒 atomic backend update
+      const { error } = await supabase.rpc("record_flip", {
+        p_user_id: user.id,
+      });
 
-      const nextUnlocks = getUnlocksForFlipCount(nextFlipCount, unlocks);
+      if (error) throw error;
 
-      // newly unlocked → toasts
-      const newlyUnlocked = nextUnlocks.filter((id) => !unlocks.includes(id));
-
-      if (newlyUnlocked.length > 0) {
-        const labels = newlyUnlocked
-          .map(unlockIdToLabel)
-          .filter(Boolean) as string[];
-
-        if (labels.length > 0) {
-          setUnlockToasts((prev) => [...prev, ...labels]);
-
-          setTimeout(() => {
-            setUnlockToasts((prev) =>
-              prev.filter((label) => !labels.includes(label))
-            );
-          }, 2000);
-        }
-      }
-
-      // persist to Supabase
-      const { error } = await supabase
+      // status + unlocks are UI-only concerns;
+      // flip_count + last_flip_at are now authoritative in DB
+      await supabase
         .from("profiles")
         .update({
-          status: nextStatus,
-          flip_count: nextFlipCount,
-          unlocks: nextUnlocks,
+          status: optimisticStatus,
+          unlocks: optimisticUnlocks,
         })
         .eq("id", user.id);
+    } catch (err) {
+      console.error("Failed to save flip:", err);
 
-      if (error) {
-        console.error("Failed to save flip:", error);
-
-        // rollback UI if save fails
-        setStatus(status);
-        setFlipCount(flipCount);
-        setUnlocks(unlocks);
-      } else {
-        // reconcile UI with authoritative state
-        setStatus(nextStatus);
-        setFlipCount(nextFlipCount);
-        setUnlocks(nextUnlocks);
-      }
-
+      // rollback UI
+      setStatus(prevStatus);
+      setFlipCount(prevFlipCount);
+      setUnlocks(prevUnlocks);
+    } finally {
       setSaving(false);
       setFlipPending(false);
-    }, 250);
-  };
+    }
+  })();
+};
+
+
+
 
   const handleAppearanceChange = (next: Appearance) => {
     setAppearance(next); // optimistic
     saveAppearanceDebounced(next); // persistent
   };
-  
+
 
   //   The return statement
 

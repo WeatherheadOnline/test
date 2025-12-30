@@ -12,22 +12,31 @@ type FeedProfile = {
   display_name: string | null;
   status: boolean;
   flip_count: number;
+  last_flip_at: string | null;
   isFollowing: boolean;
 };
+
+type SortKey =
+  | "last_flip_desc"
+  | "last_flip_asc"
+  | "status_asc"
+  | "status_desc"
+  | "username_asc"
+  | "username_desc"
+  | "flip_asc"
+  | "flip_desc";
 
 export default function Feed() {
   const PAGE_SIZE = 4;
 
-
-const {
-  user,
-  profile,
-  loading: userLoading,
-  followingIds,
-  refreshFollowing,
-  optimisticallyFollow,
-  optimisticallyUnfollow,
-} = useUser();
+  const {
+    user,
+    profile,
+    loading: userLoading,
+    followingIds,
+    optimisticallyFollow,
+    optimisticallyUnfollow,
+  } = useUser();
 
   const [profiles, setProfiles] = useState<FeedProfile[]>([]);
   const [offset, setOffset] = useState(0);
@@ -35,139 +44,107 @@ const {
   const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [onlyFollowing, setOnlyFollowing] = useState(false);
+  const [sortKey, setSortKey] = useState<SortKey>("last_flip_desc");
 
-  /* -----------------------------------------
-     Data fetching
-  ------------------------------------------*/
+  const fetchFeedPage = async (from: number, to: number) => {
+    if (!user) return [];
 
-
-const fetchFeedPage = async (
-  from: number,
-  to: number
-): Promise<FeedProfile[]> => {
-  if (!user) return [];
-
-  let query = supabase
-    .from("profiles")
-    .select(
-      `
+    let query = supabase.from("profiles").select(`
         id,
         username,
         display_name,
         status,
-        flip_count
-      `
-    )
-    .order("created_at", { ascending: false });
+        flip_count,
+        last_flip_at
+      `);
 
-  // Exclude self
-  if (profile?.username) {
-    query = query.neq("username", profile.username);
-  }
-
-  // Server-side only-following
-  if (onlyFollowing) {
-    if (followingIds.size === 0) return [];
-    query = query.in("id", Array.from(followingIds));
-  }
-
-  const { data, error } = await query.range(from, to);
-
-  if (error || !data) throw error;
-
-  return data.map((p) => ({
-    ...p,
-    isFollowing: followingIds.has(p.id),
-  }));
-};
-
-  /* -----------------------------------------
-     Initial load
-  ------------------------------------------*/
-
-  const loadInitialPage = async () => {
-    if (!user || userLoading) return;
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const data = await fetchFeedPage(0, PAGE_SIZE - 1);
-
-      const filtered =
-        profile?.username != null
-          ? data.filter((p) => p.username !== profile.username)
-          : data;
-
-      setProfiles(filtered);
-      setOffset(PAGE_SIZE);
-      setHasMore(data.length === PAGE_SIZE);
-    } catch {
-      setError("Failed to load feed");
-      setProfiles([]);
-      setHasMore(false);
-    } finally {
-      setLoading(false);
+    switch (sortKey) {
+      case "last_flip_desc":
+        query = query.order("last_flip_at", {
+          ascending: false,
+        });
+        break;
+      case "last_flip_asc":
+        query = query.order("last_flip_at", {
+          ascending: true,
+        });
+        break;
+      case "status_asc":
+        query = query.order("status", { ascending: true });
+        break;
+      case "status_desc":
+        query = query.order("status", { ascending: false });
+        break;
+      case "username_asc":
+        query = query.order("username", { ascending: true });
+        break;
+      case "username_desc":
+        query = query.order("username", { ascending: false });
+        break;
+      case "flip_asc":
+        query = query.order("flip_count", { ascending: true });
+        break;
+      case "flip_desc":
+        query = query.order("flip_count", { ascending: false });
+        break;
     }
+
+    if (profile?.username) {
+      query = query.neq("username", profile.username);
+    }
+
+    if (onlyFollowing) {
+      if (followingIds.size === 0) return [];
+      query = query.in("id", Array.from(followingIds));
+    }
+
+    const { data, error } = await query.range(from, to);
+    if (error || !data) throw error;
+
+    return data.map((p) => ({
+      ...p,
+      isFollowing: followingIds.has(p.id),
+    }));
   };
 
   useEffect(() => {
-    if (userLoading) return;
-    loadInitialPage();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userLoading, profile?.username]);
-
-  /* -----------------------------------------
-     Reload when filter changes
-  ------------------------------------------*/
-
-  useEffect(() => {
-    if (userLoading) return;
+    if (userLoading || !user) return;
 
     setProfiles([]);
     setOffset(0);
     setHasMore(true);
 
-    loadInitialPage();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [onlyFollowing]);
-
-  /* -----------------------------------------
-     Pagination
-  ------------------------------------------*/
+    (async () => {
+      try {
+        setLoading(true);
+        const data = await fetchFeedPage(0, PAGE_SIZE - 1);
+        setProfiles(data);
+        setOffset(PAGE_SIZE);
+        setHasMore(data.length === PAGE_SIZE);
+      } catch {
+        setError("Failed to load feed");
+        setHasMore(false);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [userLoading, user, profile?.username, onlyFollowing, sortKey]);
 
   const loadMore = async () => {
     if (loading || !hasMore || !user) return;
 
     setLoading(true);
-
-    const from = offset;
-    const to = from + PAGE_SIZE - 1;
-
     try {
-      const data = await fetchFeedPage(from, to);
-
-      const filtered =
-        profile?.username != null
-          ? data.filter((p) => p.username !== profile.username)
-          : data;
-
-      setProfiles((prev) => [...prev, ...filtered]);
+      const data = await fetchFeedPage(offset, offset + PAGE_SIZE - 1);
+      setProfiles((prev) => [...prev, ...data]);
       setOffset((prev) => prev + PAGE_SIZE);
-
-      if (data.length < PAGE_SIZE) {
-        setHasMore(false);
-      }
+      if (data.length < PAGE_SIZE) setHasMore(false);
     } catch {
       setError("Failed to load feed");
     } finally {
       setLoading(false);
     }
   };
-
-  /* -----------------------------------------
-     Render
-  ------------------------------------------*/
 
   return (
     <section className="page-section">
@@ -183,6 +160,20 @@ const fetchFeedPage = async (
             />
             Only show people I'm following
           </label>
+
+          <select
+            value={sortKey}
+            onChange={(e) => setSortKey(e.target.value as SortKey)}
+          >
+            <option value="last_flip_desc">Recently flipped</option>
+            <option value="last_flip_asc">Least recently flipped</option>
+            <option value="username_asc">Username A–Z</option>
+            <option value="username_desc">Username Z–A</option>
+            <option value="status_asc">Status 0 → 1</option>
+            <option value="status_desc">Status 1 → 0</option>
+            <option value="flip_asc">Flip count ↑</option>
+            <option value="flip_desc">Flip count ↓</option>
+          </select>
         </div>
 
         {loading && <p>Loading feed…</p>}
@@ -190,11 +181,7 @@ const fetchFeedPage = async (
 
         <div className="feed-cards-wrapper">
           {profiles.map((person) => (
-            <article
-              className="feed-card"
-              key={person.id}
-              onClick={(e) => e.stopPropagation()}
-            >
+            <article className="feed-card" key={person.id}>
               <p className="feed-bit">{person.status ? "1" : "0"}</p>
 
               <div className="feed-text">
@@ -209,80 +196,44 @@ const fetchFeedPage = async (
               <FollowButton
                 isFollowing={person.isFollowing}
                 username={person.username}
-
-
-
-// onFollow={async () => {
-//   if (!user) return;
-
-//   optimisticallyFollow(person.id);
-
-//   const { error } = await supabase.from("followers").insert({
-//     follower_id: user.id,
-//     following_id: person.id,
-//   });
-
-//   if (error) {
-//     optimisticallyUnfollow(person.id); // rollback
-//   }
-// }}
-
-onFollow={async () => {
-  if (!user) return;
-
-  // 1. Optimistically update context
-  optimisticallyFollow(person.id);
-
-  // 2. Optimistically update feed-local state
-  setProfiles((prev) =>
-    prev.map((p) =>
-      p.id === person.id ? { ...p, isFollowing: true } : p
-    )
-  );
-
-  // 3. Persist to DB
-  const { error } = await supabase.from("followers").insert({
-    follower_id: user.id,
-    following_id: person.id,
-  });
-
-  // 4. Rollback if needed
-  if (error) {
-    optimisticallyUnfollow(person.id);
-    setProfiles((prev) =>
-      prev.map((p) =>
-        p.id === person.id ? { ...p, isFollowing: false } : p
-      )
-    );
-  }
-}}
-
-
-onUnfollow={async () => {
-  if (!user) return;
-
-  optimisticallyUnfollow(person.id);
-
-  const { error } = await supabase
-    .from("followers")
-    .delete()
-    .eq("follower_id", user.id)
-    .eq("following_id", person.id);
-
-  if (error) {
-    optimisticallyFollow(person.id); // rollback
-  }
-
-  setProfiles((prev) =>
-    onlyFollowing
-      ? prev.filter((p) => p.id !== person.id)
-      : prev.map((p) =>
-          p.id === person.id ? { ...p, isFollowing: false } : p
-        )
-  );
-}}
-
-
+                onFollow={async () => {
+                  if (!user) return;
+                  optimisticallyFollow(person.id);
+                  setProfiles((prev) =>
+                    prev.map((p) =>
+                      p.id === person.id ? { ...p, isFollowing: true } : p
+                    )
+                  );
+                  const { error } = await supabase.from("followers").insert({
+                    follower_id: user.id,
+                    following_id: person.id,
+                  });
+                  if (error) {
+                    optimisticallyUnfollow(person.id);
+                    setProfiles((prev) =>
+                      prev.map((p) =>
+                        p.id === person.id ? { ...p, isFollowing: false } : p
+                      )
+                    );
+                  }
+                }}
+                onUnfollow={async () => {
+                  if (!user) return;
+                  optimisticallyUnfollow(person.id);
+                  const { error } = await supabase
+                    .from("followers")
+                    .delete()
+                    .eq("follower_id", user.id)
+                    .eq("following_id", person.id);
+                  if (error) optimisticallyFollow(person.id);
+                  setProfiles((prev) =>
+                    onlyFollowing
+                      ? prev.filter((p) => p.id !== person.id)
+                      : prev.map((p) =>
+                          p.id === person.id ? { ...p, isFollowing: false } : p
+                        )
+                  );
+                }}
               />
             </article>
           ))}
