@@ -61,6 +61,12 @@ export default function Feed() {
     );
   };
 
+  const clearFilters = () => {
+  setOnlyFollowing(false);
+  setStatusFilter("all");
+};
+
+
   const fetchFeedPage = async (from: number, to: number) => {
     if (!user) return [];
 
@@ -277,6 +283,36 @@ export default function Feed() {
               : "Nothing flipping here"}
           </p>
         )}
+
+
+
+<div className="feed-clear-controls">
+  {searchQuery && (
+    <button
+      type="button"
+      className="feed-clear-search"
+      onClick={() => {
+        setSearchInput("");
+        setSearchQuery(null);
+      }}
+    >
+      Clear search
+    </button>
+  )}
+  {(onlyFollowing || statusFilter !== "all") && (
+    <button
+      type="button"
+      className="feed-clear-filters"
+      onClick={() => {
+        setOnlyFollowing(false);
+        setStatusFilter("all");
+      }}
+    >
+      Clear filters
+    </button>
+  )}
+</div>
+
 
         <div className="feed-cards-wrapper">
           {profiles.map((person) => (

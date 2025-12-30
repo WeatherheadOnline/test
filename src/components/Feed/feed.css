@@ -69,3 +69,18 @@ form {
   font-size: 0.9rem;
   opacity: 0.7;
 }
+
+/* for the "clear filters" button */
+
+.feed-clear-filters {
+  margin-top: 0.5rem;
+  background: none;
+  border: 1px solid currentColor;
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+.feed-clear-filters:hover {
+  opacity: 1;
+}
