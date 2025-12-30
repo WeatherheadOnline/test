@@ -356,7 +356,7 @@ useEffect(() => {
 )}
         </div>
       </section>
-      <Feed />
+      {/* <Feed /> */}
     </main>
   );
 }

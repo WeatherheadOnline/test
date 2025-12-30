@@ -14,9 +14,24 @@ export default function ShareModal({ onClose, homepageUrl }: Props) {
   const [pngBlob, setPngBlob] = useState<Blob | null>(null);
   const [loading, setLoading] = useState(true);
 const [liveMessage, setLiveMessage] = useState("");
+const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+// For displaying image size in share-modal image preview:
+const [imageSize, setImageSize] = useState<{ width: number; height: number } | null>(null);
 
   const modalRef = useRef<HTMLDivElement>(null);
   const previouslyFocused = useRef<HTMLElement | null>(null);
+
+  //   Aria: announce image dimensions after image loads
+  useEffect(() => {
+  if (imageSize) {
+    setLiveMessage(
+      `Image ready. ${imageSize.width} by ${imageSize.height} pixels.`
+    );
+  }
+}, [imageSize]);
+
+
 
   // Focus management + ESC
 
@@ -100,6 +115,7 @@ const [liveMessage, setLiveMessage] = useState("");
     }
   };
 
+
   document.addEventListener("keydown", onKeyDown);
 
   return () => {
@@ -107,123 +123,6 @@ const [liveMessage, setLiveMessage] = useState("");
     previouslyFocused.current?.focus();
   };
 }, [onClose]);
-
-// useEffect(() => {
-//   previouslyFocused.current = document.activeElement as HTMLElement | null;
-//   modalRef.current?.focus();
-
-//   const el = focusables[nextIndex];
-// el.focus();
-
-// const label =
-//   el.getAttribute("aria-label") ||
-//   el.textContent ||
-//   el.getAttribute("title");
-
-// if (label) {
-//   setLiveMessage(label.trim());
-// }
-
-//   const getFocusable = () => {
-//     if (!modalRef.current) return [];
-//     return Array.from(
-//       modalRef.current.querySelectorAll<HTMLElement>(
-//         'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
-//       )
-//     );
-//   };
-
-//   const onKeyDown = (e: KeyboardEvent) => {
-//     if (e.key === "Escape") {
-//       e.preventDefault();
-//       onClose();
-//       return;
-//     }
-
-//     // if (e.key !== "Tab") return;
-//     const focusables = getFocusable();
-// if (focusables.length === 0) return;
-
-// const currentIndex = focusables.indexOf(
-//   document.activeElement as HTMLElement
-// );
-
-// // ESC (unchanged)
-// if (e.key === "Escape") {
-//   e.preventDefault();
-//   onClose();
-//   return;
-// }
-
-// // Arrow-key navigation (NEW)
-// if (
-//   e.key === "ArrowRight" ||
-//   e.key === "ArrowDown" ||
-//   e.key === "ArrowLeft" ||
-//   e.key === "ArrowUp"
-// ) {
-//   e.preventDefault();
-
-//   if (currentIndex === -1) {
-//     focusables[0].focus();
-//     return;
-//   }
-
-//   const delta =
-//     e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : -1;
-
-//   const nextIndex =
-//     (currentIndex + delta + focusables.length) %
-//     focusables.length;
-
-//   focusables[nextIndex].focus();
-//   return;
-// }
-
-// // Tab trapping (existing behavior)
-// if (e.key !== "Tab") return;
-
-// const first = focusables[0];
-// const last = focusables[focusables.length - 1];
-
-// if (e.shiftKey) {
-//   if (document.activeElement === first) {
-//     e.preventDefault();
-//     last.focus();
-//   }
-// } else {
-//   if (document.activeElement === last) {
-//     e.preventDefault();
-//     first.focus();
-//   }
-// }
-
-//     const focusables = getFocusable();
-//     if (focusables.length === 0) return;
-
-//     const first = focusables[0];
-//     const last = focusables[focusables.length - 1];
-
-//     if (e.shiftKey) {
-//       if (document.activeElement === first) {
-//         e.preventDefault();
-//         last.focus();
-//       }
-//     } else {
-//       if (document.activeElement === last) {
-//         e.preventDefault();
-//         first.focus();
-//       }
-//     }
-//   };
-
-//   document.addEventListener("keydown", onKeyDown);
-
-//   return () => {
-//     document.removeEventListener("keydown", onKeyDown);
-//     previouslyFocused.current?.focus();
-//   };
-// }, [onClose]);
 
 
   // Image render
@@ -237,12 +136,28 @@ const [liveMessage, setLiveMessage] = useState("");
     }).then((dataUrl) =>
       fetch(dataUrl)
         .then((r) => r.blob())
+        // .then((b) => {
+        //   setPngBlob(b);
+        //   setLoading(false);
+        // })
         .then((b) => {
-          setPngBlob(b);
-          setLoading(false);
-        })
-    );
+  setPngBlob(b);
+  setPreviewUrl(URL.createObjectURL(b));
+  setLoading(false);
+})
+
+    )
   }, []);
+
+// clean up, prevent memory leaks
+
+  useEffect(() => {
+  return () => {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+  };
+}, [previewUrl]);
 
   const download = () => {
     if (!pngBlob) return;
@@ -283,14 +198,43 @@ const [liveMessage, setLiveMessage] = useState("");
 
         <h2>Share your bit</h2>
 
+        {previewUrl && (
+  <div className="share-preview">
+    {/* Without image dimensions listed */}
+    {/* <img
+      src={previewUrl}
+      alt="Preview of your bit"
+      draggable={false}
+    /> */}
+    {/* With image dimensions listed  */}
+    <img
+  src={previewUrl}
+  alt="Preview of your bit"
+  draggable={false}
+  onLoad={(e) => {
+    const img = e.currentTarget;
+    setImageSize({
+      width: img.naturalWidth,
+      height: img.naturalHeight,
+    });
+  }}
+/>
+{imageSize && (
+  <p className="share-image-size">
+    {imageSize.width} × {imageSize.height}px
+  </p>
+)}
+  </div>
+)}
+
         {loading && <p>Rendering image…</p>}
 
         <div className="share-actions">
           <button onClick={download} disabled={!pngBlob}>
-            Save image
+            Save image (for Instagram, mobile)
           </button>
           <button onClick={copy} disabled={!pngBlob}>
-            Copy image
+            Copy image (for Discord, chat apps)
           </button>
         </div>
 
