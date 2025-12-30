@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import "./feed.css";
-import "@/styles/globals.css"
+import "@/styles/globals.css";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/providers/UserProvider";
 import FollowButton from "../FollowButton/FollowButton";
@@ -47,14 +47,19 @@ export default function Feed() {
   const [onlyFollowing, setOnlyFollowing] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>("last_flip_desc");
   const [searchInput, setSearchInput] = useState("");
-const [searchQuery, setSearchQuery] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string | null>(null);
 
+  type StatusFilter = "all" | "true" | "false";
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
 
-type StatusFilter = "all" | "true" | "false";
-const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const isEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
-const isEmail = (value: string) =>
-  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+  const commitSearch = () => {
+    const trimmed = searchInput.trim();
+    setSearchQuery((prev) =>
+      prev === (trimmed || null) ? prev : trimmed || null
+    );
+  };
 
   const fetchFeedPage = async (from: number, to: number) => {
     if (!user) return [];
@@ -111,27 +116,24 @@ const isEmail = (value: string) =>
     }
 
     if (statusFilter !== "all") {
-  query = query.eq("status", statusFilter === "true");
-}
+      query = query.eq("status", statusFilter === "true");
+    }
 
+    if (searchQuery) {
+      if (isEmail(searchQuery)) {
+        query = query.eq("email", searchQuery);
+      } else {
+        query = query.ilike("username", `%${searchQuery.toLowerCase()}%`);
+      }
+    }
 
-if (searchQuery) {
-  if (isEmail(searchQuery)) {
-    query = query.eq("email", searchQuery);
-  } else {
-    query = query.ilike("username", `%${searchQuery.toLowerCase()}%`);
-  }
-}
-
-if (searchQuery) {
-  if (isEmail(searchQuery)) {
-    query = query.eq("email", searchQuery);
-  } else {
-    query = query.ilike("username", `%${searchQuery.toLowerCase()}%`);
-  }
-}
-
-
+    if (searchQuery) {
+      if (isEmail(searchQuery)) {
+        query = query.eq("email", searchQuery);
+      } else {
+        query = query.ilike("username", `%${searchQuery.toLowerCase()}%`);
+      }
+    }
 
     const { data, error } = await query.range(from, to);
     if (error || !data) throw error;
@@ -163,7 +165,15 @@ if (searchQuery) {
         setLoading(false);
       }
     })();
-  }, [userLoading, user, profile?.username, onlyFollowing, sortKey, statusFilter, searchQuery]);
+  }, [
+    userLoading,
+    user,
+    profile?.username,
+    onlyFollowing,
+    sortKey,
+    statusFilter,
+    searchQuery,
+  ]);
 
   const loadMore = async () => {
     if (loading || !hasMore || !user) return;
@@ -211,82 +221,62 @@ if (searchQuery) {
           </select>
 
           <select
-  value={statusFilter}
-  onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
->
-  <option value="all">All statuses</option>
-  <option value="true">Status = 1</option>
-  <option value="false">Status = 0</option>
-</select>
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
+          >
+            <option value="all">All statuses</option>
+            <option value="true">Status = 1</option>
+            <option value="false">Status = 0</option>
+          </select>
 
+          <div className="search-wrapper">
+            <input
+              type="text"
+              placeholder="Search username or email"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  commitSearch();
+                }
+              }}
+            />
 
+            {searchInput && (
+              <button
+                type="button"
+                className="search-clear"
+                aria-label="Clear search"
+                onClick={() => {
+                  setSearchInput("");
+                  setSearchQuery(null);
+                }}
+              >
+                ×
+              </button>
+            )}
 
-
-<div className="search-wrapper">
-  <input
-    type="text"
-    placeholder="Search username or email"
-    value={searchInput}
-    onChange={(e) => setSearchInput(e.target.value)}
-  />
-
-  {searchInput && (
-    <button
-      type="button"
-      className="search-clear"
-      aria-label="Clear search"
-      onClick={() => {
-        setSearchInput("");
-        setSearchQuery(null);
-      }}
-    >
-      ×
-    </button>
-  )}
-
-  <button
-    type="button"
-    onClick={() => {
-      setSearchQuery(searchInput.trim() || null);
-    }}
-  >
-    Search
-  </button>
-</div>
-
-
-
+            <button type="button" onClick={commitSearch}>
+              Search
+            </button>
+          </div>
         </div>
 
         {loading && <p>Loading feed…</p>}
         {error && <p>{error}</p>}
 
-
-
-
-{!loading &&
-  profiles.length === 0 &&
-  searchQuery &&
-  (onlyFollowing || statusFilter !== "all") && (
-<>
-<p className="feed-hint">
-      Try relaxing your filters (e.g. include users you're not following)
-    </p>
-OR
-<p className="feed-hint">
-  {onlyFollowing && statusFilter !== "all"
-    ? "Try including users you're not following or all statuses"
-    : onlyFollowing
-    ? "Try including users you're not following"
-    : "Try including all statuses"}
-</p>
-</>
-
-)}
-
-
-
-
+        {!loading && profiles.length === 0 && searchQuery && (
+          <p className="feed-hint">
+            {onlyFollowing && statusFilter !== "all"
+              ? "Try expanding your search"
+              : onlyFollowing && statusFilter === "all"
+              ? "Try expanding your search to users you don't follow"
+              : !onlyFollowing && statusFilter !== "all"
+              ? "Try clearing the filter"
+              : "Nothing flipping here"}
+          </p>
+        )}
 
         <div className="feed-cards-wrapper">
           {profiles.map((person) => (
