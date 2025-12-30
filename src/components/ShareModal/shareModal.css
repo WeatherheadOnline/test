@@ -1,3 +1,26 @@
+/*
+
+Change to this:
+
+On mobile:
+share image (for instagram, messages, chat apps)
+save image
+[hint text] <- get rid of this
+-> x
+-> facebook
+-> bluesky
+close
+
+On desktop:
+save image (for instagram, mobile)
+copy image (for discord, chat apps)
+-> x
+-> facebook
+-> bluesky
+close
+*/
+
+
 .share-backdrop {
   position: fixed;
   inset: 0;
@@ -53,4 +76,9 @@
   text-align: center;
   font-size: 0.85rem;
   opacity: 0.7;
+}
+
+.share-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
