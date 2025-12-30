@@ -6,6 +6,11 @@
     border-radius: 12px;
     padding: 1rem;
     width: var(--menu-width);
+    /* From @media min-width 786px: */
+        /* position: absolute;
+        right: 0;
+        top: 10vh;
+        max-height: 90vh; */
     @media screen and (max-width: 785px) {
         position: absolute;
         bottom: 0;
