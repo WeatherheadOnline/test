@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import "./feed.css";
 import "@/styles/globals.css";
 import { supabase } from "@/lib/supabase";
@@ -52,6 +52,8 @@ export default function Feed() {
   type StatusFilter = "all" | "true" | "false";
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
 
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
   const isEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
   const commitSearch = () => {
@@ -62,10 +64,9 @@ export default function Feed() {
   };
 
   const clearFilters = () => {
-  setOnlyFollowing(false);
-  setStatusFilter("all");
-};
-
+    setOnlyFollowing(false);
+    setStatusFilter("all");
+  };
 
   const fetchFeedPage = async (from: number, to: number) => {
     if (!user) return [];
@@ -182,6 +183,7 @@ export default function Feed() {
   ]);
 
   const loadMore = async () => {
+    if (searchQuery) return;
     if (loading || !hasMore || !user) return;
 
     setLoading(true);
@@ -240,6 +242,7 @@ export default function Feed() {
               type="text"
               placeholder="Search username or email"
               value={searchInput}
+              ref={searchInputRef}
               onChange={(e) => setSearchInput(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
@@ -257,6 +260,7 @@ export default function Feed() {
                 onClick={() => {
                   setSearchInput("");
                   setSearchQuery(null);
+                  searchInputRef.current?.focus();
                 }}
               >
                 ×
@@ -284,35 +288,32 @@ export default function Feed() {
           </p>
         )}
 
-
-
-<div className="feed-clear-controls">
-  {searchQuery && (
-    <button
-      type="button"
-      className="feed-clear-search"
-      onClick={() => {
-        setSearchInput("");
-        setSearchQuery(null);
-      }}
-    >
-      Clear search
-    </button>
-  )}
-  {(onlyFollowing || statusFilter !== "all") && (
-    <button
-      type="button"
-      className="feed-clear-filters"
-      onClick={() => {
-        setOnlyFollowing(false);
-        setStatusFilter("all");
-      }}
-    >
-      Clear filters
-    </button>
-  )}
-</div>
-
+        <div className="feed-clear-controls">
+          {searchQuery && (
+            <button
+              type="button"
+              className="feed-clear-search"
+              onClick={() => {
+                setSearchInput("");
+                setSearchQuery(null);
+              }}
+            >
+              Clear search
+            </button>
+          )}
+          {(onlyFollowing || statusFilter !== "all") && (
+            <button
+              type="button"
+              className="feed-clear-filters"
+              onClick={() => {
+                setOnlyFollowing(false);
+                setStatusFilter("all");
+              }}
+            >
+              Clear filters
+            </button>
+          )}
+        </div>
 
         <div className="feed-cards-wrapper">
           {profiles.map((person) => (
@@ -374,7 +375,17 @@ export default function Feed() {
           ))}
         </div>
 
-        {hasMore && (
+        {/* {hasMore && (
+          <button
+            type="button"
+            onClick={loadMore}
+            disabled={loading}
+            className="feed-load-more"
+          >
+            {loading ? "Loading…" : "Load more"}
+          </button>
+        )} */}
+        {hasMore && !searchQuery && (
           <button
             type="button"
             onClick={loadMore}
