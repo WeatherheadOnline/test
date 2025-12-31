@@ -16,8 +16,9 @@ export default function FlipToast() {
         boxShadow: '0 6px 20px rgba(0,0,0,0.25)',
         opacity: 1,
 
-        animation: 'flip-toast-exit 1000ms ease forwards',
+        animation: 'flip-toast-exit 500ms ease forwards',
         animationDelay: '200ms',
+        // animationDelay: '0',
       }}
     >
       +1 flip

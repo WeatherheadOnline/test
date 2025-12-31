@@ -8,7 +8,7 @@ import BitPreview from '@/components/Homepage/BitPreview/BitPreview'
 export default function Home() {
   return (
     <main>
-      {/* <Landing /> */}
+      <Landing />
 
       {/* Re-add later */}
       {/* <What /> */}

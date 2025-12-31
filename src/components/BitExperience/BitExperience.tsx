@@ -1,10 +1,11 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import BitDisplay from "@/components/BitDisplay/BitDisplay";
 import CustomiseMenu from "@/components/CustomiseMenu/CustomiseMenu";
 import { Appearance } from "@/types/appearance";
-import './bitExperience.css'
+import "./bitExperience.css";
+import FlipToast from "@/components/FlipToast";
 
 type BitExperienceProps = {
   mode: "authenticated" | "preview";
@@ -21,6 +22,7 @@ type BitExperienceProps = {
   onShare?: () => void;
 
   flipPending?: boolean;
+  flipSignal?: number;
 };
 
 export default function BitExperience({
@@ -33,9 +35,22 @@ export default function BitExperience({
   onAppearanceChange,
   showShare = false,
   onShare,
-  flipPending = false,
+  flipPending = false
 }: BitExperienceProps) {
+  const [showFlipToast, setShowFlipToast] = useState(false);
   const flipButtonRef = useRef<HTMLButtonElement | null>(null);
+  const flipToastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+useEffect(() => {
+  // Immediately restart the toast
+  setShowFlipToast(true);
+
+  const t = setTimeout(() => {
+    setShowFlipToast(false);
+  }, 500);
+
+  return () => clearTimeout(t);
+}, [flipCount]);
 
   return (
     <div className="dashboard-container section-wrapper">
@@ -73,7 +88,7 @@ export default function BitExperience({
             display: "inline-flex",
             alignItems: "center",
             justifyContent: "center",
-            cursor: flipPending ? "not-allowed" : "pointer",
+            cursor: flipPending ? "unset" : "pointer",
             opacity: flipPending ? 0.5 : 1,
           }}
         >
@@ -119,8 +134,7 @@ export default function BitExperience({
                 backgroundColor: "#fff",
                 outline: "3px solid #555",
                 boxShadow: "0 1px 3px rgba(0,0,0,0.3)",
-                transform:
-                  value === "1" ? "translateX(52px)" : "translateX(0)",
+                transform: value === "1" ? "translateX(52px)" : "translateX(0)",
                 transition: "transform 200ms ease",
                 zIndex: 1,
               }}
@@ -144,6 +158,22 @@ export default function BitExperience({
         onChange={onAppearanceChange ?? (() => {})}
         ignoreRef={flipButtonRef}
       />
+
+      {/* Flip toast */}
+      {showFlipToast && (
+        <div
+          style={{
+            position: "fixed",
+            bottom: "2rem",
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 1000,
+            pointerEvents: "none",
+          }}
+        >
+          <FlipToast />
+        </div>
+      )}
     </div>
   );
 }
