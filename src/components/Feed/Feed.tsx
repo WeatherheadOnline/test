@@ -6,6 +6,8 @@ import "@/styles/globals.css";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/providers/UserProvider";
 import FollowButton from "../FollowButton/FollowButton";
+import { Appearance } from "@/types/appearance";
+import BitDisplay from "../BitDisplay/BitDisplay";
 
 type FeedProfile = {
   id: string;
@@ -14,6 +16,7 @@ type FeedProfile = {
   status: boolean;
   flip_count: number;
   last_flip_at: string | null;
+  appearance: Appearance | null;
   isFollowing: boolean;
 };
 
@@ -42,7 +45,6 @@ export default function Feed() {
   type StatusFilter = "all" | "true" | "false";
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
 
-
   const [profiles, setProfiles] = useState<FeedProfile[]>([]);
   const [offset, setOffset] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -54,7 +56,8 @@ export default function Feed() {
   const [searchQuery, setSearchQuery] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [pendingSortKey, setPendingSortKey] = useState<SortKey>(sortKey);
-  const [pendingStatusFilter, setPendingStatusFilter] = useState<StatusFilter>(statusFilter);
+  const [pendingStatusFilter, setPendingStatusFilter] =
+    useState<StatusFilter>(statusFilter);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -68,103 +71,121 @@ export default function Feed() {
   };
 
   const applyMobileSortFilter = () => {
-  setSortKey(pendingSortKey);
-  setStatusFilter(pendingStatusFilter);
-  setIsMobileMenuOpen(false);
-};
+    setSortKey(pendingSortKey);
+    setStatusFilter(pendingStatusFilter);
+    setIsMobileMenuOpen(false);
+  };
 
-const mobileCommitSearch = () => {
-  commitSearch();
-  setIsMobileMenuOpen(false);
-};
+  const mobileCommitSearch = () => {
+    commitSearch();
+    setIsMobileMenuOpen(false);
+  };
 
   const clearFilters = () => {
     setOnlyFollowing(false);
     setStatusFilter("all");
   };
 
-  const fetchFeedPage = async (from: number, to: number) => {
-    if (!user) return [];
+const fetchFeedPage = async (from: number, to: number) => {
+  if (!user) return [];
 
-    // let query = supabase.from("profiles").select(`
-    let query = supabase.from("profile_search").select(`
+  // 1. Optional search step → collect matching profile IDs
+  let searchIds: string[] | null = null;
+
+  // if (searchQuery) {
+  //   const searchQueryBuilder = supabase
+  //     .from("profile_search")
+  //     .select("id");
+
+  //   const { data, error } = isEmail(searchQuery)
+  //     ? await searchQueryBuilder.eq("email", searchQuery)
+  //     : await searchQueryBuilder.ilike(
+  //         "username",
+  //         `%${searchQuery.toLowerCase()}%`
+  //       );
+
+  //   if (error || !data || data.length === 0) return [];
+
+  //   searchIds = data.map((row) => row.id);
+  // }
+  if (searchQuery) {
+  const { data, error } = await supabase
+    .rpc("search_profiles", { search: searchQuery });
+
+  if (error || !data || data.length === 0) return [];
+
+  searchIds = data.map((row) => row.id);
+}
+
+  // 2. Main feed query (profiles table ONLY)
+  let query = supabase.from("profiles").select(`
     id,
     username,
     display_name,
     status,
     flip_count,
     last_flip_at,
-    email
-      `);
+    appearance
+  `);
 
-    switch (sortKey) {
-      case "last_flip_desc":
-        query = query.order("last_flip_at", {
-          ascending: false,
-        });
-        break;
-      case "last_flip_asc":
-        query = query.order("last_flip_at", {
-          ascending: true,
-        });
-        break;
-      case "status_asc":
-        query = query.order("status", { ascending: true });
-        break;
-      case "status_desc":
-        query = query.order("status", { ascending: false });
-        break;
-      case "username_asc":
-        query = query.order("username", { ascending: true });
-        break;
-      case "username_desc":
-        query = query.order("username", { ascending: false });
-        break;
-      case "flip_asc":
-        query = query.order("flip_count", { ascending: true });
-        break;
-      case "flip_desc":
-        query = query.order("flip_count", { ascending: false });
-        break;
-    }
+  // 3. Sorting
+  switch (sortKey) {
+    case "last_flip_desc":
+      query = query.order("last_flip_at", { ascending: false });
+      break;
+    case "last_flip_asc":
+      query = query.order("last_flip_at", { ascending: true });
+      break;
+    case "status_asc":
+      query = query.order("status", { ascending: true });
+      break;
+    case "status_desc":
+      query = query.order("status", { ascending: false });
+      break;
+    case "username_asc":
+      query = query.order("username", { ascending: true });
+      break;
+    case "username_desc":
+      query = query.order("username", { ascending: false });
+      break;
+    case "flip_asc":
+      query = query.order("flip_count", { ascending: true });
+      break;
+    case "flip_desc":
+      query = query.order("flip_count", { ascending: false });
+      break;
+  }
 
-    if (profile?.username) {
-      query = query.neq("username", profile.username);
-    }
+  // 4. Exclude current user
+  if (profile?.username) {
+    query = query.neq("username", profile.username);
+  }
 
-    if (onlyFollowing) {
-      if (followingIds.size === 0) return [];
-      query = query.in("id", Array.from(followingIds));
-    }
+  // 5. Following filter
+  if (onlyFollowing) {
+    if (followingIds.size === 0) return [];
+    query = query.in("id", Array.from(followingIds));
+  }
 
-    if (statusFilter !== "all") {
-      query = query.eq("status", statusFilter === "true");
-    }
+  // 6. Status filter
+  if (statusFilter !== "all") {
+    query = query.eq("status", statusFilter === "true");
+  }
 
-    if (searchQuery) {
-      if (isEmail(searchQuery)) {
-        query = query.eq("email", searchQuery);
-      } else {
-        query = query.ilike("username", `%${searchQuery.toLowerCase()}%`);
-      }
-    }
+  // 7. Apply search results
+  if (searchIds) {
+    query = query.in("id", searchIds);
+  }
 
-    if (searchQuery) {
-      if (isEmail(searchQuery)) {
-        query = query.eq("email", searchQuery);
-      } else {
-        query = query.ilike("username", `%${searchQuery.toLowerCase()}%`);
-      }
-    }
+  // 8. Pagination
+  const { data, error } = await query.range(from, to);
+  if (error || !data) throw error;
 
-    const { data, error } = await query.range(from, to);
-    if (error || !data) throw error;
-
-    return data.map((p) => ({
-      ...p,
-      isFollowing: followingIds.has(p.id),
-    }));
-  };
+  return data.map((p) => ({
+    ...p,
+    isFollowing: followingIds.has(p.id),
+  }));
+};
 
   useEffect(() => {
     if (userLoading || !user) return;
@@ -219,144 +240,149 @@ const mobileCommitSearch = () => {
       <div className="section-wrapper">
         <h2>What people are flipping</h2>
 
-          <div className="feed-controls">
-  {/* Always visible */}
-  <label className="only-following">
-    <input
-      type="checkbox"
-      checked={onlyFollowing}
-      onChange={(e) => setOnlyFollowing(e.target.checked)}
-    />
-    Only show people I'm following
-  </label>
-
-  {/* Desktop controls */}
-  <div className="desktop-controls">
-    <select value={sortKey} onChange={(e) => setSortKey(e.target.value as SortKey)}>
-            <option value="last_flip_desc">Recently flipped</option>
-            <option value="last_flip_asc">Least recently flipped</option>
-            <option value="username_asc">Username A–Z</option>
-            <option value="username_desc">Username Z–A</option>
-            <option value="status_asc">Status 0 → 1</option>
-            <option value="status_desc">Status 1 → 0</option>
-            <option value="flip_asc">Flip count ↑</option>
-            <option value="flip_desc">Flip count ↓</option>
-    </select>
-
-    <select
-      value={statusFilter}
-      onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-    >
-            <option value="all">All statuses</option>
-            <option value="true">Status = 1</option>
-            <option value="false">Status = 0</option>
-    </select>
-
-    <div className="search-wrapper">
+        <div className="feed-controls">
+          {/* Always visible */}
+          <label className="only-following">
             <input
-              type="text"
-              placeholder="Search username or email"
-              value={searchInput}
-              ref={searchInputRef}
-              onChange={(e) => setSearchInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  commitSearch();
-                }
-              }}
+              type="checkbox"
+              checked={onlyFollowing}
+              onChange={(e) => setOnlyFollowing(e.target.checked)}
             />
+            Only show people I'm following
+          </label>
 
-            {searchInput && (
-              <button
-                type="button"
-                className="search-clear"
-                aria-label="Clear search"
-                onClick={() => {
-                  setSearchInput("");
-                  setSearchQuery(null);
-                  searchInputRef.current?.focus();
+          {/* Desktop controls */}
+          <div className="desktop-controls">
+            <select
+              value={sortKey}
+              onChange={(e) => setSortKey(e.target.value as SortKey)}
+            >
+              <option value="last_flip_desc">Recently flipped</option>
+              <option value="last_flip_asc">Least recently flipped</option>
+              <option value="username_asc">Username A–Z</option>
+              <option value="username_desc">Username Z–A</option>
+              <option value="status_asc">Status 0 → 1</option>
+              <option value="status_desc">Status 1 → 0</option>
+              <option value="flip_asc">Flip count ↑</option>
+              <option value="flip_desc">Flip count ↓</option>
+            </select>
+
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
+            >
+              <option value="all">All statuses</option>
+              <option value="true">Status = 1</option>
+              <option value="false">Status = 0</option>
+            </select>
+
+            <div className="search-wrapper">
+              <input
+                type="text"
+                placeholder="Search username or email"
+                value={searchInput}
+                ref={searchInputRef}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    commitSearch();
+                  }
                 }}
-              >
-                ×
+              />
+
+              {searchInput && (
+                <button
+                  type="button"
+                  className="search-clear"
+                  aria-label="Clear search"
+                  onClick={() => {
+                    setSearchInput("");
+                    setSearchQuery(null);
+                    searchInputRef.current?.focus();
+                  }}
+                >
+                  ×
+                </button>
+              )}
+
+              <button type="button" onClick={commitSearch}>
+                Search
               </button>
-            )}
+            </div>
+          </div>
 
-            <button type="button" onClick={commitSearch}>
-              Search
-            </button>
+          {/* Mobile slider button */}
+          <button
+            className="mobile-sliders-btn"
+            aria-label="Open sort and filter menu"
+            onClick={() => setIsMobileMenuOpen(true)}
+          >
+            <img
+              src="/assets/sliders.svg"
+              alt="sort, filter, and search options"
+            />
+          </button>
         </div>
-  </div>
 
-  {/* Mobile slider button */}
-  <button
-    className="mobile-sliders-btn"
-    aria-label="Open sort and filter menu"
-    onClick={() => setIsMobileMenuOpen(true)}
-  >
-    <img src="/assets/sliders.svg" alt="sort, filter, and search options" />
-  </button>
-</div>
+        {isMobileMenuOpen && (
+          <div
+            className="mobile-sheet-backdrop"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            <div
+              className="mobile-sheet"
+              role="dialog"
+              aria-modal="true"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <p>Search for a username</p>
 
-{isMobileMenuOpen && (
-  <div className="mobile-sheet-backdrop" onClick={() => setIsMobileMenuOpen(false)}>
-    <div
-      className="mobile-sheet"
-      role="dialog"
-      aria-modal="true"
-      onClick={(e) => e.stopPropagation()}
-    >
-      <p>Search for a username</p>
+              <input
+                type="text"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && commitSearch()}
+              />
 
-      <input
-        type="text"
-        value={searchInput}
-        onChange={(e) => setSearchInput(e.target.value)}
-        onKeyDown={(e) => e.key === "Enter" && commitSearch()}
-      />
+              <button onClick={mobileCommitSearch}>Search</button>
 
-      <button onClick={mobileCommitSearch}>
-  Search
-</button>
+              <div className="sheet-section">
+                <label>Sort by:</label>
+                <select
+                  value={pendingSortKey}
+                  onChange={(e) => setPendingSortKey(e.target.value as SortKey)}
+                >
+                  <option value="last_flip_desc">Recently flipped</option>
+                  <option value="last_flip_asc">Least recently flipped</option>
+                  <option value="username_asc">Username A–Z</option>
+                  <option value="username_desc">Username Z–A</option>
+                  <option value="status_asc">Status 0 → 1</option>
+                  <option value="status_desc">Status 1 → 0</option>
+                  <option value="flip_asc">Flip count ↑</option>
+                  <option value="flip_desc">Flip count ↓</option>
+                </select>
 
-      <div className="sheet-section">
-        <label>Sort by:</label>
-        <select
-          value={pendingSortKey}
-          onChange={(e) => setPendingSortKey(e.target.value as SortKey)}
-        >
-            <option value="last_flip_desc">Recently flipped</option>
-            <option value="last_flip_asc">Least recently flipped</option>
-            <option value="username_asc">Username A–Z</option>
-            <option value="username_desc">Username Z–A</option>
-            <option value="status_asc">Status 0 → 1</option>
-            <option value="status_desc">Status 1 → 0</option>
-            <option value="flip_asc">Flip count ↑</option>
-            <option value="flip_desc">Flip count ↓</option>
-        </select>
+                <label>Filter by:</label>
+                <select
+                  value={pendingStatusFilter}
+                  onChange={(e) =>
+                    setPendingStatusFilter(e.target.value as StatusFilter)
+                  }
+                >
+                  <option value="all">All statuses</option>
+                  <option value="true">Status = 1</option>
+                  <option value="false">Status = 0</option>
+                </select>
+              </div>
 
-        <label>Filter by:</label>
-        <select
-          value={pendingStatusFilter}
-          onChange={(e) =>
-            setPendingStatusFilter(e.target.value as StatusFilter)
-          }
-        >
-            <option value="all">All statuses</option>
-            <option value="true">Status = 1</option>
-            <option value="false">Status = 0</option>
-        </select>
-      </div>
-
-      <button onClick={applyMobileSortFilter}>
-        Apply sort / filter
-      </button>
-      <button onClick={() => setIsMobileMenuOpen(false)}>
-        Cancel
-      </button>
-    </div>
-  </div>
-)}
+              <button onClick={applyMobileSortFilter}>
+                Apply sort / filter
+              </button>
+              <button onClick={() => setIsMobileMenuOpen(false)}>Cancel</button>
+            </div>
+          </div>
+        )}
 
         {loading && <p>Loading feed…</p>}
         {error && <p>{error}</p>}
@@ -403,7 +429,15 @@ const mobileCommitSearch = () => {
         <div className="feed-cards-wrapper">
           {profiles.map((person) => (
             <article className="feed-card" key={person.id}>
-              <p className="feed-bit">{person.status ? "1" : "0"}</p>
+              <div className="feed-bit">
+                {person.appearance && (
+                  <BitDisplay
+                    value={person.status ? "1" : "0"}
+                    appearance={person.appearance}
+                    scaleFactor={0.2}
+                  />
+                )}
+              </div>
 
               <div className="feed-text">
                 <p className="feed-username">

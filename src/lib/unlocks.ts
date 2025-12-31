@@ -18,7 +18,7 @@ export const UNLOCK_DEFINITIONS = [
   },
   {
     flipsRequired: 32,
-    ids: ['fill:patterns:pack1'],
+    ids: ['fill:patterns:pack1', 'border:thin', 'border:medium', 'border:thick'],
   },
 ] as const
 

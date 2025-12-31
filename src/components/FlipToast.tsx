@@ -6,7 +6,14 @@ export default function FlipToast() {
       role="status"
       aria-live="polite"
       style={{
-        pointerEvents: 'none',
+
+      position: "absolute",
+      top: "2rem",
+      right: "75%",
+      transform: "translateX(-50%) rotate(-15deg)",
+      zIndex: 1000,
+      pointerEvents: "none",
+
         background: '#ffffff',
         color: '#000000',
         padding: '0.5rem 0.75rem',

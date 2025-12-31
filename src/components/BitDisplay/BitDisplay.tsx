@@ -4,13 +4,23 @@ import "./bitDisplay.css";
 type BitDisplayProps = {
   value: "0" | "1";
   appearance: Appearance;
+  scaleFactor?: number;
 };
 
-export default function BitDisplay({ value, appearance }: BitDisplayProps) {
-
+export default function BitDisplay({
+  value,
+  appearance,
+  scaleFactor = 1,
+}: BitDisplayProps) {
   if (!appearance.fill || !appearance.border || !appearance.shadow) {
-  return null;
-}
+    return null;
+  }
+
+const horizontalPadding = `clamp(
+  ${4 * scaleFactor}rem,
+  ${7 * scaleFactor}vw,
+  ${6 * scaleFactor}rem
+)`;
 
   /**
    * --------------------
@@ -86,8 +96,10 @@ export default function BitDisplay({ value, appearance }: BitDisplayProps) {
       };
     }
 
-    const width =
-      thickness === "thin" ? "4px" : thickness === "medium" ? "8px" : "12px";
+    const baseWidth =
+      thickness === "thin" ? 0.5 : thickness === "medium" ? 1 : 2;
+
+    const width = `${baseWidth * scaleFactor}rem`;
 
     return {
       WebkitTextStrokeWidth: width,
@@ -150,6 +162,7 @@ export default function BitDisplay({ value, appearance }: BitDisplayProps) {
           inset: 0,
           color: "transparent",
           zIndex: 1,
+          padding: `0 ${horizontalPadding}`,
           ...shadowStyle,
         }}
       >
@@ -164,6 +177,7 @@ export default function BitDisplay({ value, appearance }: BitDisplayProps) {
           inset: 0,
           color: "transparent",
           zIndex: 2,
+          padding: `0 ${horizontalPadding}`,
           ...strokeStyle,
         }}
       >
@@ -175,6 +189,7 @@ export default function BitDisplay({ value, appearance }: BitDisplayProps) {
         style={{
           position: "relative",
           zIndex: 3,
+          padding: `0 ${horizontalPadding}`,
           ...fillStyle,
         }}
       >

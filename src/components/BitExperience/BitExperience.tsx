@@ -6,6 +6,7 @@ import CustomiseMenu from "@/components/CustomiseMenu/CustomiseMenu";
 import { Appearance } from "@/types/appearance";
 import "./bitExperience.css";
 import FlipToast from "@/components/FlipToast";
+import UnlockToast from "../UnlockToast";
 
 type BitExperienceProps = {
   mode: "authenticated" | "preview";
@@ -22,7 +23,6 @@ type BitExperienceProps = {
   onShare?: () => void;
 
   flipPending?: boolean;
-  flipSignal?: number;
 };
 
 export default function BitExperience({
@@ -35,22 +35,52 @@ export default function BitExperience({
   onAppearanceChange,
   showShare = false,
   onShare,
-  flipPending = false
+  flipPending = false,
 }: BitExperienceProps) {
-  const [showFlipToast, setShowFlipToast] = useState(false);
+  const [flipToastKey, setFlipToastKey] = useState<number | null>(null);
   const flipButtonRef = useRef<HTMLButtonElement | null>(null);
   const flipToastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const hasMountedRef = useRef(false);
+  const [unlockToasts, setUnlockToasts] = useState<string[]>([]);
+  const prevUnlocksRef = useRef<string[]>([]);
 
-useEffect(() => {
-  // Immediately restart the toast
-  setShowFlipToast(true);
+  const unlockIdToLabel = (id: string): string | null => {
+    if (id.startsWith("fill:")) return "Fill";
+    if (id.startsWith("border:")) return "Border";
+    if (id.startsWith("shadow:")) return "Shadow";
+    return null;
+  };
 
-  const t = setTimeout(() => {
-    setShowFlipToast(false);
-  }, 500);
+  useEffect(() => {
+    console.log(hasMountedRef.current);
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      return;
+    }
 
-  return () => clearTimeout(t);
-}, [flipCount]);
+    // flipCount changed due to a user flip
+    setFlipToastKey(Date.now());
+  }, [flipCount]);
+
+  useEffect(() => {
+    const prev = prevUnlocksRef.current;
+    const newlyUnlocked = unlocks.filter((id) => !prev.includes(id));
+
+    if (newlyUnlocked.length > 0) {
+      const labels = newlyUnlocked
+        .map(unlockIdToLabel)
+        .filter(Boolean) as string[];
+
+      if (labels.length > 0) {
+        setUnlockToasts((t) => [...t, ...labels]);
+        setTimeout(() => {
+          setUnlockToasts((t) => t.filter((l) => !labels.includes(l)));
+        }, 2000);
+      }
+    }
+
+    prevUnlocksRef.current = unlocks;
+  }, [unlocks]);
 
   return (
     <div className="dashboard-container section-wrapper">
@@ -66,6 +96,9 @@ useEffect(() => {
       </div>
 
       <div className="bit-flip-wrapper">
+        {/* Flip toast */}
+        {flipToastKey !== null && <FlipToast key={flipToastKey} />}
+        {/* Giant bit */}
         <BitDisplay value={value} appearance={appearance} />
 
         {/* Flip switch */}
@@ -152,28 +185,16 @@ useEffect(() => {
         />
       )}
 
+      {unlockToasts.map((label, i) => (
+        <UnlockToast key={`${label}-${i}`} label={label} />
+      ))}
+
       <CustomiseMenu
         appearance={appearance}
         unlocks={unlocks}
         onChange={onAppearanceChange ?? (() => {})}
         ignoreRef={flipButtonRef}
       />
-
-      {/* Flip toast */}
-      {showFlipToast && (
-        <div
-          style={{
-            position: "fixed",
-            bottom: "2rem",
-            left: "50%",
-            transform: "translateX(-50%)",
-            zIndex: 1000,
-            pointerEvents: "none",
-          }}
-        >
-          <FlipToast />
-        </div>
-      )}
     </div>
   );
 }

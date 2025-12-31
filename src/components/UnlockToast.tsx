@@ -10,6 +10,14 @@ export default function UnlockToast({ label }: UnlockToastProps) {
       role="status"
       aria-live="polite"
       style={{
+            position: "fixed",
+        top: "1rem",
+        right: "1rem",
+        display: "flex",
+        flexDirection: "column",
+        gap: "0.5rem",
+        zIndex: 1000,
+
         pointerEvents: 'none',
         background: '#111',
         color: '#fff',

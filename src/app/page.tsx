@@ -17,7 +17,7 @@ export default function Home() {
       <BitPreview />
 
       {/* If user is logged IN */}
-      {/* <Feed /> */}
+      <Feed />
 
     </main>
   )

@@ -4,8 +4,6 @@ import { useEffect, useState, useRef } from "react";
 import { Appearance } from "@/types/appearance";
 import { defaultAppearance } from "@/lib/defaultAppearance";
 import { getUnlocksForFlipCount } from "@/lib/unlocks";
-import UnlockToast from "@/components/UnlockToast";
-import FlipToast from "@/components/FlipToast";
 import "@/styles/globals.css";
 import "./dashboard.css";
 import { useUser } from "@/providers/UserProvider";
@@ -25,16 +23,11 @@ export default function DashboardPage() {
 
   // useState
 
-  // const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [flipPending, setFlipPending] = useState(false);
-  const [unlockToasts, setUnlockToasts] = useState<string[]>([]);
-  const [flipToastKey, setFlipToastKey] = useState<number | null>(null);
-
   const [status, setStatus] = useState<boolean>(false);
   const [flipCount, setFlipCount] = useState<number>(0);
   const [appearance, setAppearance] = useState<Appearance>(defaultAppearance);
-  // const [unlocks, setUnlocks] = useState<string[]>([]);
   const [unlocks, setUnlocks] = useState<UnlockId[]>([]);
   const [shareOpen, setShareOpen] = useState(false);
 
@@ -107,31 +100,13 @@ export default function DashboardPage() {
     // );
   }, [profile]);
 
-  useEffect(() => {
-    if (flipToastKey === null) return;
 
-    const t = setTimeout(() => {
-      setFlipToastKey(null);
-    }, 1500); // 500ms visible + 1000ms fade
-
-    return () => clearTimeout(t);
-  }, [flipToastKey]);
 
   if (loading) return <p>Loading…</p>;
   if (!user || !profile) return <p>Not logged in</p>;
 
-  const unlockIdToLabel = (id: string): string | null => {
-    if (id.startsWith("fill:")) return "Fill";
-    if (id.startsWith("border:")) return "Border";
-    if (id.startsWith("shadow:")) return "Shadow";
-    return null;
-  };
-
   const handleFlip = () => {
     if (flipPending || !user) return;
-
-    // force-remount flip toast
-    setFlipToastKey(Date.now());
 
     setFlipPending(true);
     // hard limit on how long the switch is disabled
@@ -160,26 +135,6 @@ flipTimeoutRef.current = setTimeout(() => {
     setFlipCount(optimisticFlipCount);
     setUnlocks(optimisticUnlocks);
 
-    // newly unlocked → toasts
-    const newlyUnlocked = optimisticUnlocks.filter(
-      (id) => !prevUnlocks.includes(id)
-    );
-
-    if (newlyUnlocked.length > 0) {
-      const labels = newlyUnlocked
-        .map(unlockIdToLabel)
-        .filter(Boolean) as string[];
-
-      if (labels.length > 0) {
-        setUnlockToasts((prev) => [...prev, ...labels]);
-
-        setTimeout(() => {
-          setUnlockToasts((prev) =>
-            prev.filter((label) => !labels.includes(label))
-          );
-        }, 2000);
-      }
-    }
 
     (async () => {
       setSaving(true);
@@ -224,39 +179,6 @@ flipTimeoutRef.current = setTimeout(() => {
   return (
     <main>
       <section className="page-section">
-        {/* These things are outside the section-wrapper that constrains content width */}
-
-        {/* Unlock toasts */}
-        <div
-          style={{
-            position: "fixed",
-            top: "1rem",
-            right: "1rem",
-            display: "flex",
-            flexDirection: "column",
-            gap: "0.5rem",
-            zIndex: 1000,
-            pointerEvents: "none",
-          }}
-        >
-          {unlockToasts.map((label, i) => (
-            <UnlockToast key={`${label}-${i}`} label={label} />
-          ))}
-        </div>
-
-        {/* Flip toast */}
-        <div
-          style={{
-            position: "fixed",
-            bottom: "2rem",
-            left: "50%",
-            transform: "translateX(-50%)",
-            zIndex: 1000,
-            pointerEvents: "none",
-          }}
-        >
-          {flipToastKey !== null && <FlipToast key={flipToastKey} />}
-        </div>
 
         <div className="dashboard-container section-wrapper">
           <BitExperience

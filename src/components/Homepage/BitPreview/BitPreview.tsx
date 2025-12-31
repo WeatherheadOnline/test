@@ -10,7 +10,6 @@ import "@/styles/globals.css";
 export default function BitPreview() {
   const [status, setStatus] = useState(false);
   const [flipCount, setFlipCount] = useState(0);
-  const [flipSignal, setFlipSignal] = useState(0);
 
   const FLIP_COOLDOWN_MS = 200;
   const lastFlipAtRef = useRef<number>(0);
@@ -35,7 +34,6 @@ const handleFlip = () => {
 
   setStatus((prev) => !prev);
   setFlipCount((prev) => prev + 1);
-  setFlipSignal((prev) => prev + 1);
 };
 
 
@@ -48,7 +46,6 @@ const handleFlip = () => {
         appearance={defaultAppearance}
         unlocks={[]}
         onFlip={handleFlip}
-        flipSignal={flipSignal}
       />
     </section>
   );
