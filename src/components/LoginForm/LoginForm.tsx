@@ -50,7 +50,7 @@ export default function LoginForm() {
         return;
       }
 
-      // ✅ Auth state updates instantly
+      //  Auth state updates instantly
       router.push("/dashboard");
     } catch (err) {
       console.error(err);

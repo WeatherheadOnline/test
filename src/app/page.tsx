@@ -1,24 +1,22 @@
-'use client'
+"use client";
 
-import Landing from '@/components/Homepage/Landing/Landing'
-import What from '@/components/Homepage/What/What'
-import Feed from '@/components/Feed/Feed'
-import BitPreview from '@/components/Homepage/BitPreview/BitPreview'
+import { useUser } from "@/providers/UserProvider";
+import Landing from "@/components/Homepage/Landing/Landing";
+import What from "@/components/Homepage/What/What";
+import Feed from "@/components/Feed/Feed";
+import BitPreview from "@/components/Homepage/BitPreview/BitPreview";
 
 export default function Home() {
+  const { user, loading } = useUser();
   return (
     <main>
       <Landing />
 
-      {/* Re-add later */}
-      {/* <What /> */}
+      <What />
 
-      {/* If user is logged OUT */}
-      <BitPreview />
+      {!user && <BitPreview />}
 
-      {/* If user is logged IN */}
-      <Feed />
-
+      {user && <Feed />}
     </main>
-  )
+  );
 }

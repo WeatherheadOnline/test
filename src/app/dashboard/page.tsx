@@ -202,7 +202,7 @@ flipTimeoutRef.current = setTimeout(() => {
           )}
         </div>
       </section>
-      {/* <Feed /> */}
+      <Feed />
     </main>
   );
 }
