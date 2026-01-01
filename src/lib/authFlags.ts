@@ -1,0 +1,1 @@
+export const LOGGING_OUT_KEY = "isLoggingOut";

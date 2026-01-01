@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
@@ -9,18 +9,34 @@ import "@/styles/globals.css";
 import "./delete-account.css";
 
 export default function DeleteAccountPage() {
-  const { user, authLoading } = useUser();
+  const { user, userReady } = useUser();
   const router = useRouter();
 
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-if (authLoading) return <p>Loading…</p>;
+useEffect(() => {
+  if (!userReady) return;
+
+  const isLoggingOut =
+    typeof window !== "undefined" &&
+    sessionStorage.getItem("isLoggingOut");
+
+  if (!user && !isLoggingOut) {
+    router.replace("/gate?reason=auth");
+  }
+}, [user, userReady, router]);
+
+if (!userReady) {
+  return <p>Loading…</p>;
+}
+
 if (!user) {
-  router.replace("/gate?reason=auth");
+  // Redirect is already happening in the effect
   return null;
 }
+
   const handleDeleteAccount = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log("DELETE SUBMIT FIRED");

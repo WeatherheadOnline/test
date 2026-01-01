@@ -10,6 +10,10 @@ import BitPreview from "@/components/Homepage/BitPreview/BitPreview";
 export default function Home() {
   const { user, authLoading } = useUser();
 
+  useEffect(() => {
+    sessionStorage.removeItem("isLoggingOut");
+  }, []);
+
   return (
     <main>
       <Landing />

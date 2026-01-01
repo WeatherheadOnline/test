@@ -9,7 +9,7 @@ import "@/styles/globals.css";
 import "./settings.css";
 
 export default function Settings() {
-  const { user, authLoading } = useUser();
+  const { user, authLoading, userReady } = useUser();
   const router = useRouter();
 
   const [currentPassword, setCurrentPassword] = useState("");
@@ -22,11 +22,14 @@ export default function Settings() {
   const [success, setSuccess] = useState<string | null>(null);
 
 useEffect(() => {
-  if (authLoading) return;
-  if (!user) {
+  if (!userReady) return;
+
+  const isLoggingOut = sessionStorage.getItem("isLoggingOut");
+
+  if (!user && !isLoggingOut) {
     router.replace("/gate?reason=auth");
   }
-}, [user, authLoading, router]);
+}, [user, userReady, router]);
 
   if (authLoading) return null;
 

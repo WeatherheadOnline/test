@@ -20,7 +20,7 @@ const VALID_UNLOCK_IDS = new Set<UnlockId>(
 );
 
 export default function DashboardPage() {
-  const { user, profile, authLoading, profileLoading } = useUser();
+  const { user, profile, authLoading, userReady, profileLoading } = useUser();
   const router = useRouter();
 
   // useState
@@ -103,11 +103,14 @@ export default function DashboardPage() {
   }, [profile]);
 
 useEffect(() => {
-  if (authLoading) return;
-  if (!user) {
+  if (!userReady) return;
+
+  const isLoggingOut = sessionStorage.getItem("isLoggingOut");
+
+  if (!user && !isLoggingOut) {
     router.replace("/gate?reason=auth");
   }
-}, [user, authLoading, router]);
+}, [user, userReady, router]);
 
 if (authLoading) return null;
 
