@@ -12,19 +12,10 @@ import { useHeaderConfig } from "@/providers/HeaderConfigProvider";
 export default function Header() {
   const { user, loading } = useUser();
   const router = useRouter();
-const {config,setFocusLoginOnMount} = useHeaderConfig();
+  const { config, setFocusLoginOnMount } = useHeaderConfig();
   if (loading) {
     return <header style={{ height: 64 }} />;
   }
-
-  
-//   if (config.onLoginClick) {
-//   config.onLoginClick();
-// } else {
-//   setFocusLoginOnMount(true);
-//   router.push("/");
-// }
-
 
   return (
     <header>
@@ -37,43 +28,37 @@ const {config,setFocusLoginOnMount} = useHeaderConfig();
       </div>
 
       <nav>
-        {/* <Link className="navlink" href="/">
+        <button
+          className="navlink"
+          onClick={() => {
+            if (config.onHomeClick) {
+              config.onHomeClick();
+            } else {
+              router.push("/");
+            }
+          }}
+        >
           Home
-        </Link> */}
-
-<button
-  className="navlink"
-  onClick={() => {
-    if (config.onHomeClick) {
-      config.onHomeClick();
-    } else {
-      router.push("/");
-    }
-  }}
->
-  Home
-</button>
-
-
+        </button>
 
         {user && <LogoutButton />}
 
-{!user && (
-  <button
-    onClick={() => {
-      if (config.onLoginClick) {
-        // Already on homepage → scroll + focus immediately
-        config.onLoginClick();
-      } else {
-        // Not on homepage → set intent, then navigate
-        setFocusLoginOnMount(true);
-        router.push("/");
-      }
-    }}
-  >
-    Log in
-  </button>
-)}
+        {!user && (
+          <button
+            onClick={() => {
+              if (config.onLoginClick) {
+                // Already on homepage → scroll + focus immediately
+                config.onLoginClick();
+              } else {
+                // Not on homepage → set intent, then navigate
+                setFocusLoginOnMount(true);
+                router.push("/");
+              }
+            }}
+          >
+            Log in
+          </button>
+        )}
 
         {!user && (
           <Link className="navlink" href="/signup">

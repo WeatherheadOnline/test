@@ -1,8 +1,8 @@
-// 'use client'?
-
 import { useEffect, useRef, useState } from "react";
 import BitExperience from "@/components/BitExperience/BitExperience";
 import { defaultAppearance } from "@/lib/defaultAppearance";
+import Link from "next/link";
+import { useHeaderConfig } from "@/providers/HeaderConfigProvider";
 
 import "./bitPreview.css";
 import "@/styles/globals.css";
@@ -10,6 +10,7 @@ import "@/styles/globals.css";
 export default function BitPreview() {
   const [status, setStatus] = useState(false);
   const [flipCount, setFlipCount] = useState(0);
+const { config } = useHeaderConfig();
 
   const FLIP_COOLDOWN_MS = 200;
   const lastFlipAtRef = useRef<number>(0);
@@ -36,7 +37,6 @@ const handleFlip = () => {
   setFlipCount((prev) => prev + 1);
 };
 
-
   return (
     <section className="page-section what-section">
       <BitExperience
@@ -47,6 +47,20 @@ const handleFlip = () => {
         unlocks={[]}
         onFlip={handleFlip}
       />
+      <div className="button-wrapper bit-exp-CTA-wrapper">
+          <Link className="navlink" href="/signup">
+            Sign up
+          </Link>
+          {/* "Log in" button should scroll to the top of the homepage (this page) and place focus on the login form's input field */}
+        <button
+  type="button"
+  onClick={() => {
+    config.onLoginClick?.();
+  }}
+>
+  Log in
+</button>
+      </div>
     </section>
   );
 }
