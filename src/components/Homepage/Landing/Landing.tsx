@@ -13,18 +13,29 @@ export default function Landing() {
   useHeaderConfig();
 
 useEffect(() => {
-  // 1. Configure header behavior for this page
   setConfig({
-    onLoginClick: () => {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      // focus is handled via focusLoginOnMount or direct click
-    },
+
+onLoginClick: () => {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+
+  const focusAfterScroll = () => {
+    if (loginInputRef.current) {
+      loginInputRef.current.focus();
+    } else {
+      requestAnimationFrame(focusAfterScroll);
+    }
+  };
+
+  // Let the smooth scroll begin before focusing
+  setTimeout(focusAfterScroll, 200);
+},
+
     onHomeClick: () => {
       window.scrollTo({ top: 0, behavior: "smooth" });
     },
   });
 
-  // 2. If we arrived here due to a login redirect, focus once
+  // Handle redirect → homepage login intent
   if (focusLoginOnMount) {
     const tryFocus = () => {
       if (loginInputRef.current) {
@@ -38,7 +49,6 @@ useEffect(() => {
     tryFocus();
   }
 
-  // 3. Cleanup on unmount
   return () => setConfig({});
 }, [setConfig, focusLoginOnMount, setFocusLoginOnMount]);
 
