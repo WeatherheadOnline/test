@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { useUser } from "@/providers/UserProvider";
 import "@/styles/globals.css";
 import "./delete-account.css";
+import RedirectToGate from "@/components/RedirectToGate";
 
 export default function DeleteAccountPage() {
   const { user, userReady } = useUser();
@@ -16,25 +17,12 @@ export default function DeleteAccountPage() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-useEffect(() => {
-  if (!userReady) return;
-
-  const isLoggingOut =
-    typeof window !== "undefined" &&
-    sessionStorage.getItem("isLoggingOut");
-
-  if (!user && !isLoggingOut) {
-    router.replace("/gate?reason=auth");
-  }
-}, [user, userReady, router]);
-
 if (!userReady) {
-  return <p>Loading…</p>;
+  return null; // or a loading skeleton
 }
 
 if (!user) {
-  // Redirect is already happening in the effect
-  return null;
+  return <RedirectToGate />;
 }
 
   const handleDeleteAccount = async (e: React.FormEvent) => {

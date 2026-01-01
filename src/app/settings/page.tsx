@@ -7,6 +7,7 @@ import { useUser } from "@/providers/UserProvider";
 import { useRouter } from "next/navigation";
 import "@/styles/globals.css";
 import "./settings.css";
+import RedirectToGate from "@/components/RedirectToGate";
 
 export default function Settings() {
   const { user, authLoading, userReady } = useUser();
@@ -21,17 +22,13 @@ export default function Settings() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-useEffect(() => {
-  if (!userReady) return;
+if (!userReady) {
+  return null; // or a loading skeleton if you want
+}
 
-  const isLoggingOut = sessionStorage.getItem("isLoggingOut");
-
-  if (!user && !isLoggingOut) {
-    router.replace("/gate?reason=auth");
-  }
-}, [user, userReady, router]);
-
-  if (authLoading) return null;
+if (!user) {
+  return <RedirectToGate />;
+}
 
   const handleNewEmail = async (e: React.FormEvent) => {
     e.preventDefault();

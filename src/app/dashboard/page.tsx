@@ -14,6 +14,7 @@ import BitExperience from "@/components/BitExperience/BitExperience";
 import type { UnlockId } from "@/lib/unlocks";
 import { UNLOCK_DEFINITIONS } from "@/lib/unlocks";
 import { useRouter } from "next/navigation";
+import RedirectToGate from "@/components/RedirectToGate";
 
 const VALID_UNLOCK_IDS = new Set<UnlockId>(
   UNLOCK_DEFINITIONS.flatMap((rule) => rule.ids)
@@ -56,21 +57,6 @@ export default function DashboardPage() {
     }
   }, [appearance.fill.style, unlocks]);
 
-  const saveAppearanceDebounced = (nextAppearance: Appearance) => {
-    if (!user) return;
-
-    if (appearanceTimeoutRef.current) {
-      clearTimeout(appearanceTimeoutRef.current);
-    }
-
-    appearanceTimeoutRef.current = setTimeout(async () => {
-      await supabase
-        .from("profiles")
-        .update({ appearance: nextAppearance })
-        .eq("id", user.id);
-    }, 400);
-  };
-
   useEffect(() => {
     if (!profile) return;
 
@@ -102,17 +88,28 @@ export default function DashboardPage() {
     // );
   }, [profile]);
 
-useEffect(() => {
-  if (!userReady) return;
+if (!userReady) {
+  return null; // or a loading shell
+}
 
-  const isLoggingOut = sessionStorage.getItem("isLoggingOut");
+if (!user) {
+  return <RedirectToGate />;
+}
 
-  if (!user && !isLoggingOut) {
-    router.replace("/gate?reason=auth");
-  }
-}, [user, userReady, router]);
+  const saveAppearanceDebounced = (nextAppearance: Appearance) => {
+    if (!user) return;
 
-if (authLoading) return null;
+    if (appearanceTimeoutRef.current) {
+      clearTimeout(appearanceTimeoutRef.current);
+    }
+
+    appearanceTimeoutRef.current = setTimeout(async () => {
+      await supabase
+        .from("profiles")
+        .update({ appearance: nextAppearance })
+        .eq("id", user.id);
+    }, 400);
+  };
 
   const handleFlip = () => {
     if (flipPending || !user) return;
