@@ -5,11 +5,11 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/providers/UserProvider";
 import { useRouter } from "next/navigation";
-import "@/styles/globals.css"
+import "@/styles/globals.css";
 import "./settings.css";
 
 export default function Settings() {
-  const { user, loading } = useUser();
+  const { user, authLoading } = useUser();
   const router = useRouter();
 
   const [currentPassword, setCurrentPassword] = useState("");
@@ -22,15 +22,15 @@ export default function Settings() {
   const [success, setSuccess] = useState<string | null>(null);
 
 useEffect(() => {
-  if (loading) return;
+  if (authLoading) return;
   if (!user) {
     router.replace("/gate?reason=auth");
   }
-}, [user, loading, router]);
+}, [user, authLoading, router]);
 
-if (loading) return null;
+  if (authLoading) return null;
 
- const handleNewEmail = async (e: React.FormEvent) => {
+  const handleNewEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSuccess(null);
@@ -109,126 +109,81 @@ if (loading) return null;
         <div className="section-wrapper">
           <h2>Settings page</h2>
 
-          {/* <form>
+          <form>
             <fieldset>
               <h2 className="settings-h">Account</h2>
+
               <label>
-                Confirm password:
-                <input type="password"></input>
+                Current password
+                <input
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  required
+                />
               </label>
+
               <label>
-                New email:
-                <input type="email"></input>
+                New email
+                <input
+                  type="email"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  required
+                />
               </label>
-              <button onClick={handleNewEmail}>Update email</button>
+
+              <button type="button" onClick={handleNewEmail}>
+                Update email
+              </button>
             </fieldset>
 
             <fieldset>
               <h2 className="settings-h">Security</h2>
-              <label>
-                Current password:
-                <input type="password"></input>
-              </label>
-              <label>
-                New password:
-                <input type="password"></input>
-              </label>
-              <label>
-                Re-enter new password:
-                <input type="password"></input>
-              </label>
-              <button onClick={handleNewPassword}>Update password</button>
-            </fieldset>
 
-            <button>
-              <Link className="navlink" href="/dashboard">
-                Back to bitsness
-              </Link>
-            </button>
+              <label>
+                New password
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  required
+                />
+              </label>
 
-            <fieldset>
-              <h2 className="settings-h">&#9888; Danger zone &#9888;</h2>
+              <label>
+                Re-enter new password
+                <input
+                  type="password"
+                  value={confirmNewPassword}
+                  onChange={(e) => setConfirmNewPassword(e.target.value)}
+                  required
+                />
+              </label>
 
-              <button>
-                <Link className="navlink" href="/delete-account">
-                  &#9888; Delete my account &#9888;
-                </Link>
+              <button type="button" onClick={handleNewPassword}>
+                Update password
               </button>
             </fieldset>
-          </form> */}
 
-          <form>
-  <fieldset>
-    <h2 className="settings-h">Account</h2>
+            {error && <p className="error">{error}</p>}
+            {success && <p className="success">{success}</p>}
 
-    <label>
-      Current password
-      <input
-        type="password"
-        value={currentPassword}
-        onChange={(e) => setCurrentPassword(e.target.value)}
-        required
-      />
-    </label>
+            <Link className="navlink faux-button" href="/dashboard">
+              ← Back to bitsness
+            </Link>
 
-    <label>
-      New email
-      <input
-        type="email"
-        value={newEmail}
-        onChange={(e) => setNewEmail(e.target.value)}
-        required
-      />
-    </label>
+            <fieldset>
+              <h2 className="settings-h">⚠ Danger zone ⚠</h2>
 
-    <button type="button" onClick={handleNewEmail}>
-      Update email
-    </button>
-  </fieldset>
-
-  <fieldset>
-    <h2 className="settings-h">Security</h2>
-
-    <label>
-      New password
-      <input
-        type="password"
-        value={newPassword}
-        onChange={(e) => setNewPassword(e.target.value)}
-        required
-      />
-    </label>
-
-    <label>
-      Re-enter new password
-      <input
-        type="password"
-        value={confirmNewPassword}
-        onChange={(e) => setConfirmNewPassword(e.target.value)}
-        required
-      />
-    </label>
-
-    <button type="button" onClick={handleNewPassword}>
-      Update password
-    </button>
-  </fieldset>
-
-  {error && <p className="error">{error}</p>}
-  {success && <p className="success">{success}</p>}
-
-  <Link className="navlink faux-button" href="/dashboard">
-    ← Back to bitsness
-  </Link>
-
-  <fieldset>
-    <h2 className="settings-h">⚠ Danger zone ⚠</h2>
-
-    <Link className="navlink danger faux-button" href="/delete-account">
-      Delete my account
-    </Link>
-  </fieldset>
-</form>
+              <Link
+                className="navlink danger faux-button"
+                href="/delete-account"
+              >
+                Delete my account
+              </Link>
+            </fieldset>
+          </form>
         </div>
       </section>
       <div className="modal"></div>

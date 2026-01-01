@@ -20,7 +20,7 @@ const VALID_UNLOCK_IDS = new Set<UnlockId>(
 );
 
 export default function DashboardPage() {
-  const { user, profile, loading } = useUser();
+  const { user, profile, authLoading, profileLoading } = useUser();
   const router = useRouter();
 
   // useState
@@ -103,13 +103,13 @@ export default function DashboardPage() {
   }, [profile]);
 
 useEffect(() => {
-  if (loading) return;
+  if (authLoading) return;
   if (!user) {
     router.replace("/gate?reason=auth");
   }
-}, [user, loading, router]);
+}, [user, authLoading, router]);
 
-if (loading) return null;
+if (authLoading) return null;
 
   const handleFlip = () => {
     if (flipPending || !user) return;

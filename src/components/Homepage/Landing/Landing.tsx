@@ -7,7 +7,7 @@ import { useUser } from "@/providers/UserProvider";
 import "./landing.css";
 
 export default function Landing() {
-  const { user, profile, loading } = useUser();
+  const { user, profile, userReady } = useUser();
   const loginInputRef = useRef<HTMLInputElement>(null);
   const { setConfig, focusLoginOnMount, setFocusLoginOnMount } =
   useHeaderConfig();
@@ -36,18 +36,18 @@ onLoginClick: () => {
   });
 
   // Handle redirect → homepage login intent
-  if (focusLoginOnMount) {
-    const tryFocus = () => {
-      if (loginInputRef.current) {
-        loginInputRef.current.focus();
-        setFocusLoginOnMount(false); // consume intent
-      } else {
-        requestAnimationFrame(tryFocus);
-      }
-    };
+  // if (focusLoginOnMount) {
+  //   const tryFocus = () => {
+  //     if (loginInputRef.current) {
+  //       loginInputRef.current.focus();
+  //       setFocusLoginOnMount(false); // consume intent
+  //     } else {
+  //       requestAnimationFrame(tryFocus);
+  //     }
+  //   };
 
-    tryFocus();
-  }
+  //   tryFocus();
+  // }
 
   return () => setConfig({});
 }, [setConfig, focusLoginOnMount, setFocusLoginOnMount]);
@@ -93,14 +93,14 @@ useEffect(() => {
           </p>
         </div>
 
-        {!loading && user && (
+        {userReady && user && (
           <h2>
             Welcome
             {profile?.display_name ? ` ${profile.display_name}` : ""}
           </h2>
         )}
 
-        {!loading && !user && <LoginForm ref={loginInputRef} />}
+        {userReady && !user && <LoginForm ref={loginInputRef} />}
       </div>
     </section>
   );

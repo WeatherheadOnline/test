@@ -14,7 +14,10 @@ type UserContextValue = {
   user: User | null;
   session: Session | null;
   profile: Profile | null;
-  loading: boolean;
+  authLoading: boolean;
+  profileLoading: boolean;
+  followingLoading: boolean;
+  userReady: boolean;
   followingIds: Set<string>;
   refreshFollowing: () => Promise<void>;
   optimisticallyFollow: (userId: string) => void;
@@ -49,20 +52,32 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
+const [authLoading, setAuthLoading] = useState(true);
 const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
+const [profileLoading, setProfileLoading] = useState(false);
+const [followingLoading, setFollowingLoading] = useState(false);
+
+
+  const userReady =
+  !authLoading && !profileLoading && !followingLoading;
+
+
 
 const loadFollowing = async (userId: string) => {
-const { data, error } = await supabase
-.from("followers")
-.select("following_id")
-.eq("follower_id", userId);
+  setFollowingLoading(true);
 
-if (!error && data) {
-setFollowingIds(new Set(data.map((f) => f.following_id)));
-} else {
-setFollowingIds(new Set());
-}
+  const { data, error } = await supabase
+    .from("followers")
+    .select("following_id")
+    .eq("follower_id", userId);
+
+  if (!error && data) {
+    setFollowingIds(new Set(data.map((f) => f.following_id)));
+  } else {
+    setFollowingIds(new Set());
+  }
+
+  setFollowingLoading(false);
 };
 
 const optimisticallyFollow = (userId: string) => {
@@ -81,21 +96,49 @@ const optimisticallyUnfollow = (userId: string) => {
     let mounted = true;
 
 
-//     const loadInitialSession = async () => {
-//       const { data } = await supabase.auth.getSession();
+// const loadInitialSession = async () => {
+//   const { data } = await supabase.auth.getSession();
 
-//       if (!mounted) return;
+//   if (!mounted) return;
 
-//       setSession(data.session);
-//       setUser(data.session?.user ?? null);
+//   setSession(data.session);
+//   setUser(data.session?.user ?? null);
 
-// if (data.session?.user) {
-//   await loadProfile(data.session.user.id);
-//   await loadFollowing(data.session.user.id);
-// }
+//   // 🔑 AUTH IS READY — unblock routing
+//   setLoading(false);
 
-//       setLoading(false);
-//     };
+//   // ⬇️ Load user data in background
+//   if (data.session?.user) {
+//     loadProfile(data.session.user.id);
+//     loadFollowing(data.session.user.id);
+//   }
+// };
+
+    // const loadProfile = async (userId: string) => {
+    //   const { data, error } = await supabase
+    //     .from("profiles")
+    //     .select(
+    //       `
+    //         username,
+    //         display_name,
+    //         status,
+    //         flip_count,
+    //         appearance,
+    //         unlocks,
+    //         background_pattern,
+    //         background_color,
+    //         accessories
+    //         `
+    //     )
+    //     .eq("id", userId)
+    //     .single();
+
+    //   if (!error && data) {
+    //     setProfile(data);
+    //   } else {
+    //     setProfile(null);
+    //   }
+    // };
 
 const loadInitialSession = async () => {
   const { data } = await supabase.auth.getSession();
@@ -105,10 +148,9 @@ const loadInitialSession = async () => {
   setSession(data.session);
   setUser(data.session?.user ?? null);
 
-  // 🔑 AUTH IS READY — unblock routing
-  setLoading(false);
+  // 🔑 AUTH READY — routing may proceed
+  setAuthLoading(false);
 
-  // ⬇️ Load user data in background
   if (data.session?.user) {
     loadProfile(data.session.user.id);
     loadFollowing(data.session.user.id);
@@ -116,40 +158,57 @@ const loadInitialSession = async () => {
 };
 
     const loadProfile = async (userId: string) => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select(
-          `
-            username,
-            display_name,
-            status,
-            flip_count,
-            appearance,
-            unlocks,
-            background_pattern,
-            background_color,
-            accessories
-            `
-        )
-        .eq("id", userId)
-        .single();
+  setProfileLoading(true);
 
-      if (!error && data) {
-        setProfile(data);
-      } else {
-        setProfile(null);
-      }
-    };
+  const { data, error } = await supabase
+    .from("profiles")
+    .select(`
+      username,
+      display_name,
+      status,
+      flip_count,
+      appearance,
+      unlocks,
+      background_pattern,
+      background_color,
+      accessories
+    `)
+    .eq("id", userId)
+    .single();
+
+  if (!error && data) {
+    setProfile(data);
+  } else {
+    setProfile(null);
+  }
+
+  setProfileLoading(false);
+};
+
 
     loadInitialSession();
 
     const {
       data: { subscription },
     } =
-    supabase.auth.onAuthStateChange((_event, session) => {
+
+//     supabase.auth.onAuthStateChange((_event, session) => {
+//   setSession(session);
+//   setUser(session?.user ?? null);
+//   setLoading(false); // unblock immediately
+
+//   if (session?.user) {
+//     loadProfile(session.user.id);
+//     loadFollowing(session.user.id);
+//   } else {
+//     setProfile(null);
+//     setFollowingIds(new Set());
+//   }
+// });
+supabase.auth.onAuthStateChange((_event, session) => {
   setSession(session);
   setUser(session?.user ?? null);
-  setLoading(false); // unblock immediately
+  setAuthLoading(false);
 
   if (session?.user) {
     loadProfile(session.user.id);
@@ -160,24 +219,14 @@ const loadInitialSession = async () => {
   }
 });
 
-//     supabase.auth.onAuthStateChange(async (_event, session) => {
-//       setSession(session);
-//       setUser(session?.user ?? null);
-
-// if (session?.user) {
-//   await loadProfile(session.user.id);
-//   await loadFollowing(session.user.id);
-// } else {
-//   setProfile(null);
-//   setFollowingIds(new Set());
-// }
-//     });
-
     return () => {
       mounted = false;
       subscription.unsubscribe();
     };
   }, []);
+
+  
+
 
   return (
 <UserContext.Provider
@@ -185,8 +234,11 @@ const loadInitialSession = async () => {
     user,
     session,
     profile,
-    loading,
+    authLoading,
+    profileLoading,
+    followingLoading,
     followingIds,
+    userReady,
     refreshFollowing: async () => {
       if (user) await loadFollowing(user.id);
     },

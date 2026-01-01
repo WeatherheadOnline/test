@@ -36,7 +36,7 @@ export default function Feed() {
   const {
     user,
     profile,
-    loading: userLoading,
+    userReady,
     followingIds,
     optimisticallyFollow,
     optimisticallyUnfollow,
@@ -86,39 +86,24 @@ export default function Feed() {
     setStatusFilter("all");
   };
 
-const fetchFeedPage = async (from: number, to: number) => {
-  if (!user) return [];
+  const fetchFeedPage = async (from: number, to: number) => {
+    if (!user) return [];
 
-  // 1. Optional search step → collect matching profile IDs
-  let searchIds: string[] | null = null;
+    // 1. Optional search step → collect matching profile IDs
+    let searchIds: string[] | null = null;
 
-  // if (searchQuery) {
-  //   const searchQueryBuilder = supabase
-  //     .from("profile_search")
-  //     .select("id");
+    if (searchQuery) {
+      const { data, error } = await supabase.rpc("search_profiles", {
+        search: searchQuery,
+      });
 
-  //   const { data, error } = isEmail(searchQuery)
-  //     ? await searchQueryBuilder.eq("email", searchQuery)
-  //     : await searchQueryBuilder.ilike(
-  //         "username",
-  //         `%${searchQuery.toLowerCase()}%`
-  //       );
+      if (error || !data || data.length === 0) return [];
 
-  //   if (error || !data || data.length === 0) return [];
+      searchIds = data.map((row) => row.id);
+    }
 
-  //   searchIds = data.map((row) => row.id);
-  // }
-  if (searchQuery) {
-  const { data, error } = await supabase
-    .rpc("search_profiles", { search: searchQuery });
-
-  if (error || !data || data.length === 0) return [];
-
-  searchIds = data.map((row) => row.id);
-}
-
-  // 2. Main feed query (profiles table ONLY)
-  let query = supabase.from("profiles").select(`
+    // 2. Main feed query (profiles table ONLY)
+    let query = supabase.from("profiles").select(`
     id,
     username,
     display_name,
@@ -128,95 +113,126 @@ const fetchFeedPage = async (from: number, to: number) => {
     appearance
   `);
 
-  // 3. Sorting
-  switch (sortKey) {
-    case "last_flip_desc":
-      query = query.order("last_flip_at", { ascending: false });
-      break;
-    case "last_flip_asc":
-      query = query.order("last_flip_at", { ascending: true });
-      break;
-    case "status_asc":
-      query = query.order("status", { ascending: true });
-      break;
-    case "status_desc":
-      query = query.order("status", { ascending: false });
-      break;
-    case "username_asc":
-      query = query.order("username", { ascending: true });
-      break;
-    case "username_desc":
-      query = query.order("username", { ascending: false });
-      break;
-    case "flip_asc":
-      query = query.order("flip_count", { ascending: true });
-      break;
-    case "flip_desc":
-      query = query.order("flip_count", { ascending: false });
-      break;
-  }
+    // 3. Sorting
+    switch (sortKey) {
+      case "last_flip_desc":
+        query = query.order("last_flip_at", { ascending: false });
+        break;
+      case "last_flip_asc":
+        query = query.order("last_flip_at", { ascending: true });
+        break;
+      case "status_asc":
+        query = query.order("status", { ascending: true });
+        break;
+      case "status_desc":
+        query = query.order("status", { ascending: false });
+        break;
+      case "username_asc":
+        query = query.order("username", { ascending: true });
+        break;
+      case "username_desc":
+        query = query.order("username", { ascending: false });
+        break;
+      case "flip_asc":
+        query = query.order("flip_count", { ascending: true });
+        break;
+      case "flip_desc":
+        query = query.order("flip_count", { ascending: false });
+        break;
+    }
 
-  // 4. Exclude current user
-  if (profile?.username) {
-    query = query.neq("username", profile.username);
-  }
+    // 4. Exclude current user
+    if (profile?.username) {
+      query = query.neq("username", profile.username);
+    }
 
-  // 5. Following filter
-  if (onlyFollowing) {
-    if (followingIds.size === 0) return [];
-    query = query.in("id", Array.from(followingIds));
-  }
+    // 5. Following filter
+    if (onlyFollowing) {
+      if (followingIds.size === 0) return [];
+      query = query.in("id", Array.from(followingIds));
+    }
 
-  // 6. Status filter
-  if (statusFilter !== "all") {
-    query = query.eq("status", statusFilter === "true");
-  }
+    // 6. Status filter
+    if (statusFilter !== "all") {
+      query = query.eq("status", statusFilter === "true");
+    }
 
-  // 7. Apply search results
-  if (searchIds) {
-    query = query.in("id", searchIds);
-  }
+    // 7. Apply search results
+    if (searchIds) {
+      query = query.in("id", searchIds);
+    }
 
-  // 8. Pagination
-  const { data, error } = await query.range(from, to);
-  if (error || !data) throw error;
+    // 8. Pagination
+    const { data, error } = await query.range(from, to);
+    if (error || !data) throw error;
 
-  return data.map((p) => ({
-    ...p,
-    isFollowing: followingIds.has(p.id),
-  }));
-};
+    return data.map((p) => ({
+      ...p,
+      isFollowing: followingIds.has(p.id),
+    }));
+  };
+
+  // useEffect(() => {
+  //   if (userLoading || !user) return;
+
+  //   setProfiles([]);
+  //   setOffset(0);
+  //   setHasMore(true);
+
+  //   (async () => {
+  //     try {
+  //       setLoading(true);
+  //       const data = await fetchFeedPage(0, PAGE_SIZE - 1);
+  //       setProfiles(data);
+  //       setOffset(PAGE_SIZE);
+  //       setHasMore(data.length === PAGE_SIZE);
+  //     } catch {
+  //       setError("Failed to load feed");
+  //       setHasMore(false);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   })();
+  // }, [
+  //   userLoading,
+  //   user,
+  //   profile?.username,
+  //   onlyFollowing,
+  //   sortKey,
+  //   statusFilter,
+  //   searchQuery,
+  // ]);
 
   useEffect(() => {
-    if (userLoading || !user) return;
+  if (!userReady || !user) return;
 
-    setProfiles([]);
-    setOffset(0);
-    setHasMore(true);
+  setProfiles([]);
+  setOffset(0);
+  setHasMore(true);
 
-    (async () => {
-      try {
-        setLoading(true);
-        const data = await fetchFeedPage(0, PAGE_SIZE - 1);
-        setProfiles(data);
-        setOffset(PAGE_SIZE);
-        setHasMore(data.length === PAGE_SIZE);
-      } catch {
-        setError("Failed to load feed");
-        setHasMore(false);
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [
-    userLoading,
-    user,
-    profile?.username,
-    onlyFollowing,
-    sortKey,
-    statusFilter,
-    searchQuery,
-  ]);
+  (async () => {
+    try {
+      setLoading(true);
+      const data = await fetchFeedPage(0, PAGE_SIZE - 1);
+      setProfiles(data);
+      setOffset(PAGE_SIZE);
+      setHasMore(data.length === PAGE_SIZE);
+    } catch {
+      setError("Failed to load feed");
+      setHasMore(false);
+    } finally {
+      setLoading(false);
+    }
+  })();
+}, [
+  userReady,
+  user,
+  profile?.username,
+  onlyFollowing,
+  sortKey,
+  statusFilter,
+  searchQuery,
+]);
 
   const loadMore = async () => {
     if (searchQuery) return;

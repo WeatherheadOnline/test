@@ -9,16 +9,18 @@ import "@/styles/globals.css";
 import "./delete-account.css";
 
 export default function DeleteAccountPage() {
-  const { user, loading } = useUser();
+  const { user, authLoading } = useUser();
   const router = useRouter();
 
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  if (loading) return <p>Loading…</p>;
-  if (!user) return <p>You must be logged in to delete your account.</p>;
-
+if (authLoading) return <p>Loading…</p>;
+if (!user) {
+  router.replace("/gate?reason=auth");
+  return null;
+}
   const handleDeleteAccount = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log("DELETE SUBMIT FIRED");

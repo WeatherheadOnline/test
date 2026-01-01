@@ -17,10 +17,9 @@ export default function Home() {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const router = useRouter();
-  const { user, loading } = useUser();
+  const { user, authLoading } = useUser();
 
-
-if (loading) {
+if (authLoading) {
   return (
     <main role="main">
       <p>Loading…</p>
@@ -28,9 +27,9 @@ if (loading) {
   );
 }
 
-if (user) {
-  return <RedirectToGate />;
-}
+  if (user) {
+    return <RedirectToGate />;
+  }
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,11 +42,10 @@ if (user) {
       return;
     }
 
-
-//  Preserve user-preferred username case
-    const rawUsername = username.trim()
-    const normalizedUsername = rawUsername.toLowerCase()
-    const displayName = rawUsername
+    //  Preserve user-preferred username case
+    const rawUsername = username.trim();
+    const normalizedUsername = rawUsername.toLowerCase();
+    const displayName = rawUsername;
 
     // 1. Create auth user
     const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -68,17 +66,14 @@ if (user) {
       return;
     }
 
-
-    const { error: profileError } = await supabase
-  .from("profiles")
-  .upsert(
-    {
-      id: authData.user.id,
-      username: normalizedUsername,   // canonical (lowercase)
-      display_name: displayName,      // STORE PREFERRED CASE
-    },
-    { onConflict: "id" }
-  );
+    const { error: profileError } = await supabase.from("profiles").upsert(
+      {
+        id: authData.user.id,
+        username: normalizedUsername, // canonical (lowercase)
+        display_name: displayName, // STORE PREFERRED CASE
+      },
+      { onConflict: "id" }
+    );
 
     if (profileError) {
       // UNIQUE violation (username taken)
@@ -104,23 +99,22 @@ if (user) {
     // }
   };
 
-return (
-  <main>
-    <SignupForm
-      email={email}
-      username={username}
-      password={password}
-      confirmPassword={confirmPassword}
-      error={error}
-      isLoading={isLoading}
-      onEmailChange={setEmail}
-      onUsernameChange={setUsername}
-      onPasswordChange={setPassword}
-      onConfirmPasswordChange={setConfirmPassword}
-      onSubmit={handleSignup}
-      onCancel={() => router.push("/")}
-    />
-  </main>
-);
-
+  return (
+    <main>
+      <SignupForm
+        email={email}
+        username={username}
+        password={password}
+        confirmPassword={confirmPassword}
+        error={error}
+        isLoading={isLoading}
+        onEmailChange={setEmail}
+        onUsernameChange={setUsername}
+        onPasswordChange={setPassword}
+        onConfirmPasswordChange={setConfirmPassword}
+        onSubmit={handleSignup}
+        onCancel={() => router.push("/")}
+      />
+    </main>
+  );
 }

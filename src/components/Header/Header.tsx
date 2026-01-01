@@ -10,10 +10,10 @@ import { useRouter } from "next/navigation";
 import { useHeaderConfig } from "@/providers/HeaderConfigProvider";
 
 export default function Header() {
-  const { user, loading } = useUser();
+  const { user, userReady } = useUser();
   const router = useRouter();
   const { config, setFocusLoginOnMount } = useHeaderConfig();
-  if (loading) {
+  if (!userReady) {
     return <header style={{ height: 64 }} />;
   }
 

@@ -8,7 +8,7 @@ import Feed from "@/components/Feed/Feed";
 import BitPreview from "@/components/Homepage/BitPreview/BitPreview";
 
 export default function Home() {
-  const { user, loading } = useUser();
+  const { user, authLoading } = useUser();
 
   return (
     <main>
