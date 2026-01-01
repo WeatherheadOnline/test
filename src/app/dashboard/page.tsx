@@ -13,6 +13,7 @@ import ShareModal from "@/components/ShareModal/ShareModal";
 import BitExperience from "@/components/BitExperience/BitExperience";
 import type { UnlockId } from "@/lib/unlocks";
 import { UNLOCK_DEFINITIONS } from "@/lib/unlocks";
+import { useRouter } from "next/navigation";
 
 const VALID_UNLOCK_IDS = new Set<UnlockId>(
   UNLOCK_DEFINITIONS.flatMap((rule) => rule.ids)
@@ -20,6 +21,7 @@ const VALID_UNLOCK_IDS = new Set<UnlockId>(
 
 export default function DashboardPage() {
   const { user, profile, loading } = useUser();
+  const router = useRouter();
 
   // useState
 
@@ -100,10 +102,24 @@ export default function DashboardPage() {
     // );
   }, [profile]);
 
+// useEffect(() => {
+//   if (loading) return;
+//   if (!user) {
+//     router.replace("/?reason=auth");
+//   }
+// }, [user, loading, router]);
 
+// if (loading || !user) return null;
+useEffect(() => {
+  if (loading) return;
+  if (!user) {
+    router.replace("/gate?reason=auth");
+  }
+}, [user, loading, router]);
 
-  if (loading) return <p>Loading…</p>;
-  if (!user || !profile) return <p>Not logged in</p>;
+if (loading) return null;
+  // if (loading) return <p>Loading…</p>;
+  // if (!user || !profile) return <p>Not logged in</p>;
 
   const handleFlip = () => {
     if (flipPending || !user) return;

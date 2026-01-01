@@ -1,14 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/providers/UserProvider";
+import { useRouter } from "next/navigation";
 import "@/styles/globals.css"
 import "./settings.css";
 
 export default function Settings() {
   const { user, loading } = useUser();
+  const router = useRouter();
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newEmail, setNewEmail] = useState("");
@@ -19,8 +21,24 @@ export default function Settings() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  if (loading) return <p>Loading…</p>;
-  if (!user) return <p>You must be logged in to view this page.</p>;
+// useEffect(() => {
+//   if (loading) return;
+//   if (!user) {
+//     router.replace("/?reason=auth");
+//   }
+// }, [user, loading, router]);
+
+// if (loading || !user) return null;
+useEffect(() => {
+  if (loading) return;
+  if (!user) {
+    router.replace("/gate?reason=auth");
+  }
+}, [user, loading, router]);
+
+if (loading) return null;
+  // if (loading) return <p>Loading…</p>;
+  // if (!user) return <p>You must be logged in to view this page.</p>;
 
  const handleNewEmail = async (e: React.FormEvent) => {
     e.preventDefault();

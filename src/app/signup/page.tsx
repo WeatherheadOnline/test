@@ -4,25 +4,51 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import "./signup.css";
 import { supabase } from "@/lib/supabase";
+import { useUser } from "@/providers/UserProvider";
 
 export default function Home() {
   const [username, setUsername] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const router = useRouter();
+  const { user, loading } = useUser();
+
+useEffect(() => {
+  if (loading) return;
+  if (user) {
+    router.replace("/gate?reason=auth");
+  }
+}, [user, loading, router]);
+
+if (loading) return null;
+
+if (user) {
+  return <p>Redirecting…</p>;
+}
+
+
+//   if (loading) return null;
+
+//   // 🔑 Render-time guard (not effect-based)
+//   if (user) {
+//     return <RedirectToGate />;
+//   }
+
+//   return <SignupForm />;
+// }
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setLoading(true);
+    setIsLoading(true);
 
     if (password !== confirmPassword) {
       setError("Passwords do not match");
-      setLoading(false);
+      setIsLoading(false);
       return;
     }
 
@@ -47,7 +73,7 @@ export default function Home() {
         setError(authError?.message ?? "Signup failed");
       }
 
-      setLoading(false);
+      setIsLoading(false);
       return;
     }
 
@@ -73,11 +99,11 @@ export default function Home() {
 
       // Clean up auth session
       await supabase.auth.signOut();
-      setLoading(false);
+      setIsLoading(false);
       return;
     }
 
-    setLoading(false);
+    setIsLoading(false);
     // success — auth + profile created
     router.push("/dashboard");
     //   Later, change push('/dashboard') to this:
