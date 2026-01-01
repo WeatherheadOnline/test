@@ -1,12 +1,58 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useHeaderConfig } from "@/providers/HeaderConfigProvider";
 import LoginForm from "@/components/LoginForm/LoginForm";
 import { useUser } from "@/providers/UserProvider";
 import "./landing.css";
 
 export default function Landing() {
   const { user, profile, loading } = useUser();
+  const loginInputRef = useRef<HTMLInputElement>(null);
+  const { setConfig, focusLoginOnMount, setFocusLoginOnMount } =
+  useHeaderConfig();
+
+  useEffect(() => {
+  setConfig({
+    onLoginClick: () => {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+
+  const tryFocus = () => {
+    if (loginInputRef.current) {
+      loginInputRef.current.focus();
+    } else {
+      requestAnimationFrame(tryFocus);
+    }
+  };
+
+  if (focusLoginOnMount) {
+  requestAnimationFrame(() => {
+    loginInputRef.current?.focus();
+    setFocusLoginOnMount(false);
+  });
+}
+
+  tryFocus();
+},
+  });
+
+  return () => setConfig({});
+}, [setConfig]);
+
+useEffect(() => {
+  if (!focusLoginOnMount) return;
+
+  const tryFocus = () => {
+    if (loginInputRef.current) {
+      loginInputRef.current.focus();
+      setFocusLoginOnMount(false); // consume intent
+    } else {
+      requestAnimationFrame(tryFocus);
+    }
+  };
+
+  tryFocus();
+}, [focusLoginOnMount, setFocusLoginOnMount]);
 
   return (
     <section className="page-section landing-section">
@@ -36,12 +82,12 @@ export default function Landing() {
 
         {!loading && user && (
           <h2>
-  Welcome
-  {profile?.display_name ? ` ${profile.display_name}` : ""}
-</h2>
+            Welcome
+            {profile?.display_name ? ` ${profile.display_name}` : ""}
+          </h2>
         )}
 
-        {!loading && !user && <LoginForm />}
+        {!loading && !user && <LoginForm ref={loginInputRef} />}
       </div>
     </section>
   );

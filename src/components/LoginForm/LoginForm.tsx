@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { forwardRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import "./loginForm.css";
 
-export default function LoginForm() {
+const LoginForm = forwardRef<HTMLInputElement>(function LoginForm(_, ref) {
+// export default function LoginForm() {
   const router = useRouter();
 
   const [identifier, setIdentifier] = useState("");
@@ -69,6 +70,7 @@ export default function LoginForm() {
         style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
       >
         <input
+          ref={ref}
           type="text"
           placeholder="Username or email"
           value={identifier}
@@ -91,4 +93,6 @@ export default function LoginForm() {
       {error && <p style={{ color: "red" }}>{error}</p>}
     </div>
   );
-}
+})
+
+export default LoginForm

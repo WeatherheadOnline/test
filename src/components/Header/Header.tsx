@@ -6,13 +6,25 @@ import LogoutButton from "../LogoutButton/LogoutButton";
 import "./header.css";
 import { useUser } from "@/providers/UserProvider";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useHeaderConfig } from "@/providers/HeaderConfigProvider";
 
 export default function Header() {
   const { user, loading } = useUser();
-
+  const router = useRouter();
+const {config,setFocusLoginOnMount} = useHeaderConfig();
   if (loading) {
     return <header style={{ height: 64 }} />;
   }
+
+  
+//   if (config.onLoginClick) {
+//   config.onLoginClick();
+// } else {
+//   setFocusLoginOnMount(true);
+//   router.push("/");
+// }
+
 
   return (
     <header>
@@ -25,6 +37,33 @@ export default function Header() {
       </div>
 
       <nav>
+        <Link className="navlink" href="/">
+          Home
+        </Link>
+        {user && <LogoutButton />}
+
+{!user && (
+  <button
+    onClick={() => {
+      if (config.onLoginClick) {
+        // Already on homepage → scroll + focus immediately
+        config.onLoginClick();
+      } else {
+        // Not on homepage → set intent, then navigate
+        setFocusLoginOnMount(true);
+        router.push("/");
+      }
+    }}
+  >
+    Log in
+  </button>
+)}
+
+        {!user && (
+          <Link className="navlink" href="/signup">
+            Sign up
+          </Link>
+        )}
         {user && (
           <Link className="navlink" href="/dashboard">
             Dashboard
@@ -35,17 +74,6 @@ export default function Header() {
             Settings
           </Link>
         )}
-        <Link className="navlink" href="/">
-          Home
-        </Link>
-        {user && <LogoutButton />}
-        {!user && (
-          <Link className="navlink" href="/signup">
-            Sign up
-          </Link>
-        )}
-        {/* Button should switch focus to the login form on the homepage. It should scroll and/or navigate to the top of the homepage if the user isn't already there. */}
-        {!user && <button>Log in</button>}
       </nav>
     </header>
   );

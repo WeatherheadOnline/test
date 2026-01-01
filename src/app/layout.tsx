@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
-import {Caprasimo } from "next/font/google";
+import { Caprasimo } from "next/font/google";
 import "../styles/globals.css";
 import Header from "@/components/Header/Header";
-import { UserProvider } from '@/providers/UserProvider'
+import { UserProvider } from "@/providers/UserProvider";
+import { HeaderConfigProvider } from "@/providers/HeaderConfigProvider";
 
 const caprasimo = Caprasimo({
   variable: "--font-caprasimo",
   subsets: ["latin"],
-  weight: ['400'],
-  display: 'swap',
+  weight: ["400"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -25,8 +26,10 @@ export default function RootLayout({
     <html lang="en">
       <body className={`caprasimo.variable`}>
         <UserProvider>
-          <Header />
-          {children}
+          <HeaderConfigProvider>
+            <Header />
+            {children}
+          </HeaderConfigProvider>
         </UserProvider>
       </body>
     </html>
