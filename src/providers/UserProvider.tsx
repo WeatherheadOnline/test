@@ -81,21 +81,39 @@ const optimisticallyUnfollow = (userId: string) => {
     let mounted = true;
 
 
-    const loadInitialSession = async () => {
-      const { data } = await supabase.auth.getSession();
+//     const loadInitialSession = async () => {
+//       const { data } = await supabase.auth.getSession();
 
-      if (!mounted) return;
+//       if (!mounted) return;
 
-      setSession(data.session);
-      setUser(data.session?.user ?? null);
+//       setSession(data.session);
+//       setUser(data.session?.user ?? null);
 
-if (data.session?.user) {
-  await loadProfile(data.session.user.id);
-  await loadFollowing(data.session.user.id);
-}
+// if (data.session?.user) {
+//   await loadProfile(data.session.user.id);
+//   await loadFollowing(data.session.user.id);
+// }
 
-      setLoading(false);
-    };
+//       setLoading(false);
+//     };
+
+const loadInitialSession = async () => {
+  const { data } = await supabase.auth.getSession();
+
+  if (!mounted) return;
+
+  setSession(data.session);
+  setUser(data.session?.user ?? null);
+
+  // 🔑 AUTH IS READY — unblock routing
+  setLoading(false);
+
+  // ⬇️ Load user data in background
+  if (data.session?.user) {
+    loadProfile(data.session.user.id);
+    loadFollowing(data.session.user.id);
+  }
+};
 
     const loadProfile = async (userId: string) => {
       const { data, error } = await supabase
@@ -127,18 +145,33 @@ if (data.session?.user) {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    } =
+    supabase.auth.onAuthStateChange((_event, session) => {
+  setSession(session);
+  setUser(session?.user ?? null);
+  setLoading(false); // unblock immediately
 
-if (session?.user) {
-  await loadProfile(session.user.id);
-  await loadFollowing(session.user.id);
-} else {
-  setProfile(null);
-  setFollowingIds(new Set());
-}
-    });
+  if (session?.user) {
+    loadProfile(session.user.id);
+    loadFollowing(session.user.id);
+  } else {
+    setProfile(null);
+    setFollowingIds(new Set());
+  }
+});
+
+//     supabase.auth.onAuthStateChange(async (_event, session) => {
+//       setSession(session);
+//       setUser(session?.user ?? null);
+
+// if (session?.user) {
+//   await loadProfile(session.user.id);
+//   await loadFollowing(session.user.id);
+// } else {
+//   setProfile(null);
+//   setFollowingIds(new Set());
+// }
+//     });
 
     return () => {
       mounted = false;

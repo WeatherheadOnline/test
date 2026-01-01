@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import "./signup.css";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/providers/UserProvider";
+import SignupForm from "@/components/SignupForm/SignupForm";
+import RedirectToGate from "@/components/RedirectToGate";
 
 export default function Home() {
   const [username, setUsername] = useState("");
@@ -17,29 +19,18 @@ export default function Home() {
   const router = useRouter();
   const { user, loading } = useUser();
 
-useEffect(() => {
-  if (loading) return;
-  if (user) {
-    router.replace("/gate?reason=auth");
-  }
-}, [user, loading, router]);
 
-if (loading) return null;
-
-if (user) {
-  return <p>Redirecting…</p>;
+if (loading) {
+  return (
+    <main role="main">
+      <p>Loading…</p>
+    </main>
+  );
 }
 
-
-//   if (loading) return null;
-
-//   // 🔑 Render-time guard (not effect-based)
-//   if (user) {
-//     return <RedirectToGate />;
-//   }
-
-//   return <SignupForm />;
-// }
+if (user) {
+  return <RedirectToGate />;
+}
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -113,57 +104,23 @@ if (user) {
     // }
   };
 
-  return (
-    <main>
-      <section className="page-section">
-        <div className="section-wrapper">
-          <h1>Sign up</h1>
-          <form onSubmit={handleSignup}>
-            <label>
-              Email
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </label>
-            <label>
-              Username
-              <input
-                type="text"
-                placeholder="Username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-              />
-            </label>
-            {error && <p className="error">{error}</p>}
-            <label>
-              Password
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </label>
-            <label>
-              Confirm password
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-              />
-            </label>
-            <button type="submit">Submit</button>
-            <button onClick={() => (window.location.href = "../")}>
-              Cancel
-            </button>
-          </form>
-        </div>
-      </section>
-    </main>
-  );
+return (
+  <main>
+    <SignupForm
+      email={email}
+      username={username}
+      password={password}
+      confirmPassword={confirmPassword}
+      error={error}
+      isLoading={isLoading}
+      onEmailChange={setEmail}
+      onUsernameChange={setUsername}
+      onPasswordChange={setPassword}
+      onConfirmPasswordChange={setConfirmPassword}
+      onSubmit={handleSignup}
+      onCancel={() => router.push("/")}
+    />
+  </main>
+);
+
 }

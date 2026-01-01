@@ -102,14 +102,6 @@ export default function DashboardPage() {
     // );
   }, [profile]);
 
-// useEffect(() => {
-//   if (loading) return;
-//   if (!user) {
-//     router.replace("/?reason=auth");
-//   }
-// }, [user, loading, router]);
-
-// if (loading || !user) return null;
 useEffect(() => {
   if (loading) return;
   if (!user) {
@@ -118,8 +110,6 @@ useEffect(() => {
 }, [user, loading, router]);
 
 if (loading) return null;
-  // if (loading) return <p>Loading…</p>;
-  // if (!user || !profile) return <p>Not logged in</p>;
 
   const handleFlip = () => {
     if (flipPending || !user) return;

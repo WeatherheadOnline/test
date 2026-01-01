@@ -21,14 +21,6 @@ export default function Settings() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-// useEffect(() => {
-//   if (loading) return;
-//   if (!user) {
-//     router.replace("/?reason=auth");
-//   }
-// }, [user, loading, router]);
-
-// if (loading || !user) return null;
 useEffect(() => {
   if (loading) return;
   if (!user) {
@@ -37,8 +29,6 @@ useEffect(() => {
 }, [user, loading, router]);
 
 if (loading) return null;
-  // if (loading) return <p>Loading…</p>;
-  // if (!user) return <p>You must be logged in to view this page.</p>;
 
  const handleNewEmail = async (e: React.FormEvent) => {
     e.preventDefault();
