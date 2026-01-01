@@ -12,32 +12,35 @@ export default function Landing() {
   const { setConfig, focusLoginOnMount, setFocusLoginOnMount } =
   useHeaderConfig();
 
-  useEffect(() => {
+useEffect(() => {
+  // 1. Configure header behavior for this page
   setConfig({
     onLoginClick: () => {
-  window.scrollTo({ top: 0, behavior: "smooth" });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      // focus is handled via focusLoginOnMount or direct click
+    },
+    onHomeClick: () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    },
+  });
 
-  const tryFocus = () => {
-    if (loginInputRef.current) {
-      loginInputRef.current.focus();
-    } else {
-      requestAnimationFrame(tryFocus);
-    }
-  };
-
+  // 2. If we arrived here due to a login redirect, focus once
   if (focusLoginOnMount) {
-  requestAnimationFrame(() => {
-    loginInputRef.current?.focus();
-    setFocusLoginOnMount(false);
-  });
-}
+    const tryFocus = () => {
+      if (loginInputRef.current) {
+        loginInputRef.current.focus();
+        setFocusLoginOnMount(false); // consume intent
+      } else {
+        requestAnimationFrame(tryFocus);
+      }
+    };
 
-  tryFocus();
-},
-  });
+    tryFocus();
+  }
 
+  // 3. Cleanup on unmount
   return () => setConfig({});
-}, [setConfig]);
+}, [setConfig, focusLoginOnMount, setFocusLoginOnMount]);
 
 useEffect(() => {
   if (!focusLoginOnMount) return;

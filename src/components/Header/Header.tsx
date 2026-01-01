@@ -37,9 +37,25 @@ const {config,setFocusLoginOnMount} = useHeaderConfig();
       </div>
 
       <nav>
-        <Link className="navlink" href="/">
+        {/* <Link className="navlink" href="/">
           Home
-        </Link>
+        </Link> */}
+
+<button
+  className="navlink"
+  onClick={() => {
+    if (config.onHomeClick) {
+      config.onHomeClick();
+    } else {
+      router.push("/");
+    }
+  }}
+>
+  Home
+</button>
+
+
+
         {user && <LogoutButton />}
 
 {!user && (

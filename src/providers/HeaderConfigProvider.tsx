@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 type HeaderConfig = {
   onLoginClick?: () => void;
+  onHomeClick?: () => void;
 };
 
 const HeaderConfigContext = createContext<{
