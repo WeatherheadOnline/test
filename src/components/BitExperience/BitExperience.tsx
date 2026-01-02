@@ -52,7 +52,6 @@ export default function BitExperience({
   };
 
   useEffect(() => {
-    console.log(hasMountedRef.current);
     if (!hasMountedRef.current) {
       hasMountedRef.current = true;
       return;

@@ -86,6 +86,9 @@ const horizontalPadding = `clamp(
    * Border styles
    * --------------------
    */
+  const hasStroke =
+  appearance.border.style !== "none" &&
+  appearance.border.thickness !== undefined;
 
   const strokeStyle: React.CSSProperties = (() => {
     const { style, thickness, primaryColor } = appearance.border;
@@ -107,6 +110,7 @@ const horizontalPadding = `clamp(
     };
   })();
 
+
   /**
    * --------------------
    * Shadow styles
@@ -122,12 +126,12 @@ const horizontalPadding = `clamp(
 
       case "soft":
         return {
-          textShadow: "0 24px 40px rgba(0,0,0,0.35)",
+          textShadow: "12px 24px 40px rgba(0,0,0,0.35)",
         };
 
       case "hard":
         return {
-          textShadow: "0 16px 0 rgba(0,0,0,0.6)",
+          textShadow: "8px 16px 0 rgba(0,0,0,0.6)",
         };
 
       case "grounded":
@@ -155,31 +159,41 @@ const horizontalPadding = `clamp(
       }}
     >
       {/* Shadow layer */}
-      <span
-        aria-hidden
-        style={{
-          position: "absolute",
-          inset: 0,
-          color: "transparent",
-          zIndex: 1,
-          padding: `0 ${horizontalPadding}`,
-          ...shadowStyle,
-        }}
-      >
-        {value}
-      </span>
+{!hasStroke && (
+  <span
+    aria-hidden
+    style={{
+      position: "absolute",
+      inset: 0,
+      zIndex: 1,
+      padding: `0 ${horizontalPadding}`,
+      color: "transparent",            // must be painted
+      ...shadowStyle,
+    }}
+  >
+    {value}
+  </span>
+)}
 
       {/* Stroke layer */}
+        {/* Now also the shadow layer */}
+        {/* but only when a stroke is applied, otherwise a separate shadow layer kicks in */}
       <span
         aria-hidden
-        style={{
-          position: "absolute",
-          inset: 0,
-          color: "transparent",
-          zIndex: 2,
-          padding: `0 ${horizontalPadding}`,
-          ...strokeStyle,
-        }}
+style={{
+  position: "absolute",
+  inset: 0,
+  color: "transparent",
+  zIndex: 2,
+  padding: `0 ${horizontalPadding}`,
+  ...strokeStyle,
+  filter:
+    appearance.shadow.style === "soft"
+      ? "drop-shadow(12px 24px 40px rgba(0,0,0,0.35))"
+      : appearance.shadow.style === "hard"
+      ? "drop-shadow(8px 16px 0 rgba(0,0,0,0.6))"
+      : "none",
+}}
       >
         {value}
       </span>
