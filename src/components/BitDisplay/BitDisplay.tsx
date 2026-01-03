@@ -16,7 +16,7 @@ export default function BitDisplay({
     return null;
   }
 
-const horizontalPadding = `clamp(
+  const horizontalPadding = `clamp(
   ${4 * scaleFactor}rem,
   ${7 * scaleFactor}vw,
   ${6 * scaleFactor}rem
@@ -87,8 +87,8 @@ const horizontalPadding = `clamp(
    * --------------------
    */
   const hasStroke =
-  appearance.border.style !== "none" &&
-  appearance.border.thickness !== undefined;
+    appearance.border.style !== "none" &&
+    appearance.border.thickness !== undefined;
 
   const strokeStyle: React.CSSProperties = (() => {
     const { style, thickness, primaryColor } = appearance.border;
@@ -110,12 +110,15 @@ const horizontalPadding = `clamp(
     };
   })();
 
-
   /**
    * --------------------
    * Shadow styles
    * --------------------
    */
+
+  const shadowSm = 12 * scaleFactor;
+  const shadowMed = 24 * scaleFactor;
+  const shadowLg = 32 * scaleFactor;
 
   const shadowStyle: React.CSSProperties = (() => {
     switch (appearance.shadow.style) {
@@ -146,6 +149,60 @@ const horizontalPadding = `clamp(
     }
   })();
 
+  const shadowStyleShadowLayer: React.CSSProperties = (() => {
+    switch (appearance.shadow.style) {
+      case "none":
+        return { textShadow: "none" };
+
+      case "soft":
+        return {
+          textShadow: `${shadowSm}px ${shadowMed}px ${shadowLg}px rgba(0,0,0,0.35)`,
+        };
+
+      case "hard":
+        return {
+          textShadow: `${(shadowSm * 2) / 3}px ${
+            (shadowMed * 2) / 3
+          }px 0 rgba(0,0,0,0.6)`,
+        };
+
+      case "grounded":
+        return {
+          textShadow: `0 ${shadowLg}px ${shadowLg}px rgba(0,0,0,0.4)`,
+          transform: `translateY(${-shadowSm}px) scaleY(0.5) skewX(20deg)`,
+          transformOrigin: "bottom center",
+        };
+
+      default:
+        return {};
+    }
+  })();
+
+  const shadowStyleBorderLayer: React.CSSProperties = (() => {
+    switch (appearance.shadow.style) {
+      case "none":
+        return { textShadow: "none" };
+      case "soft":
+        return {
+          filter: `drop-shadow(${shadowSm}px ${shadowMed}px ${shadowLg}px rgba(0,0,0,0.35))`,
+        };
+      case "hard":
+        return {
+          filter: `drop-shadow(${(shadowSm * 2) / 3}px ${
+            (shadowMed * 2) / 3
+          }px 0 rgba(0,0,0,0.6))`,
+        };
+      case "grounded":
+        return {
+          filter: `0 ${shadowLg}px ${shadowLg}px rgba(0,0,0,0.4)`,
+          transform: `translateY(${0 - shadowSm}) scaleY(0.5) skewX(20deg)`,
+          transformOrigin: "bottom center",
+        };
+      default:
+        return {};
+    }
+  })();
+
   return (
     <div
       id="bit-capture"
@@ -159,41 +216,37 @@ const horizontalPadding = `clamp(
       }}
     >
       {/* Shadow layer */}
-{!hasStroke && (
-  <span
-    aria-hidden
-    style={{
-      position: "absolute",
-      inset: 0,
-      zIndex: 1,
-      padding: `0 ${horizontalPadding}`,
-      color: "transparent",            // must be painted
-      ...shadowStyle,
-    }}
-  >
-    {value}
-  </span>
-)}
+      {!hasStroke && (
+        <span
+          aria-hidden
+          style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 1,
+            padding: `0 ${horizontalPadding}`,
+            color: "transparent", // must be painted
+            ...shadowStyleShadowLayer,
+          }}
+        >
+          {value}
+        </span>
+      )}
 
       {/* Stroke layer */}
-        {/* Now also the shadow layer */}
-        {/* but only when a stroke is applied, otherwise a separate shadow layer kicks in */}
+      {/* Now also the shadow layer */}
+      {/* but only when a stroke is applied, otherwise a separate shadow layer kicks in */}
       <span
         aria-hidden
-style={{
-  position: "absolute",
-  inset: 0,
-  color: "transparent",
-  zIndex: 2,
-  padding: `0 ${horizontalPadding}`,
-  ...strokeStyle,
-  filter:
-    appearance.shadow.style === "soft"
-      ? "drop-shadow(12px 24px 40px rgba(0,0,0,0.35))"
-      : appearance.shadow.style === "hard"
-      ? "drop-shadow(8px 16px 0 rgba(0,0,0,0.6))"
-      : "none",
-}}
+        style={{
+          position: "absolute",
+          inset: 0,
+          color: "transparent",
+          zIndex: 2,
+          padding: `0 ${horizontalPadding}`,
+          ...strokeStyle,
+          ...shadowStyleBorderLayer,
+
+        }}
       >
         {value}
       </span>
