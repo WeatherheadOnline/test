@@ -120,35 +120,6 @@ export default function BitDisplay({
   const shadowMed = 24 * scaleFactor;
   const shadowLg = 32 * scaleFactor;
 
-  const shadowStyle: React.CSSProperties = (() => {
-    switch (appearance.shadow.style) {
-      case "none":
-        return {
-          textShadow: "none",
-        };
-
-      case "soft":
-        return {
-          textShadow: "12px 24px 40px rgba(0,0,0,0.35)",
-        };
-
-      case "hard":
-        return {
-          textShadow: "8px 16px 0 rgba(0,0,0,0.6)",
-        };
-
-      case "grounded":
-        return {
-          textShadow: "0 32px 30px rgba(0,0,0,0.4)",
-          transform: "translateY(-0.1em) scaleY(0.5) skewX(20deg)",
-          transformOrigin: "bottom center",
-        };
-
-      default:
-        return {};
-    }
-  })();
-
   const shadowStyleShadowLayer: React.CSSProperties = (() => {
     switch (appearance.shadow.style) {
       case "none":
@@ -184,17 +155,17 @@ export default function BitDisplay({
         return { textShadow: "none" };
       case "soft":
         return {
-          filter: `drop-shadow(${shadowSm}px ${shadowMed}px ${shadowLg}px rgba(0,0,0,0.35))`,
+          filter: `drop-shadow(${shadowSm}px ${shadowMed}px ${shadowLg}px rgba(0,0,0,0.4))`,
         };
       case "hard":
         return {
           filter: `drop-shadow(${(shadowSm * 2) / 3}px ${
             (shadowMed * 2) / 3
-          }px 0 rgba(0,0,0,0.6))`,
+          }px 0 rgba(0,0,0,0.4))`,
         };
       case "grounded":
         return {
-          filter: `0 ${shadowLg}px ${shadowLg}px rgba(0,0,0,0.4)`,
+          filter: `drop-shadow(0 ${shadowLg}px ${shadowLg}px rgba(0,0,0,0.4))`,
           transform: `translateY(${0 - shadowSm}) scaleY(0.5) skewX(20deg)`,
           transformOrigin: "bottom center",
         };
