@@ -140,14 +140,23 @@ export default function BitDisplay({
   const shadowHandledByStroke = !borderIsNone && shadowStyle !== "grounded";
   const shadowColour = "#555555";
   const shadowColourLight = "#888888";
-  const shadow = {
-    xs: 8,
-    sm: 12,
-    med: 16,
-    lg: 24,
-    xl: 32,
-  };
+  // const shadow = {
+  //   xs: 8,
+  //   sm: 12,
+  //   med: 16,
+  //   lg: 24,
+  //   xl: 32,
+  // };
 
+  const shadow = {
+  xs: 0.5,
+  sm: 0.75,
+  med: 1,
+  lg: 1.5,
+  xl: 2,
+};
+
+const px = (v: number) => `${v * scaleFactor}rem`;
 
   const shadowScale: ShadowScale = (() => {
     const thickness = appearance.border.thickness;
@@ -168,34 +177,38 @@ export default function BitDisplay({
     }
   })();
 
-  const textShadowStyle: React.CSSProperties = (() => {
-    switch (appearance.shadow.style) {
-      case "none":
-        return {
-          textShadow: "none",
-        };
+const textShadowStyle: React.CSSProperties = (() => {
+  switch (appearance.shadow.style) {
+    case "none":
+      return { textShadow: "none" };
 
-      case "soft":
-        return {
-          textShadow: `${shadow.sm}px ${shadow.med}px ${shadow.lg}px ${shadowColour}`,
-        };
+    case "soft":
+      return {
+        textShadow: `${px(shadow.sm)} ${px(shadow.med)} ${px(shadow.lg)} ${shadowColour}`,
+      };
 
-      case "hard":
-        return {
-          textShadow: `${shadow.sm}px ${shadow.med}px 0 ${shadowColour}`,
-        };
+    case "hard":
+      return {
+        textShadow: `${px(shadow.sm)} ${px(shadow.med)} 0 ${shadowColour}`,
+      };
 
-      case "grounded":
-        return {
-          textShadow: `${shadow.xs}px ${shadow.xl}px ${shadow.xl}px ${shadowColour}`,
-          transform: `scale(${shadowScale.hard}, 0.1) translateY(0.05em) skewX(15deg)`,
-          transformOrigin: "bottom center",
-        };
+    case "grounded":
+      return {
+        textShadow: `${px(shadow.xs)} ${px(shadow.xl)} ${px(shadow.xl)} ${shadowColour}`,
+        transform: `
+          scale(${shadowScale.grounded}, 0.1)
+          translateY(${0.05 * scaleFactor}em)
+          skewX(15deg)
+        `,
+        transformOrigin: "bottom center",
+      };
 
-      default:
-        return {};
-    }
-  })();
+    default:
+      return {};
+  }
+})();
+
+
   const dropShadowStyle: React.CSSProperties = (() => {
     if (!shadowHandledByStroke) return {};
 
