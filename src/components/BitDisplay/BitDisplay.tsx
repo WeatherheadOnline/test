@@ -7,6 +7,12 @@ type BitDisplayProps = {
   scaleFactor?: number;
 };
 
+type ShadowScale = {
+  soft: number;
+  hard: number;
+  grounded: number;
+};
+
 export default function BitDisplay({
   value,
   appearance,
@@ -130,61 +136,59 @@ export default function BitDisplay({
 
   const borderIsNone = appearance.border.style === "none";
   const shadowStyle = appearance.shadow.style;
-
-  const shouldRenderShadowLayer = borderIsNone || shadowStyle === "grounded";
-
+  // const shouldRenderShadowLayer = borderIsNone || shadowStyle === "grounded";
   const shadowHandledByStroke = !borderIsNone && shadowStyle !== "grounded";
+  const shadowColour = "#555555";
+  const shadowColourLight = "#888888";
+  const shadow = {
+    xs: 8,
+    sm: 12,
+    med: 16,
+    lg: 24,
+    xl: 32,
+  };
 
-  const shadowScale = (() => {
+
+  const shadowScale: ShadowScale = (() => {
     const thickness = appearance.border.thickness;
 
-    if (appearance.border.style === "none") return 1;
+    if (appearance.border.style === "none") {
+      return { soft: 1, hard: 1, grounded: 1 };
+    }
 
     switch (thickness) {
       case "thin":
-        return 1 + 0.05;
+        return { soft: 0.9, hard: 1.2, grounded: 1.2 };
       case "medium":
-        return 1 + 0.1;
+        return { soft: 1, hard: 1.4, grounded: 1.4 };
       case "thick":
-        return 1 + 0.15;
+        return { soft: 1.1, hard: 1.6, grounded: 1.6 };
       default:
-        return 1;
+        return { soft: 1, hard: 1, grounded: 1 };
     }
   })();
 
-  const shadowColour = "#555555";
-  const shadowXS = `${8 * scaleFactor}px`;
-  const shadowSm = `${12 * scaleFactor}px`;
-  const shadowMed = `${16 * scaleFactor}px`;
-  const shadowLg = `${24 * scaleFactor}px`;
-  const shadowXL = `${32 * scaleFactor}px`;
-
   const textShadowStyle: React.CSSProperties = (() => {
-    const baseTransform = `scale(${shadowScale})`;
-
     switch (appearance.shadow.style) {
       case "none":
         return {
           textShadow: "none",
-          transform: baseTransform,
         };
 
       case "soft":
         return {
-          textShadow: `${shadowSm} ${shadowMed} ${shadowXL} ${shadowColour}`,
-          transform: baseTransform,
+          textShadow: `${shadow.sm}px ${shadow.med}px ${shadow.lg}px ${shadowColour}`,
         };
 
       case "hard":
         return {
-          textShadow: `0 ${shadowMed} 0 ${shadowColour}`,
-          transform: baseTransform,
+          textShadow: `${shadow.sm}px ${shadow.med}px 0 ${shadowColour}`,
         };
 
       case "grounded":
         return {
-          textShadow: `0 ${shadowXL} ${shadowXL} ${shadowColour}`,
-          transform: `${baseTransform} translateY(-0.1em) scaleY(0.5) skewX(20deg)`,
+          textShadow: `${shadow.xs}px ${shadow.xl}px ${shadow.xl}px ${shadowColour}`,
+          transform: `scale(${shadowScale.hard}, 0.1) translateY(0.05em) skewX(15deg)`,
           transformOrigin: "bottom center",
         };
 
@@ -192,19 +196,18 @@ export default function BitDisplay({
         return {};
     }
   })();
-
   const dropShadowStyle: React.CSSProperties = (() => {
     if (!shadowHandledByStroke) return {};
 
     switch (appearance.shadow.style) {
       case "soft":
         return {
-          filter: `drop-shadow(${shadowXS} ${shadowSm} ${shadowLg} ${shadowColour})`,
+          filter: `drop-shadow(${shadowScale.soft * (shadow.sm)}px ${shadowScale.soft * (shadow.med)}px ${shadowScale.soft * (shadow.xl)}px ${shadowColourLight})`,
         };
 
       case "hard":
         return {
-          filter: `drop-shadow(0 ${shadowSm} 0 ${shadowColour})`,
+          filter: `drop-shadow(${shadowScale.hard * (shadow.xs)}px ${shadowScale.hard * (shadow.sm)}px 0 ${shadowColour})`,
         };
 
       default:
@@ -234,7 +237,6 @@ export default function BitDisplay({
           zIndex: 1,
           padding: `0 ${horizontalPadding}`,
           ...textShadowStyle,
-          ...dropShadowStyle, // transparent stroke to give shadow shape
         }}
       >
         {value}
