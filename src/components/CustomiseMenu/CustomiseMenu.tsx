@@ -5,6 +5,7 @@ import { Appearance } from "@/types/appearance";
 import { UnlockId } from "@/lib/unlocks";
 import "@/styles/globals.css";
 import "./customiseMenu.css";
+import { getFillColours } from "@/lib/getFillColours";
 
 type CustomiseMenuProps = {
   appearance: Appearance;
@@ -25,6 +26,9 @@ export default function CustomiseMenu({
 
   const menuRef = useRef<HTMLDivElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
+
+  const primaryColours = getFillColours("primary", unlocks);
+  const secondaryColours = getFillColours("secondary", unlocks);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -170,25 +174,19 @@ export default function CustomiseMenu({
           <div style={{ marginTop: "0.75rem" }}>
             <p>Primary colour</p>
             <div style={{ display: "flex", gap: "0.5rem" }}>
-              {[
-                "#ffffff",
-                "#000000",
-                "#fde047",
-                "#22c55e",
-                "#0ea5e9",
-                "#f97316",
-              ].map((colour) => (
+              {
+              primaryColours.map(({id, hex}) => (
                 <button
-                  key={colour}
+                  key={id}
                   type="button"
-                  aria-label={`Set primary colour to ${colour}`}
-                  aria-pressed={appearance.fill.primaryColor === colour}
+                  aria-label={`Set primary colour to ${id}`}
+                  aria-pressed={appearance.fill.primaryColor === hex}
                   onClick={() =>
                     onChange({
                       ...appearance,
                       fill: {
                         ...appearance.fill,
-                        primaryColor: colour,
+                        primaryColor: hex,
                       },
                     })
                   }
@@ -196,7 +194,7 @@ export default function CustomiseMenu({
                     width: 24,
                     height: 24,
                     borderRadius: "50%",
-                    background: colour,
+                    background: hex,
                     border: "1px solid #000",
                   }}
                 />
@@ -209,18 +207,18 @@ export default function CustomiseMenu({
             <div style={{ marginTop: "0.75rem" }}>
               <p>Secondary colour</p>
               <div style={{ display: "flex", gap: "0.5rem" }}>
-                {["#ffffff", "#000000", "#fde047"].map((colour) => (
+                {secondaryColours.map(({id, hex}) => (
                   <button
-                    key={colour}
+                    key={id}
                     type="button"
-                    aria-label={`Set secondary colour to ${colour}`}
-                    aria-pressed={appearance.fill.secondaryColor === colour}
+                    aria-label={`Set secondary colour to ${id}`}
+                    aria-pressed={appearance.fill.secondaryColor === hex}
                     onClick={() =>
                       onChange({
                         ...appearance,
                         fill: {
                           ...appearance.fill,
-                          secondaryColor: colour,
+                          secondaryColor: hex,
                         },
                       })
                     }
@@ -228,7 +226,7 @@ export default function CustomiseMenu({
                       width: 24,
                       height: 24,
                       borderRadius: "50%",
-                      background: colour,
+                      background: hex,
                       border: "1px solid #000",
                     }}
                   />
@@ -338,7 +336,9 @@ export default function CustomiseMenu({
               <div style={{ marginTop: "0.75rem" }}>
                 <p>Colour</p>
                 <div style={{ display: "flex", gap: "0.5rem" }}>
-                  {["#000000", "#ffffff", "#22c55e", "#0ea5e9", "#f97316"].map(
+                  {[
+                    "#000000", "#ffffff", "#22c55e", "#0ea5e9", "#f97316"
+                  ].map(
                     (colour) => (
                       <button
                         key={colour}
@@ -374,7 +374,9 @@ export default function CustomiseMenu({
               <div style={{ marginTop: "0.75rem" }}>
                 <p>Secondary colour</p>
                 <div style={{ display: "flex", gap: "0.5rem" }}>
-                  {["#ffffff", "#fde047", "#a855f7", "#ec4899"].map(
+                  {[
+                    "#ffffff", "#fde047", "#a855f7", "#ec4899"
+                  ].map(
                     (colour) => (
                       <button
                         key={colour}
