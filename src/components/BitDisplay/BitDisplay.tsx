@@ -16,7 +16,7 @@ export default function BitDisplay({
     return null;
   }
 
-const horizontalPadding = `clamp(
+  const horizontalPadding = `clamp(
   ${4 * scaleFactor}rem,
   ${7 * scaleFactor}vw,
   ${6 * scaleFactor}rem
@@ -87,7 +87,6 @@ const horizontalPadding = `clamp(
    * --------------------
    */
 
-
   const strokeStyle: React.CSSProperties = (() => {
     const { style, thickness, primaryColor } = appearance.border;
 
@@ -108,58 +107,84 @@ const horizontalPadding = `clamp(
     };
   })();
 
-const shadowStrokeStyle: React.CSSProperties = (() => {
-  const { style, thickness, primaryColor } = appearance.border;
-   if (style === "none") {
-     return {
-       WebkitTextStrokeWidth: "0px",
+  const shadowStrokeStyle: React.CSSProperties = (() => {
+    const { style, thickness, primaryColor } = appearance.border;
+    if (style === "none") {
+      return {
+        WebkitTextStrokeWidth: "0px",
       };
     }
-     const baseWidth = thickness === "thin" ? 0.5 : thickness === "medium" ? 1 : 2;
-      const width = `${baseWidth * scaleFactor}rem`;
-       return { WebkitTextStrokeWidth: width, WebkitTextStrokeColor: 'transparent',
-
-        };
-       })();
+    const baseWidth =
+      thickness === "thin" ? 0.5 : thickness === "medium" ? 1 : 2;
+    const width = `${baseWidth * scaleFactor}rem`;
+    return {
+      WebkitTextStrokeWidth: width,
+      WebkitTextStrokeColor: "transparent",
+    };
+  })();
   /**
    * --------------------
    * Shadow styles
    * --------------------
    */
 
-
   const borderIsNone = appearance.border.style === "none";
-const shadowStyle = appearance.shadow.style;
+  const shadowStyle = appearance.shadow.style;
 
-const shouldRenderShadowLayer =
-  borderIsNone || shadowStyle === "grounded";
+  const shouldRenderShadowLayer = borderIsNone || shadowStyle === "grounded";
 
-const shadowHandledByStroke =
-  !borderIsNone && shadowStyle !== "grounded";
+  const shadowHandledByStroke = !borderIsNone && shadowStyle !== "grounded";
 
+  const shadowScale = (() => {
+    const thickness = appearance.border.thickness;
 
+    if (appearance.border.style === "none") return 1;
+
+    switch (thickness) {
+      case "thin":
+        return 1 + 0.05;
+      case "medium":
+        return 1 + 0.1;
+      case "thick":
+        return 1 + 0.15;
+      default:
+        return 1;
+    }
+  })();
+
+  const shadowColour = "#555555";
+  const shadowXS = `${8 * scaleFactor}px`;
+  const shadowSm = `${12 * scaleFactor}px`;
+  const shadowMed = `${16 * scaleFactor}px`;
+  const shadowLg = `${24 * scaleFactor}px`;
+  const shadowXL = `${32 * scaleFactor}px`;
 
   const textShadowStyle: React.CSSProperties = (() => {
+    const baseTransform = `scale(${shadowScale})`;
+
     switch (appearance.shadow.style) {
       case "none":
         return {
           textShadow: "none",
+          transform: baseTransform,
         };
 
       case "soft":
         return {
-          textShadow: "0 24px 40px rgba(0,0,0,0.35)",
+          textShadow: `${shadowSm} ${shadowMed} ${shadowXL} ${shadowColour}`,
+          transform: baseTransform,
         };
 
       case "hard":
         return {
-          textShadow: "0 16px 0 rgba(0,0,0,0.6)",
+          textShadow: `0 ${shadowMed} 0 ${shadowColour}`,
+          transform: baseTransform,
         };
 
       case "grounded":
         return {
-          textShadow: "0 32px 30px rgba(0,0,0,0.4)",
-          transform: "translateY(-0.1em) scaleY(0.5) skewX(20deg)",
+          textShadow: `0 ${shadowXL} ${shadowXL} ${shadowColour}`,
+          transform: `${baseTransform} translateY(-0.1em) scaleY(0.5) skewX(20deg)`,
           transformOrigin: "bottom center",
         };
 
@@ -169,23 +194,23 @@ const shadowHandledByStroke =
   })();
 
   const dropShadowStyle: React.CSSProperties = (() => {
-  if (!shadowHandledByStroke) return {};
+    if (!shadowHandledByStroke) return {};
 
-  switch (appearance.shadow.style) {
-    case "soft":
-      return {
-        filter: "drop-shadow(0 24px 10px rgba(0,0,0,0.35))",
-      };
+    switch (appearance.shadow.style) {
+      case "soft":
+        return {
+          filter: `drop-shadow(${shadowXS} ${shadowSm} ${shadowLg} ${shadowColour})`,
+        };
 
-    case "hard":
-      return {
-        filter: "drop-shadow(0 16px 0 rgba(0,0,0,0.6))",
-      };
+      case "hard":
+        return {
+          filter: `drop-shadow(0 ${shadowSm} 0 ${shadowColour})`,
+        };
 
-    default:
-      return {};
-  }
-})();
+      default:
+        return {};
+    }
+  })();
 
   return (
     <div
@@ -200,22 +225,20 @@ const shadowHandledByStroke =
       }}
     >
       {/* Shadow layer */}
-{shouldRenderShadowLayer && (
-  <span
-    aria-hidden
-    style={{
-      position: "absolute",
-      inset: 0,
-      color: "transparent",
-      zIndex: 1,
-      padding: `0 ${horizontalPadding}`,
-      ...textShadowStyle,
-      ...shadowStrokeStyle, // transparent stroke to give shadow shape
-    }}
-  >
-    {value}
-  </span>
-)}
+      <span
+        aria-hidden
+        style={{
+          position: "absolute",
+          inset: 0,
+          color: "transparent",
+          zIndex: 1,
+          padding: `0 ${horizontalPadding}`,
+          ...textShadowStyle,
+          ...dropShadowStyle, // transparent stroke to give shadow shape
+        }}
+      >
+        {value}
+      </span>
 
       {/* Stroke layer */}
       <span
