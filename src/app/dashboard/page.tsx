@@ -15,6 +15,7 @@ import type { UnlockId } from "@/lib/unlocks";
 import { UNLOCK_DEFINITIONS } from "@/lib/unlocks";
 import { useRouter } from "next/navigation";
 import RedirectToGate from "@/components/RedirectToGate";
+import { normalizeAppearance } from "@/lib/normalizeAppearance";
 
 const VALID_UNLOCK_IDS = new Set<UnlockId>(
   UNLOCK_DEFINITIONS.flatMap((rule) => rule.ids)
@@ -40,36 +41,7 @@ export default function DashboardPage() {
   const flipTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const flipButtonRef = useRef<HTMLButtonElement | null>(null);
 
-  const shadowColoursUnlocked = unlocks.includes("shadow:colors:pack1");
-
-  useEffect(() => {
-    if (!appearance.fill) return;
-
-    if (
-      appearance.fill.style === "gradient" &&
-      !unlocks.includes("fill:gradient")
-    ) {
-      setAppearance((prev) => ({
-        ...prev,
-        fill: {
-          ...prev.fill,
-          style: "solid",
-        },
-      }));
-    }
-  }, [appearance.fill.style, unlocks]);
-
-  useEffect(() => {
-    if (appearance.shadow.colour && !unlocks.includes("shadow:colors:pack1")) {
-      setAppearance((prev) => ({
-        ...prev,
-        shadow: {
-          ...prev.shadow,
-          colour: undefined,
-        },
-      }));
-    }
-  }, [unlocks, appearance.shadow.colour, setAppearance]);
+  const shadowColoursUnlocked = unlocks.includes("shadow:colours:pack1");
 
   useEffect(() => {
     if (!profile) return;
@@ -77,22 +49,9 @@ export default function DashboardPage() {
     setStatus(profile.status ?? false);
     setFlipCount(profile.flip_count ?? 0);
 
-    setAppearance({
-      ...defaultAppearance,
-      ...(profile.appearance ?? {}),
-      fill: {
-        ...defaultAppearance.fill,
-        ...(profile.appearance?.fill ?? {}),
-      },
-      border: {
-        ...defaultAppearance.border,
-        ...(profile.appearance?.border ?? {}),
-      },
-      shadow: {
-        ...defaultAppearance.shadow,
-        ...(profile.appearance?.shadow ?? {}),
-      },
-    });
+    setAppearance(
+      normalizeAppearance(profile.appearance, profile.unlocks ?? [])
+    );
 
     setUnlocks((profile.unlocks ?? []) as UnlockId[]);
 
@@ -189,8 +148,9 @@ export default function DashboardPage() {
   };
 
   const handleAppearanceChange = (next: Appearance) => {
-    setAppearance(next); // optimistic
-    saveAppearanceDebounced(next); // persistent
+    const normalized = normalizeAppearance(next, unlocks);
+    setAppearance(normalized);
+    saveAppearanceDebounced(normalized);
   };
 
   //   The return statement

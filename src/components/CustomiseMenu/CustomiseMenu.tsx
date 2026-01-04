@@ -83,8 +83,9 @@ export default function CustomiseMenu({
     }
   };
 
+
   const showShadowColourControls =
-    appearance.shadow.style !== "none" && shadowColoursUnlocked;
+  appearance.shadow.style !== "none" && shadowColoursUnlocked;
 
   // The return statement:
 
@@ -481,16 +482,33 @@ export default function CustomiseMenu({
                     disabled={locked}
                     aria-disabled={locked}
                     aria-pressed={appearance.shadow.style === style}
+                    // onClick={() => {
+                    //   if (locked) return;
+                    //   onChange({
+                    //     ...appearance,
+                    //     shadow: {
+                    //       ...appearance.shadow,
+                    //       style,
+                    //     }
+                    //   });
+                    // }}
                     onClick={() => {
-                      if (locked) return;
-                      onChange({
-                        ...appearance,
-                        shadow: {
-                          ...appearance.shadow,
-                          style,
-                        }
-                      });
-                    }}
+  if (locked) return;
+
+  onChange({
+    ...appearance,
+    shadow:
+      style === "none"
+        ? { style: "none" }
+        : {
+            style,
+            colour:
+              appearance.shadow.style === "none"
+                ? "#000000"
+                : appearance.shadow.colour,
+          },
+  });
+}}
                     style={{
                       opacity: locked ? 0.4 : 1,
                       cursor: locked ? "not-allowed" : "pointer",

@@ -8,6 +8,7 @@ import { useUser } from "@/providers/UserProvider";
 import FollowButton from "../FollowButton/FollowButton";
 import { Appearance } from "@/types/appearance";
 import BitDisplay from "../BitDisplay/BitDisplay";
+import { normalizeAppearance } from "@/lib/normalizeAppearance";
 
 type FeedProfile = {
   id: string;
@@ -172,36 +173,6 @@ export default function Feed() {
     }));
   };
 
-  // useEffect(() => {
-  //   if (userLoading || !user) return;
-
-  //   setProfiles([]);
-  //   setOffset(0);
-  //   setHasMore(true);
-
-  //   (async () => {
-  //     try {
-  //       setLoading(true);
-  //       const data = await fetchFeedPage(0, PAGE_SIZE - 1);
-  //       setProfiles(data);
-  //       setOffset(PAGE_SIZE);
-  //       setHasMore(data.length === PAGE_SIZE);
-  //     } catch {
-  //       setError("Failed to load feed");
-  //       setHasMore(false);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   })();
-  // }, [
-  //   userLoading,
-  //   user,
-  //   profile?.username,
-  //   onlyFollowing,
-  //   sortKey,
-  //   statusFilter,
-  //   searchQuery,
-  // ]);
 
   useEffect(() => {
   if (!userReady || !user) return;
@@ -449,7 +420,7 @@ export default function Feed() {
                 {person.appearance && (
                   <BitDisplay
                     value={person.status ? "1" : "0"}
-                    appearance={person.appearance}
+                    appearance={normalizeAppearance(person.appearance, profile.unlocks ?? [])}
                     scaleFactor={0.2}
                   />
                 )}
