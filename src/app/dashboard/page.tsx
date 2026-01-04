@@ -40,6 +40,8 @@ export default function DashboardPage() {
   const flipTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const flipButtonRef = useRef<HTMLButtonElement | null>(null);
 
+  const shadowColoursUnlocked = unlocks.includes("shadow:colors:pack1");
+
   useEffect(() => {
     if (!appearance.fill) return;
 
@@ -56,6 +58,18 @@ export default function DashboardPage() {
       }));
     }
   }, [appearance.fill.style, unlocks]);
+
+  useEffect(() => {
+    if (appearance.shadow.colour && !unlocks.includes("shadow:colors:pack1")) {
+      setAppearance((prev) => ({
+        ...prev,
+        shadow: {
+          ...prev.shadow,
+          colour: undefined,
+        },
+      }));
+    }
+  }, [unlocks, appearance.shadow.colour, setAppearance]);
 
   useEffect(() => {
     if (!profile) return;
@@ -88,13 +102,13 @@ export default function DashboardPage() {
     // );
   }, [profile]);
 
-if (!userReady) {
-  return null; // or a loading shell
-}
+  if (!userReady) {
+    return null; // or a loading shell
+  }
 
-if (!user) {
-  return <RedirectToGate />;
-}
+  if (!user) {
+    return <RedirectToGate />;
+  }
 
   const saveAppearanceDebounced = (nextAppearance: Appearance) => {
     if (!user) return;
@@ -116,13 +130,13 @@ if (!user) {
 
     setFlipPending(true);
     // hard limit on how long the switch is disabled
-if (flipTimeoutRef.current) {
-  clearTimeout(flipTimeoutRef.current);
-}
+    if (flipTimeoutRef.current) {
+      clearTimeout(flipTimeoutRef.current);
+    }
 
-flipTimeoutRef.current = setTimeout(() => {
-  setFlipPending(false);
-}, 200);
+    flipTimeoutRef.current = setTimeout(() => {
+      setFlipPending(false);
+    }, 200);
 
     // snapshot current state (prevents stale closure bugs)
     const prevStatus = status;
@@ -140,7 +154,6 @@ flipTimeoutRef.current = setTimeout(() => {
     setStatus(optimisticStatus);
     setFlipCount(optimisticFlipCount);
     setUnlocks(optimisticUnlocks);
-
 
     (async () => {
       setSaving(true);
@@ -185,7 +198,6 @@ flipTimeoutRef.current = setTimeout(() => {
   return (
     <main>
       <section className="page-section">
-
         <div className="dashboard-container section-wrapper">
           <BitExperience
             mode="authenticated"

@@ -6,11 +6,11 @@
 export const UNLOCK_DEFINITIONS = [
  {
     flipsRequired: 4,
-    ids: ['fill:gradient'],
+    ids: ['fill:gradient', 'fill:stripes'],
   },
   {
     flipsRequired: 8,
-    ids: ['fill:stripes'],
+    ids: ["shadow:colors:pack1"],
   },
   {
     flipsRequired: 16,

@@ -6,6 +6,8 @@ import { UnlockId } from "@/lib/unlocks";
 import "@/styles/globals.css";
 import "./customiseMenu.css";
 import { getFillColours } from "@/lib/getFillColours";
+import { getBorderColours } from "@/lib/getBorderColours";
+import { getShadowColours } from "@/lib/getShadowColours";
 
 type CustomiseMenuProps = {
   appearance: Appearance;
@@ -29,6 +31,10 @@ export default function CustomiseMenu({
 
   const primaryColours = getFillColours("primary", unlocks);
   const secondaryColours = getFillColours("secondary", unlocks);
+  const borderPrimaryColours = getBorderColours("primary", unlocks);
+  const borderSecondaryColours = getBorderColours("secondary", unlocks);
+  const shadowColoursUnlocked = unlocks.includes("shadow:colors:pack1");
+  const shadowPrimaryColours = getShadowColours(unlocks);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -57,12 +63,6 @@ export default function CustomiseMenu({
   // Variables
 
   const isUnlocked = (id: string) => unlocks.includes(id);
-  const baseColors = ["#22c55e", "#0ea5e9"];
-  const extraColors = ["#a855f7", "#f97316"];
-
-  const colours = isUnlocked("colors:pack1")
-    ? [...baseColors, ...extraColors]
-    : baseColors;
 
   // To close customise menu on touchscreens:
 
@@ -82,6 +82,9 @@ export default function CustomiseMenu({
       touchStartY.current = null;
     }
   };
+
+  const showShadowColourControls =
+    appearance.shadow.style !== "none" && shadowColoursUnlocked;
 
   // The return statement:
 
@@ -174,8 +177,7 @@ export default function CustomiseMenu({
           <div style={{ marginTop: "0.75rem" }}>
             <p>Primary colour</p>
             <div style={{ display: "flex", gap: "0.5rem" }}>
-              {
-              primaryColours.map(({id, hex}) => (
+              {primaryColours.map(({ id, hex }) => (
                 <button
                   key={id}
                   type="button"
@@ -207,7 +209,7 @@ export default function CustomiseMenu({
             <div style={{ marginTop: "0.75rem" }}>
               <p>Secondary colour</p>
               <div style={{ display: "flex", gap: "0.5rem" }}>
-                {secondaryColours.map(({id, hex}) => (
+                {secondaryColours.map(({ id, hex }) => (
                   <button
                     key={id}
                     type="button"
@@ -336,74 +338,64 @@ export default function CustomiseMenu({
               <div style={{ marginTop: "0.75rem" }}>
                 <p>Colour</p>
                 <div style={{ display: "flex", gap: "0.5rem" }}>
-                  {[
-                    "#000000", "#ffffff", "#22c55e", "#0ea5e9", "#f97316"
-                  ].map(
-                    (colour) => (
-                      <button
-                        key={colour}
-                        type="button"
-                        aria-label={`Set border primary colour to ${colour}`}
-                        aria-pressed={appearance.border.primaryColor === colour}
-                        onClick={() =>
-                          onChange({
-                            ...appearance,
-                            border: {
-                              ...appearance.border,
-                              primaryColor: colour,
-                            },
-                          })
-                        }
-                        style={{
-                          width: 24,
-                          height: 24,
-                          borderRadius: "50%",
-                          background: colour,
-                          border: "1px solid #000",
-                        }}
-                      />
-                    )
-                  )}
+                  {borderPrimaryColours.map(({ id, hex }) => (
+                    <button
+                      key={id}
+                      type="button"
+                      aria-label={`Set border primary colour to ${id}`}
+                      aria-pressed={appearance.border.primaryColor === hex}
+                      onClick={() =>
+                        onChange({
+                          ...appearance,
+                          border: {
+                            ...appearance.border,
+                            primaryColor: hex,
+                          },
+                        })
+                      }
+                      style={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: "50%",
+                        background: hex,
+                        border: "1px solid #000",
+                      }}
+                    />
+                  ))}
                 </div>
               </div>
             )}
 
-            {/* If pattern bordre: choose secondary colour */}
+            {/* If pattern border: choose secondary colour */}
 
             {appearance.border.style === "pattern" && (
               <div style={{ marginTop: "0.75rem" }}>
                 <p>Secondary colour</p>
                 <div style={{ display: "flex", gap: "0.5rem" }}>
-                  {[
-                    "#ffffff", "#fde047", "#a855f7", "#ec4899"
-                  ].map(
-                    (colour) => (
-                      <button
-                        key={colour}
-                        type="button"
-                        aria-label={`Set border secondary colour to ${colour}`}
-                        aria-pressed={
-                          appearance.border.secondaryColor === colour
-                        }
-                        onClick={() =>
-                          onChange({
-                            ...appearance,
-                            border: {
-                              ...appearance.border,
-                              secondaryColor: colour,
-                            },
-                          })
-                        }
-                        style={{
-                          width: 24,
-                          height: 24,
-                          borderRadius: "50%",
-                          background: colour,
-                          border: "1px solid #000",
-                        }}
-                      />
-                    )
-                  )}
+                  {borderPrimaryColours.map(({ id, hex }) => (
+                    <button
+                      key={id}
+                      type="button"
+                      aria-label={`Set border secondary colour to ${id}`}
+                      aria-pressed={appearance.border.secondaryColor === hex}
+                      onClick={() =>
+                        onChange({
+                          ...appearance,
+                          border: {
+                            ...appearance.border,
+                            secondaryColor: hex,
+                          },
+                        })
+                      }
+                      style={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: "50%",
+                        background: hex,
+                        border: "1px solid #000",
+                      }}
+                    />
+                  ))}
                 </div>
               </div>
             )}
@@ -493,7 +485,10 @@ export default function CustomiseMenu({
                       if (locked) return;
                       onChange({
                         ...appearance,
-                        shadow: { style },
+                        shadow: {
+                          ...appearance.shadow,
+                          style,
+                        }
                       });
                     }}
                     style={{
@@ -513,6 +508,37 @@ export default function CustomiseMenu({
                 );
               })}
             </div>
+            {showShadowColourControls && (
+              <div style={{ marginTop: "0.75rem" }}>
+                <p>Shadow colour</p>
+                <div style={{ display: "flex", gap: "0.5rem" }}>
+                  {shadowPrimaryColours.map(({ id, hex }) => (
+                    <button
+                      key={id}
+                      type="button"
+                      aria-label={`Set shadow colour to ${id}`}
+                      aria-pressed={appearance.shadow.colour === hex}
+                      onClick={() =>
+                        onChange({
+                          ...appearance,
+                          shadow: {
+                            ...appearance.shadow,
+                            colour: hex,
+                          },
+                        })
+                      }
+                      style={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: "50%",
+                        background: hex,
+                        border: "1px solid #000",
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </section>
       </div>

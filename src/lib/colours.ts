@@ -15,4 +15,6 @@ export const COLOURS: ColourDefinition[] = [
 
   { id: "purple", hex: "#a855f7", pack: "fill:colors:pack1" },
   { id: "orange", hex: "#f97316", pack: "fill:colors:pack1" },
+  { id: "gray", hex: "#6b7280", pack: "shadow:colors:pack1" },
+  { id: "blue-dark", hex: "#1e40af", pack: "shadow:colors:pack1" },
 ];
