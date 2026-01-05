@@ -1,0 +1,84 @@
+/*
+
+Change to this:
+
+On mobile:
+share image (for instagram, messages, chat apps)
+save image
+[hint text] <- get rid of this
+-> x
+-> facebook
+-> bluesky
+close
+
+On desktop:
+save image (for instagram, mobile)
+copy image (for discord, chat apps)
+-> x
+-> facebook
+-> bluesky
+close
+*/
+
+
+.share-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: grid;
+  place-items: center;
+  z-index: 2000;
+  overflow: hidden;
+}
+
+.share-modal {
+  background: #fff;
+  padding: 1.5rem;
+  border-radius: 12px;
+  width: min(90vw, 360px);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.share-actions,
+.share-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.share-close {
+  margin-top: 0.5rem;
+}
+
+.share-modal:focus {
+  outline: 2px solid #000;
+  outline-offset: 2px;
+}
+
+.share-preview {
+  display: grid;
+  place-items: center;
+  padding: 0.5rem;
+}
+
+.share-preview img {
+  max-width: 100%;
+  max-height: 180px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #fff;
+}
+
+/* for displaying image dimensions in share modal */
+.share-image-size {
+  text-align: center;
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+.share-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

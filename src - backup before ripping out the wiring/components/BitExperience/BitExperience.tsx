@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import BitDisplay from "@/components/BitDisplay/BitDisplay";
 import CustomiseMenu from "@/components/CustomiseMenu/CustomiseMenu";
+import { Appearance } from "@/types/appearance";
 import "./bitExperience.css";
 import FlipToast from "@/components/FlipToast";
 import UnlockToast from "../UnlockToast";
@@ -12,8 +13,11 @@ type BitExperienceProps = {
 
   value: "0" | "1";
   flipCount: number;
+  appearance: Appearance;
+  unlocks: string[];
 
   onFlip: () => void;
+  onAppearanceChange?: (next: Appearance) => void;
 
   showShare?: boolean;
   onShare?: () => void;
@@ -25,7 +29,10 @@ export default function BitExperience({
   mode,
   value,
   flipCount,
+  appearance,
+  unlocks,
   onFlip,
+  onAppearanceChange,
   showShare = false,
   onShare,
   flipPending = false,
@@ -35,6 +42,7 @@ export default function BitExperience({
   const flipToastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const hasMountedRef = useRef(false);
   const [unlockToasts, setUnlockToasts] = useState<string[]>([]);
+  const prevUnlocksRef = useRef<string[]>([]);
 
   const unlockIdToLabel = (id: string): string | null => {
     if (id.startsWith("fill:")) return "Fill";
@@ -53,6 +61,26 @@ export default function BitExperience({
     setFlipToastKey(Date.now());
   }, [flipCount]);
 
+  useEffect(() => {
+    const prev = prevUnlocksRef.current;
+    const newlyUnlocked = unlocks.filter((id) => !prev.includes(id));
+
+    if (newlyUnlocked.length > 0) {
+      const labels = newlyUnlocked
+        .map(unlockIdToLabel)
+        .filter(Boolean) as string[];
+
+      if (labels.length > 0) {
+        setUnlockToasts((t) => [...t, ...labels]);
+        setTimeout(() => {
+          setUnlockToasts((t) => t.filter((l) => !labels.includes(l)));
+        }, 2000);
+      }
+    }
+
+    prevUnlocksRef.current = unlocks;
+  }, [unlocks]);
+
   return (
     <div className="dashboard-container section-wrapper">
       {/* Flip count card */}
@@ -70,7 +98,7 @@ export default function BitExperience({
         {/* Flip toast */}
         {flipToastKey !== null && <FlipToast key={flipToastKey} />}
         {/* Giant bit */}
-        <BitDisplay value={value} />
+        <BitDisplay value={value} appearance={appearance} />
 
         {/* Flip switch */}
         <button
@@ -161,6 +189,9 @@ export default function BitExperience({
       ))}
 
       <CustomiseMenu
+        appearance={appearance}
+        unlocks={unlocks}
+        onChange={onAppearanceChange ?? (() => {})}
         ignoreRef={flipButtonRef}
       />
     </div>

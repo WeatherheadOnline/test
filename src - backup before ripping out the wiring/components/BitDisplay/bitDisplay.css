@@ -1,0 +1,8 @@
+.giant-bit {
+  font-size: clamp(20rem, 35vw, 30rem);
+  font-family: Caprasimo;
+}
+
+/* .giant-bit span {
+  padding: 0 clamp(4rem, 7vw, 6rem);
+} */

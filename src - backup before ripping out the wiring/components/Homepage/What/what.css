@@ -1,0 +1,59 @@
+.what-section {
+    /* position: relative; */
+}
+
+.what-heading-wrapper {
+    width: 50vw;
+    position: relative;
+    left: 50vw;
+    top: 0;
+}
+
+h2 {
+    text-align: center;
+}
+
+.what-paragraphs {
+    display: flex;
+    flex-direction: column;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.what-paragraphs > div:first-child {
+    display: flex;
+    justify-content: center;
+}
+
+.what-paragraphs > div:first-child:after {
+    content: url(../../../assets/hand-drawn-arrow.png);
+    transform: scale(0.45) translateY(-3rem);
+    /* background-image: ; */
+    height: 100px;
+    width: 100px;
+    /* background-color: red; */
+}
+
+.what-paragraphs > div:last-child {
+    display: flex;
+    justify-content: space-evenly;
+}
+
+.what-paragraphs article {
+    width: max-content;
+    text-align: center;
+    padding: 1rem;
+}
+.what-paragraphs span {
+    display: block;
+}
+
+.what-paragraphs span.font {
+    display: unset;
+}
+
+.what-paragraphs span.monospace {
+    font-family: monospace;
+    font-weight: bold;
+    font-size: 1.2em;
+}

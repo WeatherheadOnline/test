@@ -6,7 +6,9 @@ import "@/styles/globals.css";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/providers/UserProvider";
 import FollowButton from "../FollowButton/FollowButton";
+import { Appearance } from "@/types/appearance";
 import BitDisplay from "../BitDisplay/BitDisplay";
+import { normalizeAppearance } from "@/lib/normalizeAppearance";
 
 type FeedProfile = {
   id: string;
@@ -15,6 +17,7 @@ type FeedProfile = {
   status: boolean;
   flip_count: number;
   last_flip_at: string | null;
+  appearance: Appearance | null;
   isFollowing: boolean;
 };
 
@@ -108,6 +111,7 @@ export default function Feed() {
     status,
     flip_count,
     last_flip_at,
+    appearance
   `);
 
     // 3. Sorting
@@ -413,10 +417,13 @@ export default function Feed() {
           {profiles.map((person) => (
             <article className="feed-card" key={person.id}>
               <div className="feed-bit">
+                {person.appearance && (
                   <BitDisplay
                     value={person.status ? "1" : "0"}
+                    appearance={normalizeAppearance(person.appearance, profile.unlocks ?? [])}
                     scaleFactor={0.2}
                   />
+                )}
               </div>
 
               <div className="feed-text">

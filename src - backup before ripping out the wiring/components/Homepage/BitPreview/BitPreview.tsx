@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import BitExperience from "@/components/BitExperience/BitExperience";
+import { defaultAppearance } from "@/lib/defaultAppearance";
 import Link from "next/link";
 import { useHeaderConfig } from "@/providers/HeaderConfigProvider";
 
@@ -42,6 +43,8 @@ const handleFlip = () => {
         mode="preview"
         value={status ? "1" : "0"}
         flipCount={flipCount}
+        appearance={defaultAppearance}
+        unlocks={[]}
         onFlip={handleFlip}
       />
       <div className="button-wrapper bit-exp-CTA-wrapper">

@@ -1,14 +1,25 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Appearance } from "@/types/appearance";
+import { UnlockId } from "@/lib/unlocks";
 import "@/styles/globals.css";
 import "./customiseMenu.css";
+import { getFillColours } from "@/lib/getFillColours";
+import { getBorderColours } from "@/lib/getBorderColours";
+import { getShadowColours } from "@/lib/getShadowColours";
 
 type CustomiseMenuProps = {
+  appearance: Appearance;
+  unlocks: string[];
+  onChange: (next: Appearance) => void;
   ignoreRef?: React.RefObject<HTMLElement | null>;
 };
 
 export default function CustomiseMenu({
+  appearance,
+  unlocks,
+  onChange,
   ignoreRef,
 }: CustomiseMenuProps) {
   // useState, useRef
@@ -17,6 +28,13 @@ export default function CustomiseMenu({
 
   const menuRef = useRef<HTMLDivElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
+
+  const primaryColours = getFillColours("primary", unlocks);
+  const secondaryColours = getFillColours("secondary", unlocks);
+  const borderPrimaryColours = getBorderColours("primary", unlocks);
+  const borderSecondaryColours = getBorderColours("secondary", unlocks);
+  const shadowColoursUnlocked = unlocks.includes("shadow:colors:pack1");
+  const shadowPrimaryColours = getShadowColours(unlocks);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -42,6 +60,9 @@ export default function CustomiseMenu({
     };
   }, [isOpen, ignoreRef]);
 
+  // Variables
+
+  const isUnlocked = (id: string) => unlocks.includes(id);
 
   // To close customise menu on touchscreens:
 
@@ -63,6 +84,8 @@ export default function CustomiseMenu({
   };
 
 
+  const showShadowColourControls =
+  appearance.shadow.style !== "none" && shadowColoursUnlocked;
 
   // The return statement:
 
@@ -107,14 +130,45 @@ export default function CustomiseMenu({
           {/* Fill style */}
           <div style={{ display: "flex", gap: "0.5rem" }}>
             {(["solid", "gradient", "stripes"] as const).map((style) => {
+              const unlockId =
+                style === "gradient"
+                  ? "fill:gradient"
+                  : style === "stripes"
+                  ? "fill:stripes"
+                  : null;
+
+              const locked = unlockId ? !isUnlocked(unlockId) : false;
+
               return (
                 <button
                   key={style}
                   type="button"
-                  // onClick={() => {
-                  //   // onChange();
-                  // }}
+                  disabled={locked}
+                  aria-disabled={locked}
+                  aria-pressed={appearance.fill.style === style}
+                  onClick={() => {
+                    if (locked) return;
+
+                    onChange({
+                      ...appearance,
+                      fill: {
+                        ...appearance.fill,
+                        style,
+                      },
+                    });
+                  }}
+                  style={{
+                    opacity: locked ? 0.4 : 1,
+                    cursor: locked ? "not-allowed" : "pointer",
+                  }}
                 >
+                  {style === "solid"
+                    ? "Solid"
+                    : style === "gradient"
+                    ? "Gradient"
+                    : "Stripes"}
+
+                  {locked && "🔒"}
                 </button>
               );
             })}
@@ -124,19 +178,26 @@ export default function CustomiseMenu({
           <div style={{ marginTop: "0.75rem" }}>
             <p>Primary colour</p>
             <div style={{ display: "flex", gap: "0.5rem" }}>
-              {(["red", "blue", "green"] as const).map((colour) => (
+              {primaryColours.map(({ id, hex }) => (
                 <button
-                  key={colour}
+                  key={id}
                   type="button"
-                  aria-label={`Set primary colour`}
-                  // onClick={() =>
-                  //   // onChange()
-                  // }
+                  aria-label={`Set primary colour to ${id}`}
+                  aria-pressed={appearance.fill.primaryColor === hex}
+                  onClick={() =>
+                    onChange({
+                      ...appearance,
+                      fill: {
+                        ...appearance.fill,
+                        primaryColor: hex,
+                      },
+                    })
+                  }
                   style={{
                     width: 24,
                     height: 24,
                     borderRadius: "50%",
-                        background: colour,
+                    background: hex,
                     border: "1px solid #000",
                   }}
                 />
@@ -145,30 +206,39 @@ export default function CustomiseMenu({
           </div>
 
           {/* Secondary colour (conditional) */}
+          {appearance.fill.style !== "solid" && (
             <div style={{ marginTop: "0.75rem" }}>
               <p>Secondary colour</p>
               <div style={{ display: "flex", gap: "0.5rem" }}>
-                {(["red", "blue", "green"] as const).map((colour) => (
+                {secondaryColours.map(({ id, hex }) => (
                   <button
-                    key={colour}
+                    key={id}
                     type="button"
-                    aria-label={`Set secondary colour`}
-                    // onClick={() =>
-                    //   // onChange()
-                    // }
+                    aria-label={`Set secondary colour to ${id}`}
+                    aria-pressed={appearance.fill.secondaryColor === hex}
+                    onClick={() =>
+                      onChange({
+                        ...appearance,
+                        fill: {
+                          ...appearance.fill,
+                          secondaryColor: hex,
+                        },
+                      })
+                    }
                     style={{
                       width: 24,
                       height: 24,
                       borderRadius: "50%",
+                      background: hex,
                       border: "1px solid #000",
-                      background: colour,
                     }}
                   />
                 ))}
               </div>
             </div>
+          )}
 
-
+          {appearance.fill.style === "stripes" && (
             <div style={{ marginTop: "0.75rem" }}>
               <p>Direction</p>
               <div style={{ display: "flex", gap: "0.5rem" }}>
@@ -177,9 +247,16 @@ export default function CustomiseMenu({
                     <button
                       key={direction}
                       type="button"
-                      // onClick={() =>
-                      //   // onChange()
-                      // }
+                      aria-pressed={appearance.fill.direction === direction}
+                      onClick={() =>
+                        onChange({
+                          ...appearance,
+                          fill: {
+                            ...appearance.fill,
+                            direction,
+                          },
+                        })
+                      }
                     >
                       {direction}
                     </button>
@@ -187,7 +264,9 @@ export default function CustomiseMenu({
                 )}
               </div>
             </div>
+          )}
 
+          {appearance.fill.style === "stripes" && (
             <div style={{ marginTop: "0.75rem" }}>
               <p>Thickness</p>
               <div style={{ display: "flex", gap: "0.5rem" }}>
@@ -195,15 +274,23 @@ export default function CustomiseMenu({
                   <button
                     key={thickness}
                     type="button"
-                    // onClick={() =>
-                    //   // onChange()
-                    // }
+                    aria-pressed={appearance.fill.thickness === thickness}
+                    onClick={() =>
+                      onChange({
+                        ...appearance,
+                        fill: {
+                          ...appearance.fill,
+                          thickness,
+                        },
+                      })
+                    }
                   >
                     {thickness}
                   </button>
                 ))}
               </div>
             </div>
+          )}
         </section>
 
         {/* Border section */}
@@ -225,9 +312,16 @@ export default function CustomiseMenu({
                 <button
                   key={style}
                   type="button"
-                  // onClick={() =>
-                  //   // onChange()
-                  // }
+                  aria-pressed={appearance.border.style === style}
+                  onClick={() =>
+                    onChange({
+                      ...appearance,
+                      border: {
+                        ...appearance.border,
+                        style,
+                      },
+                    })
+                  }
                 >
                   {style === "none"
                     ? "None"
@@ -240,77 +334,121 @@ export default function CustomiseMenu({
 
             {/* If solid or pattern border: choose primary colour */}
 
+            {(appearance.border.style === "solid" ||
+              appearance.border.style === "pattern") && (
               <div style={{ marginTop: "0.75rem" }}>
                 <p>Colour</p>
                 <div style={{ display: "flex", gap: "0.5rem" }}>
-                  {(["red", "blue", "green"] as const).map(( colour ) => (
+                  {borderPrimaryColours.map(({ id, hex }) => (
                     <button
-                      key={colour}
+                      key={id}
                       type="button"
-                      aria-label={`Set border primary colour`}
-                      // onClick={() =>
-                      //   // onChange()
-                      // }
+                      aria-label={`Set border primary colour to ${id}`}
+                      aria-pressed={appearance.border.primaryColor === hex}
+                      onClick={() =>
+                        onChange({
+                          ...appearance,
+                          border: {
+                            ...appearance.border,
+                            primaryColor: hex,
+                          },
+                        })
+                      }
                       style={{
                         width: 24,
                         height: 24,
                         borderRadius: "50%",
-                        background: colour,
+                        background: hex,
                         border: "1px solid #000",
                       }}
                     />
                   ))}
                 </div>
               </div>
+            )}
 
             {/* If pattern border: choose secondary colour */}
 
+            {appearance.border.style === "pattern" && (
               <div style={{ marginTop: "0.75rem" }}>
                 <p>Secondary colour</p>
                 <div style={{ display: "flex", gap: "0.5rem" }}>
-                  {(["red", "blue", "green"] as const).map((colour) => (
+                  {borderPrimaryColours.map(({ id, hex }) => (
                     <button
-                      key={colour}
+                      key={id}
                       type="button"
-                      aria-label={`Set border secondary colour`}
-                      // onClick={() =>
-                      //   // onChange()
-                      // }
+                      aria-label={`Set border secondary colour to ${id}`}
+                      aria-pressed={appearance.border.secondaryColor === hex}
+                      onClick={() =>
+                        onChange({
+                          ...appearance,
+                          border: {
+                            ...appearance.border,
+                            secondaryColor: hex,
+                          },
+                        })
+                      }
                       style={{
                         width: 24,
                         height: 24,
                         borderRadius: "50%",
-                        background: colour,
+                        background: hex,
                         border: "1px solid #000",
                       }}
                     />
                   ))}
                 </div>
               </div>
+            )}
 
+            {(appearance.border.style === "solid" ||
+              appearance.border.style === "pattern") && (
               <div style={{ marginTop: "0.75rem" }}>
                 <p>Border thickness</p>
                 <div style={{ display: "flex", gap: "0.5rem" }}>
                   {(["thin", "medium", "thick"] as const).map((style) => {
+                    const unlockId =
+                      style === "thick"
+                        ? "border:thick"
+                        : style === "medium"
+                        ? "border:medium"
+                        : "border:thin";
+
+                    const locked = unlockId ? !isUnlocked(unlockId) : false;
 
                     return (
                       <button
                         key={style}
                         type="button"
-                        // onClick={() =>
-                        //   // onChange()
-                        // }
+                        disabled={locked}
+                        aria-disabled={locked}
+                        aria-pressed={appearance.border.thickness === style}
+                        onClick={() =>
+                          onChange({
+                            ...appearance,
+                            border: {
+                              ...appearance.border,
+                              thickness: style,
+                            },
+                          })
+                        }
+                        style={{
+                          opacity: locked ? 0.4 : 1,
+                          cursor: locked ? "not-allowed" : "pointer",
+                        }}
                       >
                         {style === "thin"
                           ? "Thin"
                           : style === "medium"
                           ? "Medium"
                           : "Thick"}
+                        {locked && "🔒"}
                       </button>
                     );
                   })}
                 </div>
               </div>
+            )}
           </div>
         </section>
 
@@ -328,14 +466,53 @@ export default function CustomiseMenu({
             <p>Shadow style</p>
             <div style={{ display: "flex", gap: "0.5rem" }}>
               {(["none", "soft", "hard", "grounded"] as const).map((style) => {
+                const unlockId =
+                  style === "hard"
+                    ? "shadow:hard"
+                    : style === "grounded"
+                    ? "shadow:grounded"
+                    : null;
+
+                const locked = unlockId ? !isUnlocked(unlockId) : false;
 
                 return (
                   <button
                     key={style}
                     type="button"
+                    disabled={locked}
+                    aria-disabled={locked}
+                    aria-pressed={appearance.shadow.style === style}
                     // onClick={() => {
-                    //   // onChange();
+                    //   if (locked) return;
+                    //   onChange({
+                    //     ...appearance,
+                    //     shadow: {
+                    //       ...appearance.shadow,
+                    //       style,
+                    //     }
+                    //   });
                     // }}
+                    onClick={() => {
+  if (locked) return;
+
+  onChange({
+    ...appearance,
+    shadow:
+      style === "none"
+        ? { style: "none" }
+        : {
+            style,
+            colour:
+              appearance.shadow.style === "none"
+                ? "#000000"
+                : appearance.shadow.colour,
+          },
+  });
+}}
+                    style={{
+                      opacity: locked ? 0.4 : 1,
+                      cursor: locked ? "not-allowed" : "pointer",
+                    }}
                   >
                     {style === "none"
                       ? "None"
@@ -344,32 +521,42 @@ export default function CustomiseMenu({
                       : style === "hard"
                       ? "Hard"
                       : "Standing"}
+                    {locked && "🔒"}
                   </button>
                 );
               })}
             </div>
+            {showShadowColourControls && (
               <div style={{ marginTop: "0.75rem" }}>
                 <p>Shadow colour</p>
                 <div style={{ display: "flex", gap: "0.5rem" }}>
-                  {(["red", "blue", "green"] as const).map((colour) => (
+                  {shadowPrimaryColours.map(({ id, hex }) => (
                     <button
-                      key={colour}
+                      key={id}
                       type="button"
-                      aria-label={`Set shadow colour`}
-                      // onClick={() =>
-                      //   // onChange()
-                      // }
+                      aria-label={`Set shadow colour to ${id}`}
+                      aria-pressed={appearance.shadow.colour === hex}
+                      onClick={() =>
+                        onChange({
+                          ...appearance,
+                          shadow: {
+                            ...appearance.shadow,
+                            colour: hex,
+                          },
+                        })
+                      }
                       style={{
                         width: 24,
                         height: 24,
                         borderRadius: "50%",
-                        background: colour,
+                        background: hex,
                         border: "1px solid #000",
                       }}
                     />
                   ))}
                 </div>
               </div>
+            )}
           </div>
         </section>
       </div>

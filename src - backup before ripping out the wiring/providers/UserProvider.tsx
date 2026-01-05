@@ -27,6 +27,8 @@ type UserContextValue = {
 type DashboardProfile = {
   status: boolean;
   flip_count: number;
+  appearance: any;
+  unlocks: string[];
 
   // future
   background_pattern?: string | null;
@@ -117,6 +119,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
       display_name,
       status,
       flip_count,
+      appearance,
+      unlocks,
       background_pattern,
       background_color,
       accessories

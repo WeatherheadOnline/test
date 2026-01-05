@@ -1,0 +1,105 @@
+header {
+    isolation: isolate;
+    z-index: 100;
+    position: fixed;
+    height: max-content;
+    width: 100vw;
+    top: 0;
+    padding: var(--hud-padding-mobile);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: nowrap;
+    background-color: #FFFFFF;
+    @media screen and (hover) {
+        width: calc(100vw - var(--hud-padding-desktop));
+    }
+}
+#logo {
+    width: min(15vw, 15vh);
+    height: auto;
+    border-radius: 0.3rem;
+    @media screen and (hover),
+    screen and (any-hover: none) and (orientation: portrait) and (min-width: 786px),
+    screen and (any-hover: none) and (orientation: landscape) and (min-height: 786px){
+        width: 4rem;
+    }
+}
+#hamburger {
+    cursor: pointer;
+    padding: var(--hud-padding-mobile);
+    @media screen and (hover) and (max-width: 785px) {
+        padding: var(--hud-padding-desktop);
+    }
+    @media screen and (hover) and (min-width: 786px) {
+        display: none;
+    }
+}
+#menu {
+    position: fixed;
+    z-index: 1;
+    padding: 20px;
+    top: var(--hud-padding-mobile);
+    right: var(--hud-padding-mobile);
+    display: none;
+    border-radius: 5px;
+    @media screen and (hover) and (max-width: 785px) {
+        overflow: hidden;
+        padding: 2rem;
+    }
+}
+#menu span {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    font-size: 3rem;
+    margin: 3px;
+    padding: 0 10px 5px;
+    line-height: 3rem;
+    border-radius: 5px;
+    @media screen and (hover) and (max-width: 785px) {
+        position: absolute;
+        top: -0.5rem;
+        right: 0px;
+        font-size: 2rem;
+        padding: 0 0.8rem;
+        line-height: 3rem;
+    }
+}
+#menu a {text-decoration: none;}
+#menu h4 {
+    border-radius: 5px;
+    @media screen and (hover) and (max-width: 785px) {
+       margin-right: 2rem;
+    }
+}
+@media screen and (hover) {
+    #hamburger svg {
+        width: 2.2rem;
+        height: auto;
+    }
+}
+nav {
+    /* display: none; */
+    /* @media screen and (any-hover: hover) and (min-width: 786px) { */
+        width: calc(100% - 4rem - var(--hud-padding-desktop));
+        display: flex;
+        flex-wrap: wrap;
+        height: min-content;
+        margin-left: 0.5rem;
+        justify-content: flex-end;
+        gap: 0.5rem calc(10vw - 3rem);
+    /* } */
+}
+nav a {
+    text-decoration: none;
+    @media screen and (any-hover: none) and (orientation: landscape) {
+        text-align: center;
+        margin: 1vh;
+    }
+    @media screen and (any-hover: hover) and (min-width: 786px) {
+        text-align: center;
+        margin: 0;
+        padding: 0.2rem 0.5rem;
+    }
+}

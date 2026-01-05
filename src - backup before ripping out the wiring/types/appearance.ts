@@ -22,10 +22,10 @@ export type FillStripes = {
 };
 
 // pattern will come later
-// export type FillAppearance =
-//   | FillSolid
-//   | FillGradient
-//   | FillStripes;
+export type FillAppearance =
+  | FillSolid
+  | FillGradient
+  | FillStripes;
 
 // =====================
 // Border
@@ -74,8 +74,8 @@ export type ShadowAppearance =
 // Appearance (root)
 // =====================
 
-// export type Appearance = {
-//   fill: FillAppearance;
-//   border: BorderAppearance;
-//   shadow: ShadowAppearance;
-// };
+export type Appearance = {
+  fill: FillAppearance;
+  border: BorderAppearance;
+  shadow: ShadowAppearance;
+};
