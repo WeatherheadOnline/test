@@ -33,11 +33,7 @@ export default function Feed() {
 
   const {
     user,
-    profile,
     userReady,
-    followingIds,
-    optimisticallyFollow,
-    optimisticallyUnfollow,
   } = useUser();
 
   type StatusFilter = "all" | "true" | "false";
@@ -54,11 +50,14 @@ export default function Feed() {
   const [pendingSortKey, setPendingSortKey] = useState<SortKey>(sortKey);
   const [pendingStatusFilter, setPendingStatusFilter] =
     useState<StatusFilter>(statusFilter);
-const [cursor, setCursor] = useState<{ lastFlipAt: string | null; lastId: string | null }>({
-  lastFlipAt: null,
-  lastId: null,
-});
-const [queryKey, setQueryKey] = useState<string>("");
+  const [cursor, setCursor] = useState<{
+    lastFlipAt: string | null;
+    lastId: string | null;
+  }>({
+    lastFlipAt: null,
+    lastId: null,
+  });
+  const [queryKey, setQueryKey] = useState<string>("");
 
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -80,59 +79,85 @@ const [queryKey, setQueryKey] = useState<string>("");
     setIsMobileMenuOpen(false);
   };
 
-  const clearFilters = () => {
-    setOnlyFollowing(false);
-    setStatusFilter("all");
-  };
+  // Compute a queryKey to reset feed when filters/sort/search change
+  useEffect(() => {
+    const key = JSON.stringify({
+      onlyFollowing,
+      statusFilter,
+      sortKey,
+      searchQuery,
+    });
+    setQueryKey(key);
+  }, [onlyFollowing, statusFilter, sortKey, searchQuery]);
 
-const fetchFeedPage = async (cursor: { lastFlipAt: string | null; lastId: string | null }) => {
-  if (!user) return [];
+  const fetchFeedPage = async (cursor: {
+    lastFlipAt: string | null;
+    lastId: string | null;
+  }) => {
+    if (!user) return [];
 
-  // Optional search step → collect matching profile IDs
-  let searchIds: string[] | null = null;
-  if (searchQuery) {
-    const { data, error } = await supabase.rpc("search_profiles", {
-      search: searchQuery,
+    // Optional search step
+    let searchIds: string[] | null = null;
+    if (searchQuery) {
+      const { data, error } = await supabase.rpc("search_profiles", {
+        search: searchQuery,
+      });
+      if (error || !data || data.length === 0) return [];
+      searchIds = data.map((row) => row.id);
+    }
+
+    const { data, error } = await supabase.rpc("get_feed_page", {
+      p_user_id: user.id,
+      p_limit: PAGE_SIZE + 1, // fetch one extra to detect hasMore
+      p_last_flip_at: cursor.lastFlipAt,
+      p_last_id: cursor.lastId,
+      p_only_following: onlyFollowing,
+      p_status_filter: statusFilter === "all" ? null : statusFilter === "true",
+      p_search_ids: searchIds,
+      p_sort: sortKey,
     });
 
-    if (error || !data || data.length === 0) return [];
-    searchIds = data.map((row) => row.id);
-  }
+    if (error) throw error;
 
-  // Call the RPC
-  const { data, error } = await supabase.rpc("get_feed_page", {
-    p_user_id: user.id,
-    p_limit: PAGE_SIZE + 1, // fetch one extra to detect hasMore
-    p_last_flip_at: cursor.lastFlipAt,
-    p_last_id: cursor.lastId,
-    p_only_following: onlyFollowing,
-    p_status_filter: statusFilter === "all" ? null : statusFilter === "true",
-    p_search_ids: searchIds,
-    p_sort: sortKey, // passes your selected sort
-  });
+    const pageData = data.slice(0, PAGE_SIZE);
+    setHasMore(data.length > PAGE_SIZE);
 
-  if (error) throw error;
+    return pageData;
+  };
 
-  // Slice to PAGE_SIZE for display, detect hasMore
-  const pageData = data.slice(0, PAGE_SIZE);
-  setHasMore(data.length > PAGE_SIZE);
+  useEffect(() => {
+    if (!userReady || !user) return;
 
-  return pageData;
-};
+    setProfiles([]);
+    setCursor({ lastFlipAt: null, lastId: null });
+    setHasMore(true);
 
-useEffect(() => {
-  if (!userReady || !user) return;
+    (async () => {
+      try {
+        setLoading(true);
+        const data = await fetchFeedPage({ lastFlipAt: null, lastId: null });
+        setProfiles(data);
 
-  // Reset feed for new query
-  setProfiles([]);
-  setCursor({ lastFlipAt: null, lastId: null });
-  setHasMore(true);
+        if (data.length > 0) {
+          const last = data[data.length - 1];
+          setCursor({ lastFlipAt: last.last_flip_at, lastId: last.id });
+        }
+      } catch {
+        setError("Failed to load feed");
+        setHasMore(false);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [userReady, user, queryKey]);
 
-  (async () => {
+  const loadMore = async () => {
+    if (loading || !hasMore || !user) return;
+
+    setLoading(true);
     try {
-      setLoading(true);
-      const data = await fetchFeedPage({ lastFlipAt: null, lastId: null });
-      setProfiles(data);
+      const data = await fetchFeedPage(cursor);
+      setProfiles((prev) => [...prev, ...data]);
 
       if (data.length > 0) {
         const last = data[data.length - 1];
@@ -140,43 +165,10 @@ useEffect(() => {
       }
     } catch {
       setError("Failed to load feed");
-      setHasMore(false);
     } finally {
       setLoading(false);
     }
-  })();
-}, [userReady, user, queryKey]);
-
-useEffect(() => {
-  const key = JSON.stringify({
-    onlyFollowing,
-    statusFilter,
-    sortKey,
-    searchQuery,
-  });
-  setQueryKey(key);
-}, [onlyFollowing, statusFilter, sortKey, searchQuery]);
-
-const loadMore = async () => {
-  if (searchQuery) return;
-  if (loading || !hasMore || !user) return;
-
-  setLoading(true);
-  try {
-    const data = await fetchFeedPage(cursor);
-    setProfiles((prev) => [...prev, ...data]);
-
-    if (data.length > 0) {
-      const last = data[data.length - 1];
-      setCursor({ lastFlipAt: last.last_flip_at, lastId: last.id });
-    }
-  } catch {
-    setError("Failed to load feed");
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   return (
     <section className="page-section">
