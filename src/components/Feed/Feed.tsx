@@ -42,9 +42,7 @@ export default function Feed() {
 
   type StatusFilter = "all" | "true" | "false";
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
-
   const [profiles, setProfiles] = useState<FeedProfile[]>([]);
-  const [offset, setOffset] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
@@ -60,10 +58,9 @@ const [cursor, setCursor] = useState<{ lastFlipAt: string | null; lastId: string
   lastFlipAt: null,
   lastId: null,
 });
+const [queryKey, setQueryKey] = useState<string>("");
 
   const searchInputRef = useRef<HTMLInputElement>(null);
-
-  const isEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
   const commitSearch = () => {
     const trimmed = searchInput.trim();
@@ -123,10 +120,10 @@ const fetchFeedPage = async (cursor: { lastFlipAt: string | null; lastId: string
   return pageData;
 };
 
-
 useEffect(() => {
   if (!userReady || !user) return;
 
+  // Reset feed for new query
   setProfiles([]);
   setCursor({ lastFlipAt: null, lastId: null });
   setHasMore(true);
@@ -148,7 +145,17 @@ useEffect(() => {
       setLoading(false);
     }
   })();
-}, [userReady, user, profile?.username, onlyFollowing, sortKey, statusFilter, searchQuery]);
+}, [userReady, user, queryKey]);
+
+useEffect(() => {
+  const key = JSON.stringify({
+    onlyFollowing,
+    statusFilter,
+    sortKey,
+    searchQuery,
+  });
+  setQueryKey(key);
+}, [onlyFollowing, statusFilter, sortKey, searchQuery]);
 
 const loadMore = async () => {
   if (searchQuery) return;
