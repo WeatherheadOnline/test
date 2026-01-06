@@ -35,20 +35,6 @@ onLoginClick: () => {
     },
   });
 
-  // Handle redirect → homepage login intent
-  // if (focusLoginOnMount) {
-  //   const tryFocus = () => {
-  //     if (loginInputRef.current) {
-  //       loginInputRef.current.focus();
-  //       setFocusLoginOnMount(false); // consume intent
-  //     } else {
-  //       requestAnimationFrame(tryFocus);
-  //     }
-  //   };
-
-  //   tryFocus();
-  // }
-
   return () => setConfig({});
 }, [setConfig, focusLoginOnMount, setFocusLoginOnMount]);
 

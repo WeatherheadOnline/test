@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import "./follow-button.css";
 
 type FollowButtonProps = {
-  isFollowing: boolean;
+  is_following: boolean;
   username: string;
   onFollow: () => Promise<void> | void;
   onUnfollow: () => Promise<void> | void;
@@ -12,7 +12,7 @@ type FollowButtonProps = {
 };
 
 export default function FollowButton({
-  isFollowing,
+  is_following,
   username,
   onFollow,
   onUnfollow,
@@ -71,7 +71,7 @@ export default function FollowButton({
     }
   };
 
-  if (!isFollowing) {
+  if (!is_following) {
     return (
       <button
         className="feed-follow-button"
