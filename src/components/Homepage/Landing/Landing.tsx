@@ -10,48 +10,49 @@ export default function Landing() {
   const { user, profile, userReady } = useUser();
   const loginInputRef = useRef<HTMLInputElement>(null);
   const { setConfig, focusLoginOnMount, setFocusLoginOnMount } =
-  useHeaderConfig();
+    useHeaderConfig();
 
-useEffect(() => {
-  setConfig({
 
-onLoginClick: () => {
-  window.scrollTo({ top: 0, behavior: "smooth" });
 
-  const focusAfterScroll = () => {
-    if (loginInputRef.current) {
-      loginInputRef.current.focus();
-    } else {
-      requestAnimationFrame(focusAfterScroll);
-    }
-  };
+  useEffect(() => {
+    setConfig({
+      onLoginClick: () => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
 
-  // Let the smooth scroll begin before focusing
-  setTimeout(focusAfterScroll, 200);
-},
+        const focusAfterScroll = () => {
+          if (loginInputRef.current) {
+            loginInputRef.current.focus();
+          } else {
+            requestAnimationFrame(focusAfterScroll);
+          }
+        };
 
-    onHomeClick: () => {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    },
-  });
+        // Let the smooth scroll begin before focusing
+        setTimeout(focusAfterScroll, 200);
+      },
 
-  return () => setConfig({});
-}, [setConfig, focusLoginOnMount, setFocusLoginOnMount]);
+      onHomeClick: () => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      },
+    });
 
-useEffect(() => {
-  if (!focusLoginOnMount) return;
+    return () => setConfig({});
+  }, [setConfig, focusLoginOnMount, setFocusLoginOnMount]);
 
-  const tryFocus = () => {
-    if (loginInputRef.current) {
-      loginInputRef.current.focus();
-      setFocusLoginOnMount(false); // consume intent
-    } else {
-      requestAnimationFrame(tryFocus);
-    }
-  };
+  useEffect(() => {
+    if (!focusLoginOnMount) return;
 
-  tryFocus();
-}, [focusLoginOnMount, setFocusLoginOnMount]);
+    const tryFocus = () => {
+      if (loginInputRef.current) {
+        loginInputRef.current.focus();
+        setFocusLoginOnMount(false); // consume intent
+      } else {
+        requestAnimationFrame(tryFocus);
+      }
+    };
+
+    tryFocus();
+  }, [focusLoginOnMount, setFocusLoginOnMount]);
 
   return (
     <section className="page-section landing-section">

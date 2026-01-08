@@ -19,6 +19,7 @@ type UserContextValue = {
   followingLoading: boolean;
   userReady: boolean;
   followingIds: Set<string>;
+  refreshProfile: () => Promise<void>;
   refreshFollowing: () => Promise<void>;
   optimisticallyFollow: (userId: string) => void;
   optimisticallyUnfollow: (userId: string) => void;
@@ -86,6 +87,64 @@ export function UserProvider({ children }: { children: ReactNode }) {
     });
   };
 
+//   const loadProfile = async (userId: string) => {
+//     setProfileLoading(true);
+
+//     const { data, error } = await supabase
+//       .from("profiles")
+//       .select(
+//         `
+// username,
+// display_name,
+// status,
+// flip_count,
+// background_pattern,
+// background_color,
+// accessories
+// `
+//       )
+//       .eq("id", userId)
+//       .single();
+
+//     if (!error && data) {
+//       setProfile(data);
+//     } else {
+//       setProfile(null);
+//     }
+
+//     setProfileLoading(false);
+//   };
+
+const loadProfile = async (userId: string) => {
+  setProfileLoading(true);
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select(
+      `
+      username,
+      display_name,
+      status,
+      flip_count
+      `
+    )
+    .eq("id", userId)
+    .maybeSingle(); // 👈 important
+
+  if (error) {
+    setProfile(null);
+  } else {
+    setProfile(data);
+  }
+
+  setProfileLoading(false);
+};
+
+  const refreshProfile = async () => {
+    if (!user) return;
+    await loadProfile(user.id);
+  };
+
   useEffect(() => {
     let mounted = true;
 
@@ -104,34 +163,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
         loadProfile(data.session.user.id);
         loadFollowing(data.session.user.id);
       }
-    };
-
-    const loadProfile = async (userId: string) => {
-      setProfileLoading(true);
-
-      const { data, error } = await supabase
-        .from("profiles")
-        .select(
-          `
-      username,
-      display_name,
-      status,
-      flip_count,
-      background_pattern,
-      background_color,
-      accessories
-    `
-        )
-        .eq("id", userId)
-        .single();
-
-      if (!error && data) {
-        setProfile(data);
-      } else {
-        setProfile(null);
-      }
-
-      setProfileLoading(false);
     };
 
     loadInitialSession();
@@ -169,6 +200,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         followingLoading,
         followingIds,
         userReady,
+        refreshProfile,
         refreshFollowing: async () => {
           if (user) await loadFollowing(user.id);
         },
