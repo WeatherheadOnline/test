@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import BitDisplay from "@/components/BitDisplay/BitDisplay";
 import CustomiseMenu from "@/components/CustomiseMenu/CustomiseMenu";
 import "./bitExperience.css";
@@ -35,6 +35,109 @@ export default function BitExperience({
   const flipToastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const hasMountedRef = useRef(false);
   const [unlockToasts, setUnlockToasts] = useState<string[]>([]);
+
+  type FillStyle = "solid" | "gradient" | "stripes" | "pattern";
+  type StripeThickness = "thin" | "medium" | "thick";
+  type StripeDirection = "horizontal" | "vertical" | "diagonalL" | "diagonalR";
+  type PatternSize = "small" | "medium" | "large";
+
+  type BorderStyle = "none" | "solid" | "pattern";
+  type BorderThickness = "thin" | "medium" | "thick";
+
+  type ShadowStyle = "none" | "soft" | "hard" | "standing";
+
+  type Appearance = {
+    fill: {
+      fillStyle: FillStyle;
+      fillPrimaryColor: string | null;
+      fillSecondaryColor: string | null;
+      fillColorPair: string | null;
+      stripeThickness: StripeThickness;
+      stripeDirection: StripeDirection;
+      patternId: string | null;
+      patternSize: PatternSize;
+      image: string | null;
+    };
+    border: {
+      borderStyle: BorderStyle;
+      borderThickness: BorderThickness;
+      borderColour: string | null;
+    };
+    shadow: {
+      shadowStyle: ShadowStyle;
+      shadowColour: string | null;
+    };
+  };
+
+  type AppearanceAction =
+    | { type: "SET_FILL_STYLE"; fillStyle: FillStyle }
+    | { type: "SET_BORDER_STYLE"; borderStyle: BorderStyle }
+    | { type: "SET_SHADOW_STYLE"; shadowStyle: ShadowStyle };
+
+  function appearanceReducer(
+    state: Appearance,
+    action: AppearanceAction
+  ): Appearance {
+    switch (action.type) {
+      case "SET_FILL_STYLE":
+        return {
+          ...state,
+          fill: {
+            ...state.fill,
+            fillStyle: action.fillStyle,
+          },
+        };
+
+      case "SET_BORDER_STYLE":
+        return {
+          ...state,
+          border: {
+            ...state.border,
+            borderStyle: action.borderStyle,
+          },
+        };
+
+      case "SET_SHADOW_STYLE":
+        return {
+          ...state,
+          shadow: {
+            ...state.shadow,
+            shadowStyle: action.shadowStyle,
+          },
+        };
+
+      default:
+        return state;
+    }
+  }
+
+  const initialAppearance: Appearance = {
+    fill: {
+      fillStyle: "solid",
+      fillPrimaryColor: null,
+      fillSecondaryColor: null,
+      fillColorPair: null,
+      stripeThickness: "medium",
+      stripeDirection: "horizontal",
+      patternId: null,
+      patternSize: "medium",
+      image: null,
+    },
+    border: {
+      borderStyle: "none",
+      borderThickness: "medium",
+      borderColour: null,
+    },
+    shadow: {
+      shadowStyle: "none",
+      shadowColour: null,
+    },
+  };
+
+  const [appearance, dispatchAppearance] = useReducer(
+    appearanceReducer,
+    initialAppearance
+  );
 
   const unlockIdToLabel = (id: string): string | null => {
     if (id.startsWith("fill:")) return "Fill";
@@ -162,6 +265,18 @@ export default function BitExperience({
 
       <CustomiseMenu
         ignoreRef={flipButtonRef}
+        fillStyle={appearance.fill.fillStyle}
+        onFillStyleChange={(style) =>
+          dispatchAppearance({ type: "SET_FILL_STYLE", fillStyle: style })
+        }
+        borderStyle={appearance.border.borderStyle}
+        onBorderStyleChange={(style) =>
+          dispatchAppearance({ type: "SET_BORDER_STYLE", borderStyle: style })
+        }
+        shadowStyle={appearance.shadow.shadowStyle}
+        onShadowStyleChange={(style) =>
+          dispatchAppearance({ type: "SET_SHADOW_STYLE", shadowStyle: style })
+        }
       />
     </div>
   );

@@ -7,32 +7,47 @@ import { palettes, SingleColor, PaletteScope } from "@/lib/palettes";
 
 type FillStyle = "solid" | "gradient" | "stripes" | "pattern";
 type BorderStyle = "none" | "solid" | "pattern";
-type ShadowStyle = "none" | "soft" | "hard" | "grounded";
+type ShadowStyle = "none" | "soft" | "hard" | "standing";
 
 type CustomiseMenuProps = {
   ignoreRef?: React.RefObject<HTMLElement | null>;
+
+  fillStyle: FillStyle;
+  onFillStyleChange: (style: FillStyle) => void;
+
+  borderStyle: BorderStyle;
+  onBorderStyleChange: (style: BorderStyle) => void;
+
+  shadowStyle: ShadowStyle;
+  onShadowStyleChange: (style: ShadowStyle) => void;
 };
 
-export default function CustomiseMenu({ ignoreRef }: CustomiseMenuProps) {
-  // useState, useRef
+// export default function CustomiseMenu({ ignoreRef }: CustomiseMenuProps) {
+
+export default function CustomiseMenu({
+  ignoreRef,
+  fillStyle,
+  onFillStyleChange,
+  borderStyle,
+  onBorderStyleChange,
+  shadowStyle,
+  onShadowStyleChange,
+}: CustomiseMenuProps) {
 
   const [isOpen, setIsOpen] = useState(false);
-  const [fillStyle, setFillStyle] = useState<FillStyle>("solid");
-  const [borderStyle, setBorderStyle] = useState<BorderStyle>("none");
-  const [shadowStyle, setShadowStyle] = useState<ShadowStyle>("none");
   const menuRef = useRef<HTMLDivElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
 
   const FILL_SCOPE_BY_STYLE: Record<FillStyle, PaletteScope> = {
-  solid: "fill-solid",
-  gradient: "fill-gradient",
-  stripes: "fill-stripes",
-  pattern: "fill-pattern",
-};
+    solid: "fill-solid",
+    gradient: "fill-gradient",
+    stripes: "fill-stripes",
+    pattern: "fill-pattern",
+  };
 
-const fillPalettes = palettes.filter(
-  (palette) => palette.scope === FILL_SCOPE_BY_STYLE[fillStyle]
-);
+  const fillPalettes = palettes.filter(
+    (palette) => palette.scope === FILL_SCOPE_BY_STYLE[fillStyle]
+  );
 
   const borderColors = palettes
     .filter(
@@ -138,7 +153,7 @@ const fillPalettes = palettes.filter(
                     key={style}
                     type="button"
                     aria-pressed={fillStyle === style}
-                    onClick={() => setFillStyle(style)}
+                    onClick={() => onFillStyleChange(style)}
                   >
                     {style}
                   </button>
@@ -151,38 +166,27 @@ const fillPalettes = palettes.filter(
           {(fillStyle === "solid" || fillStyle === "pattern") && (
             <div style={{ marginTop: "0.75rem" }}>
               <p>Primary colour</p>
-              <div className="flex-wrap" style={{ display: "flex", gap: "0.5rem" }}>
-                {/* {(["red", "blue", "green"] as const).map((colour) => (
-                  <button
-                    key={colour}
-                    type="button"
-                    aria-label="Set primary colour"
-                    style={{
-                      width: 24,
-                      height: 24,
-                      borderRadius: "50%",
-                      background: colour,
-                      border: "1px solid #000",
-                    }}
-                  />
-                ))} */}
+              <div
+                className="flex-wrap"
+                style={{ display: "flex", gap: "0.5rem" }}
+              >
                 {fillPalettes
-  .filter((palette) => palette.type === "single")
-  .flatMap((palette) => palette.colors)
-  .map((color) => (
-    <button
-      key={color.colorID}
-      type="button"
-      aria-label={`Set primary colour to ${color.colorID}`}
-      style={{
-        width: 24,
-        height: 24,
-        borderRadius: "50%",
-        background: color.hex,
-        border: "1px solid #000",
-      }}
-    />
-  ))}
+                  .filter((palette) => palette.type === "single")
+                  .flatMap((palette) => palette.colors)
+                  .map((color) => (
+                    <button
+                      key={color.colorID}
+                      type="button"
+                      aria-label={`Set primary colour to ${color.colorID}`}
+                      style={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: "50%",
+                        background: color.hex,
+                        border: "1px solid #000",
+                      }}
+                    />
+                  ))}
               </div>
             </div>
           )}
@@ -191,41 +195,31 @@ const fillPalettes = palettes.filter(
           {fillStyle === "pattern" && (
             <div style={{ marginTop: "0.75rem" }}>
               <p>Secondary colour</p>
-              <div className="flex-wrap" style={{ display: "flex", gap: "0.5rem" }}>
-                {/* {(["red", "blue", "green"] as const).map((colour) => (
-                  <button
-                    key={colour}
-                    type="button"
-                    aria-label={`Set secondary colour`}
-                    style={{
-                      width: 24,
-                      height: 24,
-                      borderRadius: "50%",
-                      border: "1px solid #000",
-                      background: colour,
-                    }}
-                  />
-                ))} */}
+              <div
+                className="flex-wrap"
+                style={{ display: "flex", gap: "0.5rem" }}
+              >
                 {palettes
-  .filter(
-    (palette) =>
-      palette.scope === "fill-pattern" && palette.type === "single"
-  )
-  .flatMap((palette) => palette.colors)
-  .map((color) => (
-    <button
-      key={color.colorID}
-      type="button"
-      aria-label={`Set secondary colour to ${color.colorID}`}
-      style={{
-        width: 24,
-        height: 24,
-        borderRadius: "50%",
-        background: color.hex,
-        border: "1px solid #000",
-      }}
-    />
-  ))}
+                  .filter(
+                    (palette) =>
+                      palette.scope === "fill-pattern" &&
+                      palette.type === "single"
+                  )
+                  .flatMap((palette) => palette.colors)
+                  .map((color) => (
+                    <button
+                      key={color.colorID}
+                      type="button"
+                      aria-label={`Set secondary colour to ${color.colorID}`}
+                      style={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: "50%",
+                        background: color.hex,
+                        border: "1px solid #000",
+                      }}
+                    />
+                  ))}
               </div>
             </div>
           )}
@@ -235,45 +229,27 @@ const fillPalettes = palettes.filter(
             <div style={{ marginTop: "0.75rem" }}>
               <p>Colour pairs</p>
               <div style={{ display: "flex", gap: "0.5rem" }}>
-                {/* {COLOR_PAIRS.map(({ color1, color2 }) => (
-                  <button
-                    key={`${color1}-${color2}`}
-                    type="button"
-                    aria-label={`Set colour pair ${color1} and ${color2}`}
-                    style={{
-                      width: 48, // twice as wide as round buttons (24)
-                      height: 24,
-                      borderRadius: 999, // pill shape
-                      border: "1px solid #000",
-                      background: `linear-gradient(
-                          to right,
-                          ${color1} 50%,
-                          ${color2} 50%
-                        )`,
-                    }}
-                  />
-                ))} */}
                 {fillPalettes
-  .filter((palette) => palette.type === "dual")
-  .flatMap((palette) => palette.colors)
-  .map((pair) => (
-    <button
-      key={`${pair.colorID}-${pair.colorID2}`}
-      type="button"
-      aria-label={`Set colour pair ${pair.colorID} and ${pair.colorID2}`}
-      style={{
-        width: 48,
-        height: 24,
-        borderRadius: 999,
-        border: "1px solid #000",
-        background: `linear-gradient(
+                  .filter((palette) => palette.type === "dual")
+                  .flatMap((palette) => palette.colors)
+                  .map((pair) => (
+                    <button
+                      key={`${pair.colorID}-${pair.colorID2}`}
+                      type="button"
+                      aria-label={`Set colour pair ${pair.colorID} and ${pair.colorID2}`}
+                      style={{
+                        width: 48,
+                        height: 24,
+                        borderRadius: 999,
+                        border: "1px solid #000",
+                        background: `linear-gradient(
           to right,
           ${pair.hex} 50%,
           ${pair.hex2} 50%
         )`,
-      }}
-    />
-  ))}
+                      }}
+                    />
+                  ))}
               </div>
             </div>
           )}
@@ -329,7 +305,8 @@ const fillPalettes = palettes.filter(
                   key={style}
                   type="button"
                   aria-pressed={borderStyle === style}
-                  onClick={() => setBorderStyle(style)}
+                  // onClick={() => setBorderStyle(style)}
+                  onClick={() => onBorderStyleChange(style)}
                 >
                   {style === "none"
                     ? "None"
@@ -362,20 +339,6 @@ const fillPalettes = palettes.filter(
                       }}
                     />
                   ))}
-                  {/* {(["red", "blue", "green"] as const).map((colour) => (
-                    <button
-                      key={colour}
-                      type="button"
-                      aria-label={`Set border primary colour`}
-                      style={{
-                        width: 24,
-                        height: 24,
-                        borderRadius: "50%",
-                        background: colour,
-                        border: "1px solid #000",
-                      }}
-                    />
-                  ))} */}
                 </div>
               </div>
             )}
@@ -389,20 +352,6 @@ const fillPalettes = palettes.filter(
                   className="flex-wrap"
                   style={{ display: "flex", gap: "0.5rem" }}
                 >
-                  {/* {(["red", "blue", "green"] as const).map((colour) => (
-                    <button
-                      key={colour}
-                      type="button"
-                      aria-label={`Set border secondary colour`}
-                      style={{
-                        width: 24,
-                        height: 24,
-                        borderRadius: "50%",
-                        background: colour,
-                        border: "1px solid #000",
-                      }}
-                    />
-                  ))} */}
                   {borderColors.map((color) => (
                     <button
                       key={color.colorID}
@@ -464,7 +413,8 @@ const fillPalettes = palettes.filter(
                     key={style}
                     type="button"
                     aria-pressed={shadowStyle === style}
-                    onClick={() => setShadowStyle(style)}
+                    // onClick={() => setShadowStyle(style)}
+                    onClick={() => onShadowStyleChange(style)}
                   >
                     {style === "none"
                       ? "None"
@@ -485,20 +435,6 @@ const fillPalettes = palettes.filter(
                   className="color-buttons flex-wrap"
                   style={{ display: "flex", gap: "0.5rem" }}
                 >
-                  {/* {(["red", "blue", "green"] as const).map((colour) => (
-                    <button
-                      key={colour}
-                      type="button"
-                      aria-label={`Set shadow colour`}
-                      style={{
-                        width: 24,
-                        height: 24,
-                        borderRadius: "50%",
-                        background: colour,
-                        border: "1px solid #000",
-                      }}
-                    />
-                  ))} */}
                   {shadowColors.map((color) => (
                     <button
                       key={color.colorID}
