@@ -3,20 +3,48 @@
 import { useEffect, useRef, useState } from "react";
 import "@/styles/globals.css";
 import "./customiseMenu.css";
+import { palettes, SingleColor, PaletteScope } from "@/lib/palettes";
+
+type FillStyle = "solid" | "gradient" | "stripes" | "pattern";
+type BorderStyle = "none" | "solid" | "pattern";
+type ShadowStyle = "none" | "soft" | "hard" | "grounded";
 
 type CustomiseMenuProps = {
   ignoreRef?: React.RefObject<HTMLElement | null>;
 };
 
-export default function CustomiseMenu({
-  ignoreRef,
-}: CustomiseMenuProps) {
+export default function CustomiseMenu({ ignoreRef }: CustomiseMenuProps) {
   // useState, useRef
 
   const [isOpen, setIsOpen] = useState(false);
-
+  const [fillStyle, setFillStyle] = useState<FillStyle>("solid");
+  const [borderStyle, setBorderStyle] = useState<BorderStyle>("none");
+  const [shadowStyle, setShadowStyle] = useState<ShadowStyle>("none");
   const menuRef = useRef<HTMLDivElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
+
+  const FILL_SCOPE_BY_STYLE: Record<FillStyle, PaletteScope> = {
+  solid: "fill-solid",
+  gradient: "fill-gradient",
+  stripes: "fill-stripes",
+  pattern: "fill-pattern",
+};
+
+const fillPalettes = palettes.filter(
+  (palette) => palette.scope === FILL_SCOPE_BY_STYLE[fillStyle]
+);
+
+  const borderColors = palettes
+    .filter(
+      (palette) => palette.scope === "border" && palette.type === "single"
+    )
+    .flatMap((palette) => palette.colors);
+
+  const shadowColors: SingleColor[] = palettes
+    .filter(
+      (palette) => palette.scope === "shadow" && palette.type === "single"
+    )
+    .flatMap((palette) => palette.colors);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -42,7 +70,6 @@ export default function CustomiseMenu({
     };
   }, [isOpen, ignoreRef]);
 
-
   // To close customise menu on touchscreens:
 
   const touchStartY = useRef<number | null>(null);
@@ -61,8 +88,6 @@ export default function CustomiseMenu({
       touchStartY.current = null;
     }
   };
-
-
 
   // The return statement:
 
@@ -106,56 +131,72 @@ export default function CustomiseMenu({
 
           {/* Fill style */}
           <div style={{ display: "flex", gap: "0.5rem" }}>
-            {(["solid", "gradient", "stripes"] as const).map((style) => {
-              return (
-                <button
-                  key={style}
-                  type="button"
-                  // onClick={() => {
-                  //   // onChange();
-                  // }}
-                >
-                </button>
-              );
-            })}
+            {(["solid", "gradient", "stripes", "pattern"] as const).map(
+              (style) => {
+                return (
+                  <button
+                    key={style}
+                    type="button"
+                    aria-pressed={fillStyle === style}
+                    onClick={() => setFillStyle(style)}
+                  >
+                    {style}
+                  </button>
+                );
+              }
+            )}
           </div>
 
-          {/* Primary colour */}
-          <div style={{ marginTop: "0.75rem" }}>
-            <p>Primary colour</p>
-            <div style={{ display: "flex", gap: "0.5rem" }}>
-              {(["red", "blue", "green"] as const).map((colour) => (
-                <button
-                  key={colour}
-                  type="button"
-                  aria-label={`Set primary colour`}
-                  // onClick={() =>
-                  //   // onChange()
-                  // }
-                  style={{
-                    width: 24,
-                    height: 24,
-                    borderRadius: "50%",
-                        background: colour,
-                    border: "1px solid #000",
-                  }}
-                />
-              ))}
+          {/* Primary colour (conditional - if fill = solid | pattern) */}
+          {(fillStyle === "solid" || fillStyle === "pattern") && (
+            <div style={{ marginTop: "0.75rem" }}>
+              <p>Primary colour</p>
+              <div className="flex-wrap" style={{ display: "flex", gap: "0.5rem" }}>
+                {/* {(["red", "blue", "green"] as const).map((colour) => (
+                  <button
+                    key={colour}
+                    type="button"
+                    aria-label="Set primary colour"
+                    style={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: "50%",
+                      background: colour,
+                      border: "1px solid #000",
+                    }}
+                  />
+                ))} */}
+                {fillPalettes
+  .filter((palette) => palette.type === "single")
+  .flatMap((palette) => palette.colors)
+  .map((color) => (
+    <button
+      key={color.colorID}
+      type="button"
+      aria-label={`Set primary colour to ${color.colorID}`}
+      style={{
+        width: 24,
+        height: 24,
+        borderRadius: "50%",
+        background: color.hex,
+        border: "1px solid #000",
+      }}
+    />
+  ))}
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Secondary colour (conditional) */}
+          {/* Secondary colour (conditional - if fill = pattern) */}
+          {fillStyle === "pattern" && (
             <div style={{ marginTop: "0.75rem" }}>
               <p>Secondary colour</p>
-              <div style={{ display: "flex", gap: "0.5rem" }}>
-                {(["red", "blue", "green"] as const).map((colour) => (
+              <div className="flex-wrap" style={{ display: "flex", gap: "0.5rem" }}>
+                {/* {(["red", "blue", "green"] as const).map((colour) => (
                   <button
                     key={colour}
                     type="button"
                     aria-label={`Set secondary colour`}
-                    // onClick={() =>
-                    //   // onChange()
-                    // }
                     style={{
                       width: 24,
                       height: 24,
@@ -164,46 +205,108 @@ export default function CustomiseMenu({
                       background: colour,
                     }}
                   />
-                ))}
+                ))} */}
+                {palettes
+  .filter(
+    (palette) =>
+      palette.scope === "fill-pattern" && palette.type === "single"
+  )
+  .flatMap((palette) => palette.colors)
+  .map((color) => (
+    <button
+      key={color.colorID}
+      type="button"
+      aria-label={`Set secondary colour to ${color.colorID}`}
+      style={{
+        width: 24,
+        height: 24,
+        borderRadius: "50%",
+        background: color.hex,
+        border: "1px solid #000",
+      }}
+    />
+  ))}
               </div>
             </div>
+          )}
 
+          {/* Color pairs (conditional - if fill = gradient | stripes) */}
+          {(fillStyle === "gradient" || fillStyle === "stripes") && (
+            <div style={{ marginTop: "0.75rem" }}>
+              <p>Colour pairs</p>
+              <div style={{ display: "flex", gap: "0.5rem" }}>
+                {/* {COLOR_PAIRS.map(({ color1, color2 }) => (
+                  <button
+                    key={`${color1}-${color2}`}
+                    type="button"
+                    aria-label={`Set colour pair ${color1} and ${color2}`}
+                    style={{
+                      width: 48, // twice as wide as round buttons (24)
+                      height: 24,
+                      borderRadius: 999, // pill shape
+                      border: "1px solid #000",
+                      background: `linear-gradient(
+                          to right,
+                          ${color1} 50%,
+                          ${color2} 50%
+                        )`,
+                    }}
+                  />
+                ))} */}
+                {fillPalettes
+  .filter((palette) => palette.type === "dual")
+  .flatMap((palette) => palette.colors)
+  .map((pair) => (
+    <button
+      key={`${pair.colorID}-${pair.colorID2}`}
+      type="button"
+      aria-label={`Set colour pair ${pair.colorID} and ${pair.colorID2}`}
+      style={{
+        width: 48,
+        height: 24,
+        borderRadius: 999,
+        border: "1px solid #000",
+        background: `linear-gradient(
+          to right,
+          ${pair.hex} 50%,
+          ${pair.hex2} 50%
+        )`,
+      }}
+    />
+  ))}
+              </div>
+            </div>
+          )}
 
+          {/* Stripe direction (conditional - stripes only) */}
+          {fillStyle === "stripes" && (
             <div style={{ marginTop: "0.75rem" }}>
               <p>Direction</p>
               <div style={{ display: "flex", gap: "0.5rem" }}>
                 {(["horizontal", "vertical", "diagonal"] as const).map(
                   (direction) => (
-                    <button
-                      key={direction}
-                      type="button"
-                      // onClick={() =>
-                      //   // onChange()
-                      // }
-                    >
+                    <button key={direction} type="button">
                       {direction}
                     </button>
                   )
                 )}
               </div>
             </div>
+          )}
 
+          {/* Stripe direction (conditional - stripes only) */}
+          {fillStyle === "stripes" && (
             <div style={{ marginTop: "0.75rem" }}>
               <p>Thickness</p>
               <div style={{ display: "flex", gap: "0.5rem" }}>
                 {(["thin", "medium", "thick"] as const).map((thickness) => (
-                  <button
-                    key={thickness}
-                    type="button"
-                    // onClick={() =>
-                    //   // onChange()
-                    // }
-                  >
+                  <button key={thickness} type="button">
                     {thickness}
                   </button>
                 ))}
               </div>
             </div>
+          )}
         </section>
 
         {/* Border section */}
@@ -225,9 +328,8 @@ export default function CustomiseMenu({
                 <button
                   key={style}
                   type="button"
-                  // onClick={() =>
-                  //   // onChange()
-                  // }
+                  aria-pressed={borderStyle === style}
+                  onClick={() => setBorderStyle(style)}
                 >
                   {style === "none"
                     ? "None"
@@ -239,18 +341,32 @@ export default function CustomiseMenu({
             </div>
 
             {/* If solid or pattern border: choose primary colour */}
-
+            {(borderStyle === "solid" || borderStyle === "pattern") && (
               <div style={{ marginTop: "0.75rem" }}>
                 <p>Colour</p>
-                <div style={{ display: "flex", gap: "0.5rem" }}>
-                  {(["red", "blue", "green"] as const).map(( colour ) => (
+                <div
+                  className="flex-wrap"
+                  style={{ display: "flex", gap: "0.5rem" }}
+                >
+                  {borderColors.map((color) => (
+                    <button
+                      key={color.colorID}
+                      type="button"
+                      aria-label={`Set border colour to ${color.colorID}`}
+                      style={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: "50%",
+                        background: color.hex,
+                        border: "1px solid #000",
+                      }}
+                    />
+                  ))}
+                  {/* {(["red", "blue", "green"] as const).map((colour) => (
                     <button
                       key={colour}
                       type="button"
                       aria-label={`Set border primary colour`}
-                      // onClick={() =>
-                      //   // onChange()
-                      // }
                       style={{
                         width: 24,
                         height: 24,
@@ -259,23 +375,25 @@ export default function CustomiseMenu({
                         border: "1px solid #000",
                       }}
                     />
-                  ))}
+                  ))} */}
                 </div>
               </div>
+            )}
 
             {/* If pattern border: choose secondary colour */}
 
+            {borderStyle === "pattern" && (
               <div style={{ marginTop: "0.75rem" }}>
                 <p>Secondary colour</p>
-                <div style={{ display: "flex", gap: "0.5rem" }}>
-                  {(["red", "blue", "green"] as const).map((colour) => (
+                <div
+                  className="flex-wrap"
+                  style={{ display: "flex", gap: "0.5rem" }}
+                >
+                  {/* {(["red", "blue", "green"] as const).map((colour) => (
                     <button
                       key={colour}
                       type="button"
                       aria-label={`Set border secondary colour`}
-                      // onClick={() =>
-                      //   // onChange()
-                      // }
                       style={{
                         width: 24,
                         height: 24,
@@ -284,23 +402,32 @@ export default function CustomiseMenu({
                         border: "1px solid #000",
                       }}
                     />
+                  ))} */}
+                  {borderColors.map((color) => (
+                    <button
+                      key={color.colorID}
+                      type="button"
+                      aria-label={`Set border colour to ${color.colorID}`}
+                      style={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: "50%",
+                        background: color.hex,
+                        border: "1px solid #000",
+                      }}
+                    />
                   ))}
                 </div>
               </div>
+            )}
 
+            {borderStyle !== "none" && (
               <div style={{ marginTop: "0.75rem" }}>
                 <p>Border thickness</p>
                 <div style={{ display: "flex", gap: "0.5rem" }}>
                   {(["thin", "medium", "thick"] as const).map((style) => {
-
                     return (
-                      <button
-                        key={style}
-                        type="button"
-                        // onClick={() =>
-                        //   // onChange()
-                        // }
-                      >
+                      <button key={style} type="button">
                         {style === "thin"
                           ? "Thin"
                           : style === "medium"
@@ -311,6 +438,7 @@ export default function CustomiseMenu({
                   })}
                 </div>
               </div>
+            )}
           </div>
         </section>
 
@@ -326,16 +454,17 @@ export default function CustomiseMenu({
 
           <div style={{ marginTop: "0.5rem" }}>
             <p>Shadow style</p>
-            <div style={{ display: "flex", gap: "0.5rem" }}>
+            <div
+              className="flex-wrap"
+              style={{ display: "flex", gap: "0.5rem" }}
+            >
               {(["none", "soft", "hard", "grounded"] as const).map((style) => {
-
                 return (
                   <button
                     key={style}
                     type="button"
-                    // onClick={() => {
-                    //   // onChange();
-                    // }}
+                    aria-pressed={shadowStyle === style}
+                    onClick={() => setShadowStyle(style)}
                   >
                     {style === "none"
                       ? "None"
@@ -348,17 +477,19 @@ export default function CustomiseMenu({
                 );
               })}
             </div>
+
+            {shadowStyle !== "none" && (
               <div style={{ marginTop: "0.75rem" }}>
                 <p>Shadow colour</p>
-                <div style={{ display: "flex", gap: "0.5rem" }}>
-                  {(["red", "blue", "green"] as const).map((colour) => (
+                <div
+                  className="color-buttons flex-wrap"
+                  style={{ display: "flex", gap: "0.5rem" }}
+                >
+                  {/* {(["red", "blue", "green"] as const).map((colour) => (
                     <button
                       key={colour}
                       type="button"
                       aria-label={`Set shadow colour`}
-                      // onClick={() =>
-                      //   // onChange()
-                      // }
                       style={{
                         width: 24,
                         height: 24,
@@ -367,9 +498,24 @@ export default function CustomiseMenu({
                         border: "1px solid #000",
                       }}
                     />
+                  ))} */}
+                  {shadowColors.map((color) => (
+                    <button
+                      key={color.colorID}
+                      type="button"
+                      aria-label={`Set shadow colour to ${color.colorID}`}
+                      style={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: "50%",
+                        background: color.hex,
+                        border: "1px solid #000",
+                      }}
+                    />
                   ))}
                 </div>
               </div>
+            )}
           </div>
         </section>
       </div>

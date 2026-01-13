@@ -21,7 +21,9 @@
     }
 }
 
-
+.flex-wrap {
+    flex-wrap: wrap;
+}
 
 #customise-heading {
     width: 100%;
