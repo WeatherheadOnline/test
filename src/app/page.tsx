@@ -22,7 +22,7 @@ export default function Home() {
 
       {!user && <BitPreview />}
 
-      {user && <Feed />}
+      {/* {user && <Feed />} */}
     </main>
   );
 }

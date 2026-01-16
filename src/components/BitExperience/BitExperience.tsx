@@ -72,7 +72,11 @@ export default function BitExperience({
   type AppearanceAction =
     | { type: "SET_FILL_STYLE"; fillStyle: FillStyle }
     | { type: "SET_BORDER_STYLE"; borderStyle: BorderStyle }
-    | { type: "SET_SHADOW_STYLE"; shadowStyle: ShadowStyle };
+    | { type: "SET_SHADOW_STYLE"; shadowStyle: ShadowStyle }
+    | { type: "SET_FILL_PRIMARY_COLOR"; color: string }
+    | { type: "SET_FILL_COLOR_PAIR"; pair: string }
+    | { type: "SET_STRIPE_THICKNESS"; thickness: StripeThickness }
+    | { type: "SET_STRIPE_DIRECTION"; direction: StripeDirection };
 
   function appearanceReducer(
     state: Appearance,
@@ -103,6 +107,47 @@ export default function BitExperience({
           shadow: {
             ...state.shadow,
             shadowStyle: action.shadowStyle,
+          },
+        };
+
+      case "SET_FILL_PRIMARY_COLOR":
+        return {
+          ...state,
+          fill: {
+            ...state.fill,
+            fillPrimaryColor: action.color,
+            // clear incompatible selections
+            fillColorPair: null,
+          },
+        };
+
+      case "SET_FILL_COLOR_PAIR":
+        return {
+          ...state,
+          fill: {
+            ...state.fill,
+            fillColorPair: action.pair,
+            // gradients/stripes override single colours
+            fillPrimaryColor: null,
+            fillSecondaryColor: null,
+          },
+        };
+
+      case "SET_STRIPE_THICKNESS":
+        return {
+          ...state,
+          fill: {
+            ...state.fill,
+            stripeThickness: action.thickness,
+          },
+        };
+
+      case "SET_STRIPE_DIRECTION":
+        return {
+          ...state,
+          fill: {
+            ...state.fill,
+            stripeDirection: action.direction,
           },
         };
 
@@ -173,8 +218,7 @@ export default function BitExperience({
         {/* Flip toast */}
         {flipToastKey !== null && <FlipToast key={flipToastKey} />}
         {/* Giant bit */}
-        <BitDisplay value={value} />
-
+        <BitDisplay value={value} fill={appearance.fill} />
         {/* Flip switch */}
         <button
           ref={flipButtonRef}
@@ -269,6 +313,9 @@ export default function BitExperience({
         onFillStyleChange={(style) =>
           dispatchAppearance({ type: "SET_FILL_STYLE", fillStyle: style })
         }
+        onFillPrimaryColorChange={(color) =>
+          dispatchAppearance({ type: "SET_FILL_PRIMARY_COLOR", color })
+        }
         borderStyle={appearance.border.borderStyle}
         onBorderStyleChange={(style) =>
           dispatchAppearance({ type: "SET_BORDER_STYLE", borderStyle: style })
@@ -276,6 +323,15 @@ export default function BitExperience({
         shadowStyle={appearance.shadow.shadowStyle}
         onShadowStyleChange={(style) =>
           dispatchAppearance({ type: "SET_SHADOW_STYLE", shadowStyle: style })
+        }
+        onFillColorPairChange={(pair) =>
+          dispatchAppearance({ type: "SET_FILL_COLOR_PAIR", pair })
+        }
+        onStripeThicknessChange={(thickness) =>
+          dispatchAppearance({ type: "SET_STRIPE_THICKNESS", thickness })
+        }
+        onStripeDirectionChange={(direction) =>
+          dispatchAppearance({ type: "SET_STRIPE_DIRECTION", direction })
         }
       />
     </div>

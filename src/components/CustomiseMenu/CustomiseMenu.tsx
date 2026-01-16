@@ -20,6 +20,15 @@ type CustomiseMenuProps = {
 
   shadowStyle: ShadowStyle;
   onShadowStyleChange: (style: ShadowStyle) => void;
+
+  onFillPrimaryColorChange: (color: string) => void;
+  onFillColorPairChange: (pair: string) => void;
+
+  onStripeThicknessChange: (thickness: "thin" | "medium" | "thick") => void;
+
+  onStripeDirectionChange: (
+    direction: "horizontal" | "vertical" | "diagonalL" | "diagonalR"
+  ) => void;
 };
 
 // export default function CustomiseMenu({ ignoreRef }: CustomiseMenuProps) {
@@ -32,8 +41,11 @@ export default function CustomiseMenu({
   onBorderStyleChange,
   shadowStyle,
   onShadowStyleChange,
+  onFillPrimaryColorChange,
+  onFillColorPairChange,
+  onStripeThicknessChange,
+  onStripeDirectionChange,
 }: CustomiseMenuProps) {
-
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
@@ -174,10 +186,23 @@ export default function CustomiseMenu({
                   .filter((palette) => palette.type === "single")
                   .flatMap((palette) => palette.colors)
                   .map((color) => (
+                    // <button
+                    //   key={color.colorID}
+                    //   type="button"
+                    //   aria-label={`Set primary colour to ${color.colorID}`}
+                    //   style={{
+                    //     width: 24,
+                    //     height: 24,
+                    //     borderRadius: "50%",
+                    //     background: color.hex,
+                    //     border: "1px solid #000",
+                    //   }}
+                    // />
                     <button
                       key={color.colorID}
                       type="button"
                       aria-label={`Set primary colour to ${color.colorID}`}
+                      onClick={() => onFillPrimaryColorChange(color.hex)}
                       style={{
                         width: 24,
                         height: 24,
@@ -233,20 +258,39 @@ export default function CustomiseMenu({
                   .filter((palette) => palette.type === "dual")
                   .flatMap((palette) => palette.colors)
                   .map((pair) => (
+                    //             <button
+                    //               key={`${pair.colorID}-${pair.colorID2}`}
+                    //               type="button"
+                    //               aria-label={`Set colour pair ${pair.colorID} and ${pair.colorID2}`}
+                    //               style={{
+                    //                 width: 48,
+                    //                 height: 24,
+                    //                 borderRadius: 999,
+                    //                 border: "1px solid #000",
+                    //                 background: `linear-gradient(
+                    //   to right,
+                    //   ${pair.hex} 50%,
+                    //   ${pair.hex2} 50%
+                    // )`,
+                    //               }}
+                    //             />
                     <button
                       key={`${pair.colorID}-${pair.colorID2}`}
                       type="button"
                       aria-label={`Set colour pair ${pair.colorID} and ${pair.colorID2}`}
+                      onClick={() =>
+                        onFillColorPairChange(`${pair.hex}|${pair.hex2}`)
+                      }
                       style={{
                         width: 48,
                         height: 24,
                         borderRadius: 999,
                         border: "1px solid #000",
                         background: `linear-gradient(
-          to right,
-          ${pair.hex} 50%,
-          ${pair.hex2} 50%
-        )`,
+      to right,
+      ${pair.hex} 50%,
+      ${pair.hex2} 50%
+    )`,
                       }}
                     />
                   ))}
@@ -259,13 +303,28 @@ export default function CustomiseMenu({
             <div style={{ marginTop: "0.75rem" }}>
               <p>Direction</p>
               <div style={{ display: "flex", gap: "0.5rem" }}>
-                {(["horizontal", "vertical", "diagonal"] as const).map(
+                {/* {(["horizontal", "vertical", "diagonal"] as const).map(
                   (direction) => (
                     <button key={direction} type="button">
                       {direction}
                     </button>
                   )
-                )}
+                )} */}
+                {(
+                  ["horizontal", "vertical", "diagonalL", "diagonalR"] as const
+                ).map((direction) => (
+                  <button
+                    key={direction}
+                    type="button"
+                    onClick={() => onStripeDirectionChange(direction)}
+                  >
+                    {direction === "diagonalL"
+                      ? "Diagonal ↘"
+                      : direction === "diagonalR"
+                      ? "Diagonal ↗"
+                      : direction}
+                  </button>
+                ))}
               </div>
             </div>
           )}
@@ -275,8 +334,17 @@ export default function CustomiseMenu({
             <div style={{ marginTop: "0.75rem" }}>
               <p>Thickness</p>
               <div style={{ display: "flex", gap: "0.5rem" }}>
-                {(["thin", "medium", "thick"] as const).map((thickness) => (
+                {/* {(["thin", "medium", "thick"] as const).map((thickness) => (
                   <button key={thickness} type="button">
+                    {thickness}
+                  </button>
+                ))} */}
+                {(["thin", "medium", "thick"] as const).map((thickness) => (
+                  <button
+                    key={thickness}
+                    type="button"
+                    onClick={() => onStripeThicknessChange(thickness)}
+                  >
                     {thickness}
                   </button>
                 ))}

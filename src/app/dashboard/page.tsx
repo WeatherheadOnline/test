@@ -120,7 +120,7 @@ export default function DashboardPage() {
           )}
         </div>
       </section>
-      <Feed />
+      {/* <Feed /> */}
     </main>
   );
 }
