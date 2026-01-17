@@ -41,7 +41,7 @@ export default function BitExperience({
   type StripeDirection = "horizontal" | "vertical" | "diagonalL" | "diagonalR";
   type PatternSize = "small" | "medium" | "large";
 
-  type BorderStyle = "none" | "solid" | "pattern";
+  type BorderStyle = "none" | "solid";
   type BorderThickness = "thin" | "medium" | "thick";
 
   type ShadowStyle = "none" | "soft" | "hard" | "standing";
@@ -75,11 +75,13 @@ export default function BitExperience({
     | { type: "SET_BORDER_STYLE"; borderStyle: BorderStyle }
     | { type: "SET_SHADOW_STYLE"; shadowStyle: ShadowStyle }
     | { type: "SET_FILL_PRIMARY_COLOR"; color: string }
+    | { type: "SET_FILL_SECONDARY_COLOR"; color: string }
     | {
         type: "SET_FILL_COLOR_PAIR";
         target: "gradient" | "stripes";
         pair: string;
       }
+    | { type: "SET_FILL_PATTERN"; patternId: string; image: string }
     | { type: "SET_STRIPE_THICKNESS"; thickness: StripeThickness }
     | { type: "SET_STRIPE_DIRECTION"; direction: StripeDirection }
     | { type: "SET_BORDER_THICKNESS"; thickness: BorderThickness }
@@ -127,6 +129,15 @@ export default function BitExperience({
           },
         };
 
+      case "SET_FILL_SECONDARY_COLOR":
+        return {
+          ...state,
+          fill: {
+            ...state.fill,
+            fillSecondaryColor: action.color,
+          },
+        };
+
       case "SET_FILL_COLOR_PAIR":
         return {
           ...state,
@@ -158,6 +169,16 @@ export default function BitExperience({
           fill: {
             ...state.fill,
             stripeDirection: action.direction,
+          },
+        };
+
+      case "SET_FILL_PATTERN":
+        return {
+          ...state,
+          fill: {
+            ...state.fill,
+            patternId: action.patternId,
+            image: action.image,
           },
         };
 
@@ -388,6 +409,19 @@ export default function BitExperience({
         }
         onShadowColourChange={(colour) =>
           dispatchAppearance({ type: "SET_SHADOW_COLOUR", colour })
+        }
+        onFillPatternChange={(patternId, image) =>
+          dispatchAppearance({
+            type: "SET_FILL_PATTERN",
+            patternId,
+            image,
+          })
+        }
+        onFillSecondaryColorChange={(color) =>
+          dispatchAppearance({
+            type: "SET_FILL_SECONDARY_COLOR",
+            color,
+          })
         }
       />
     </div>

@@ -6,7 +6,7 @@ import "./customiseMenu.css";
 import { palettes, SingleColor, PaletteScope } from "@/lib/palettes";
 
 type FillStyle = "solid" | "gradient" | "stripes" | "pattern";
-type BorderStyle = "none" | "solid" | "pattern";
+type BorderStyle = "none" | "solid";
 type ShadowStyle = "none" | "soft" | "hard" | "standing";
 
 type CustomiseMenuProps = {
@@ -22,6 +22,7 @@ type CustomiseMenuProps = {
   onShadowStyleChange: (style: ShadowStyle) => void;
 
   onFillPrimaryColorChange: (color: string) => void;
+  onFillSecondaryColorChange: (color: string) => void;
   onFillColorPairChange: (target: "gradient" | "stripes", pair: string) => void;
 
   onStripeThicknessChange: (thickness: "thin" | "medium" | "thick") => void;
@@ -32,7 +33,16 @@ type CustomiseMenuProps = {
   onBorderThicknessChange: (thickness: "thin" | "medium" | "thick") => void;
   onBorderColourChange: (colour: string) => void;
   onShadowColourChange: (colour: string) => void;
+  onFillPatternChange: (patternId: string, image: string) => void;
 };
+
+const FILL_PATTERNS = [
+  { id: "zig-dots", src: "/patterns/zig-dots.svg" },
+  { id: "checker", src: "/patterns/checker.svg" },
+  { id: "crosses", src: "/patterns/crosses.svg" },
+  { id: "diagonal-stripes", src: "/patterns/diagonal-stripes.svg" },
+  { id: "dots", src: "/patterns/dots.svg" },
+];
 
 export default function CustomiseMenu({
   ignoreRef,
@@ -43,12 +53,14 @@ export default function CustomiseMenu({
   shadowStyle,
   onShadowStyleChange,
   onFillPrimaryColorChange,
+  onFillSecondaryColorChange,
   onFillColorPairChange,
   onStripeThicknessChange,
   onStripeDirectionChange,
   onBorderThicknessChange,
   onShadowColourChange,
   onBorderColourChange,
+  onFillPatternChange,
 }: CustomiseMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -228,6 +240,7 @@ export default function CustomiseMenu({
                       key={color.colorID}
                       type="button"
                       aria-label={`Set secondary colour to ${color.colorID}`}
+                      onClick={() => onFillSecondaryColorChange(color.hex)}
                       style={{
                         width: 24,
                         height: 24,
@@ -237,6 +250,155 @@ export default function CustomiseMenu({
                       }}
                     />
                   ))}
+              </div>
+            </div>
+          )}
+
+          {fillStyle === "pattern" && (
+            <div style={{ marginTop: "0.75rem" }}>
+              <p>Pattern</p>
+              <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                {FILL_PATTERNS.map((pattern) => (
+                  <button
+                    key={pattern.id}
+                    type="button"
+                    aria-label={`Select ${pattern.id} pattern`}
+                    onClick={() => onFillPatternChange(pattern.id, pattern.src)}
+                    style={{
+                      width: 40,
+                      height: 40,
+                      padding: 0,
+                      border: "1px solid #000",
+                      backgroundColor: "#fff",
+                    }}
+                  >
+                    {/* <img
+            src={pattern.src}
+            alt=""
+            style={{
+              width: "100%",
+              height: "100%",
+              display: "block",
+              // Force black & white preview
+              "--pattern-bg": "#FFFFFF",
+              "--pattern-fg": "#000000",
+            } as React.CSSProperties}
+          /> */}
+                    {pattern.id === "zig-dots" && (
+                      <svg
+                        viewBox="0 0 24 24"
+                        width="100%"
+                        height="100%"
+                        aria-hidden
+                      >
+                        <rect width="24" height="24" fill="#FFFFFF" />
+                        <circle cx="6" cy="6" r="3" fill="#000000" />
+                        <circle cx="18" cy="6" r="3" fill="#000000" />
+                        <circle cx="12" cy="18" r="3" fill="#000000" />
+                      </svg>
+                    )}
+
+                    {pattern.id === "checker" && (
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        width="20"
+                        height="20"
+                      >
+                        <rect width="20" height="20" fill="var(--pattern-bg)" />
+
+                        <rect
+                          x="0"
+                          y="0"
+                          width="10"
+                          height="10"
+                          fill="var(--pattern-fg)"
+                        />
+                        <rect
+                          x="10"
+                          y="10"
+                          width="10"
+                          height="10"
+                          fill="var(--pattern-fg)"
+                        />
+                      </svg>
+                    )}
+                    {pattern.id === "crosses" && (
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        width="24"
+                        height="24"
+                      >
+                        <rect width="24" height="24" fill="var(--pattern-bg)" />
+
+                        <rect
+                          x="5"
+                          y="11"
+                          width="2"
+                          height="2"
+                          fill="var(--pattern-fg)"
+                        />
+                        <rect
+                          x="11"
+                          y="5"
+                          width="2"
+                          height="2"
+                          fill="var(--pattern-fg)"
+                        />
+                        <rect
+                          x="17"
+                          y="11"
+                          width="2"
+                          height="2"
+                          fill="var(--pattern-fg)"
+                        />
+                        <rect
+                          x="11"
+                          y="17"
+                          width="2"
+                          height="2"
+                          fill="var(--pattern-fg)"
+                        />
+                      </svg>
+                    )}
+                    {pattern.id === "diagonal-stripes" && (
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        width="24"
+                        height="24"
+                      >
+                        <rect width="24" height="24" fill="var(--pattern-bg)" />
+
+                        <polygon
+                          points="0,16 8,24 24,8 16,0"
+                          fill="var(--pattern-fg)"
+                        />
+                      </svg>
+                    )}
+                    {pattern.id === "dots" && (
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        width="24"
+                        height="24"
+                      >
+                        <rect width="24" height="24" fill="var(--pattern-bg)" />
+
+                        <circle cx="6" cy="6" r="2" fill="var(--pattern-fg)" />
+                        <circle cx="18" cy="6" r="2" fill="var(--pattern-fg)" />
+                        <circle cx="6" cy="18" r="2" fill="var(--pattern-fg)" />
+                        <circle
+                          cx="18"
+                          cy="18"
+                          r="2"
+                          fill="var(--pattern-fg)"
+                        />
+                      </svg>
+                    )}
+                  </button>
+                ))}
               </div>
             </div>
           )}
@@ -293,8 +455,8 @@ export default function CustomiseMenu({
                     {direction === "diagonalL"
                       ? "Diagonal ↘"
                       : direction === "diagonalR"
-                      ? "Diagonal ↗"
-                      : direction}
+                        ? "Diagonal ↗"
+                        : direction}
                   </button>
                 ))}
               </div>
@@ -330,64 +492,31 @@ export default function CustomiseMenu({
             Border
           </h2>
 
-          {/* Choose none, solid, or pattern  */}
+          {/* Choose none or solid  */}
 
           <div style={{ marginTop: "0.5rem" }}>
             <p>Border style</p>
             <div style={{ display: "flex", gap: "0.5rem" }}>
-              {(["none", "solid", "pattern"] as const).map((style) => (
+              {(["none", "solid"] as const).map((style) => (
                 <button
                   key={style}
                   type="button"
                   aria-pressed={borderStyle === style}
                   onClick={() => onBorderStyleChange(style)}
                 >
-                  {style === "none"
-                    ? "None"
-                    : style === "solid"
-                    ? "Solid"
-                    : "Pattern"}
+                  {style === "none" ? "None" : "Solid"}
                 </button>
               ))}
             </div>
 
-            {/* If solid or pattern border: choose primary colour */}
-            {(borderStyle === "solid" || borderStyle === "pattern") && (
+            {/* If solid border: choose primary colour */}
+            {borderStyle === "solid" && (
               <div style={{ marginTop: "0.75rem" }}>
                 <p>Colour</p>
                 <div
                   className="flex-wrap"
                   style={{ display: "flex", gap: "0.5rem" }}
                 >
-                  {/* {borderColors.map((color) => (
-                    <button
-                      key={color.colorID}
-                      type="button"
-                      aria-label={`Set border colour to ${color.colorID}`}
-                      style={{
-                        width: 24,
-                        height: 24,
-                        borderRadius: "50%",
-                        background: color.hex,
-                        border: "1px solid #000",
-                      }}
-                    />
-                  ))} */}
-                  {/* {borderColors.map((color) => (
-                    <button
-                      key={color.colorID}
-                      type="button"
-                      aria-label={`Set border colour to ${color.colorID}`}
-                      onClick={() => onBorderColourChange(color.hex)}
-                      style={{
-                        width: 24,
-                        height: 24,
-                        borderRadius: "50%",
-                        background: color.hex,
-                        border: "1px solid #000",
-                      }}
-                    />
-                  ))} */}
                   {borderColors.map((color) => (
                     <button
                       key={color.colorID}
@@ -406,95 +535,10 @@ export default function CustomiseMenu({
                 </div>
               </div>
             )}
-
-            {/* If pattern border: choose secondary colour */}
-
-            {borderStyle === "pattern" && (
-              <div style={{ marginTop: "0.75rem" }}>
-                <p>Secondary colour</p>
-                <div
-                  className="flex-wrap"
-                  style={{ display: "flex", gap: "0.5rem" }}
-                >
-                  {/* {borderColors.map((color) => (
-                    <button
-                      key={color.colorID}
-                      type="button"
-                      aria-label={`Set border colour to ${color.colorID}`}
-                      style={{
-                        width: 24,
-                        height: 24,
-                        borderRadius: "50%",
-                        background: color.hex,
-                        border: "1px solid #000",
-                      }}
-                    />
-                  ))} */}
-                  {/* {borderColors.map((color) => (
-                    <button
-                      key={color.colorID}
-                      type="button"
-                      aria-label={`Set border colour to ${color.colorID}`}
-                      onClick={() => onBorderColourChange(color.hex)}
-                      style={{
-                        width: 24,
-                        height: 24,
-                        borderRadius: "50%",
-                        background: color.hex,
-                        border: "1px solid #000",
-                      }}
-                    />
-                  ))} */}
-                  {borderColors.map((color) => (
-                    <button
-                      key={color.colorID}
-                      type="button"
-                      aria-label={`Set secondary border colour to ${color.colorID}`}
-                      onClick={() => onBorderColourChange(color.hex)} // <-- wired up
-                      style={{
-                        width: 24,
-                        height: 24,
-                        borderRadius: "50%",
-                        background: color.hex,
-                        border: "1px solid #000",
-                      }}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-
             {borderStyle !== "none" && (
               <div style={{ marginTop: "0.75rem" }}>
                 <p>Border thickness</p>
                 <div style={{ display: "flex", gap: "0.5rem" }}>
-                  {/* {(["thin", "medium", "thick"] as const).map((style) => {
-                    return (
-                      <button key={style} type="button">
-                        {style === "thin"
-                          ? "Thin"
-                          : style === "medium"
-                          ? "Medium"
-                          : "Thick"}
-                      </button>
-                    );
-                  })} */}
-                  {/* {(["thin", "medium", "thick"] as const).map((style) => {
-                    return (
-                      <button
-                        key={style}
-                        type="button"
-                        aria-pressed={borderStyle === style} // optional
-                        onClick={() => onBorderThicknessChange(style)}
-                      >
-                        {style === "thin"
-                          ? "Thin"
-                          : style === "medium"
-                          ? "Medium"
-                          : "Thick"}
-                      </button>
-                    );
-                  })} */}
                   {(["thin", "medium", "thick"] as const).map((thickness) => {
                     return (
                       <button
@@ -506,8 +550,8 @@ export default function CustomiseMenu({
                         {thickness === "thin"
                           ? "Thin"
                           : thickness === "medium"
-                          ? "Medium"
-                          : "Thick"}
+                            ? "Medium"
+                            : "Thick"}
                       </button>
                     );
                   })}
@@ -544,10 +588,10 @@ export default function CustomiseMenu({
                     {style === "none"
                       ? "None"
                       : style === "soft"
-                      ? "Soft"
-                      : style === "hard"
-                      ? "Hard"
-                      : "Standing"}
+                        ? "Soft"
+                        : style === "hard"
+                          ? "Hard"
+                          : "Standing"}
                   </button>
                 );
               })}
@@ -560,35 +604,6 @@ export default function CustomiseMenu({
                   className="color-buttons flex-wrap"
                   style={{ display: "flex", gap: "0.5rem" }}
                 >
-                  {/* {shadowColors.map((color) => (
-                    <button
-                      key={color.colorID}
-                      type="button"
-                      aria-label={`Set shadow colour to ${color.colorID}`}
-                      style={{
-                        width: 24,
-                        height: 24,
-                        borderRadius: "50%",
-                        background: color.hex,
-                        border: "1px solid #000",
-                      }}
-                    />
-                  ))} */}
-                  {/* {shadowColors.map((color) => (
-                    <button
-                      key={color.colorID}
-                      type="button"
-                      aria-label={`Set shadow colour to ${color.colorID}`}
-                      onClick={() => onShadowColourChange(color.hex)}
-                      style={{
-                        width: 24,
-                        height: 24,
-                        borderRadius: "50%",
-                        background: color.hex,
-                        border: "1px solid #000",
-                      }}
-                    />
-                  ))} */}
                   {shadowColors.map((color) => (
                     <button
                       key={color.colorID}

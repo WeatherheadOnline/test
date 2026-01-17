@@ -15,7 +15,7 @@ type FillAppearance = {
 };
 
 type BorderAppearance = {
-  borderStyle: "none" | "solid" | "pattern";
+  borderStyle: "none" | "solid";
   borderThickness: "thin" | "medium" | "thick";
   borderColour: string | null;
 };
@@ -52,10 +52,31 @@ export default function BitDisplay({
   ${6 * scaleFactor}rem
 )`;
 
+  const wrapperStyle: React.CSSProperties = {
+    position: "relative",
+    display: "inline-block",
+  };
+
+  const bgStyle: React.CSSProperties = {
+    // position: "absolute",
+    inset: 0,
+
+    color: fill.fillSecondaryColor ?? "#fff",
+
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+  };
+
+  const getBackgroundFillStyle = (): React.CSSProperties => ({
+    // position: "absolute",
+    inset: 0,
+
+    color: fill.fillSecondaryColor ?? "#fff",
+  });
+
   const getFillStyle = (): React.CSSProperties => {
     switch (fill.fillStyle) {
       case "solid":
-        console.log(fill);
         return {
           color: fill.fillPrimaryColor ?? "#000",
           background: "none",
@@ -65,8 +86,6 @@ export default function BitDisplay({
         };
 
       case "gradient": {
-        console.log(fill);
-
         let gradientColorPair;
 
         if (!fill.gradientColorPair) {
@@ -95,19 +114,18 @@ export default function BitDisplay({
           fill.stripeThickness === "thin"
             ? "0.5rem"
             : fill.stripeThickness === "medium"
-            ? "1rem"
-            : "2rem";
+              ? "1rem"
+              : "2rem";
 
         const angle =
           fill.stripeDirection === "horizontal"
             ? "0deg"
             : fill.stripeDirection === "vertical"
-            ? "90deg"
-            : fill.stripeDirection === "diagonalL"
-            ? "45deg"
-            : "315deg"; // diagonalR
+              ? "90deg"
+              : fill.stripeDirection === "diagonalL"
+                ? "45deg"
+                : "315deg"; // diagonalR
 
-        console.log(fill);
         return {
           backgroundImage: `repeating-linear-gradient(
       ${angle},
@@ -121,15 +139,180 @@ export default function BitDisplay({
           WebkitTextFillColor: "transparent",
         };
       }
-      case "pattern":
-        console.log(fill);
+      // case "pattern":
+      //   return {
+      //     color: fill.fillPrimaryColor ?? "#000",
+      //     background: "none",
+      //     backgroundClip: "border-box",
+      //     WebkitBackgroundClip: "border-box",
+      //     WebkitTextFillColor: "initial",
+      //   };
+
+      // case "pattern": {
+      //   if (!fill.image) {
+      //     return { color: fill.fillPrimaryColor ?? "#000" };
+      //   }
+
+      //   return {
+      //     backgroundImage: `url(${fill.image})`,
+      //     backgroundRepeat: "repeat",
+      //     backgroundSize:
+      //       fill.patternSize === "small"
+      //         ? "24px 24px"
+      //         : fill.patternSize === "large"
+      //           ? "64px 64px"
+      //           : "40px 40px",
+      //     backgroundClip: "text",
+      //     WebkitBackgroundClip: "text",
+      //     WebkitTextFillColor: "transparent",
+      //   };
+      // }
+
+      // case "pattern": {
+      //   if (!fill.image) {
+      //     return { color: fill.fillPrimaryColor ?? "#000" };
+      //   }
+
+      //   const fg = fill.fillPrimaryColor ?? "#000000";
+      //   const bg = fill.fillSecondaryColor ?? "#FFFFFF";
+
+      //   return {
+      //     backgroundImage: `url(${fill.image})`,
+      //     backgroundRepeat: "repeat",
+      //     backgroundSize:
+      //       fill.patternSize === "small"
+      //         ? "24px 24px"
+      //         : fill.patternSize === "large"
+      //           ? "64px 64px"
+      //           : "40px 40px",
+
+      //     // 🔑 this is the missing piece
+      //     "--pattern-fg": fg,
+      //     "--pattern-bg": bg,
+
+      //     backgroundClip: "text",
+      //     WebkitBackgroundClip: "text",
+      //     WebkitTextFillColor: "transparent",
+      //   } as React.CSSProperties;
+      // }
+
+      // case "pattern": {
+      //   if (!fill.image) return {};
+
+      //   const fg = fill.fillPrimaryColor ?? "#000";
+      //   const bg = fill.fillSecondaryColor ?? "#fff";
+
+      //   const size =
+      //     fill.patternSize === "small"
+      //       ? "24px"
+      //       : fill.patternSize === "large"
+      //       ? "64px"
+      //       : "40px";
+
+      //   return {
+      //     backgroundColor: fg,
+
+      //     WebkitMaskImage: `url(${fill.image})`,
+      //     WebkitMaskRepeat: "repeat",
+      //     WebkitMaskSize: `${size} ${size}`,
+
+      //     maskImage: `url(${fill.image})`,
+      //     maskRepeat: "repeat",
+      //     maskSize: `${size} ${size}`,
+
+      //     boxShadow: `inset 0 0 0 9999px ${bg}`, // background layer
+
+      //     backgroundClip: "text",
+      //     WebkitBackgroundClip: "text",
+      //     WebkitTextFillColor: "transparent",
+      //   };
+      // }
+
+      //  changing to using the glyph as the mask, and the svg as a background
+      // case "pattern": {
+      //   if (!fill.image) return {};
+
+      //   const fg = fill.fillPrimaryColor ?? "#000";
+      //   const bg = fill.fillSecondaryColor ?? "#fff";
+
+      //   const size =
+      //     fill.patternSize === "small"
+      //       ? "24px"
+      //       : fill.patternSize === "large"
+      //         ? "64px"
+      //         : "40px";
+
+      //   return {
+      //     // Pattern layer (foreground)
+      //     // backgroundImage: `url(${fill.image})`,
+      //     // backgroundRepeat: "repeat",
+      //     // backgroundSize: `${size} ${size}`,
+      //     // backgroundColor: bg,
+      //     backgroundColor: fg,
+
+      //     // ["--pattern-fg" as any]: fg,
+      //     // ["--pattern-bg" as any]: bg,
+
+      //     // THIS is the fix to go from svg-as-mask to glyph-as-mask with svg background
+      //     // WebkitMaskImage: "linear-gradient(#000 0 0)",
+      //     // WebkitMaskRepeat: "no-repeat",
+      //     // WebkitMaskSize: "100% 100%",
+      //     WebkitMaskImage: `url(${fill.image})`,
+      //     WebkitMaskRepeat: "repeat",
+      //     WebkitMaskSize: `${size} ${size}`,
+      //     WebkitMaskClip: "text",
+      //     WebkitMaskOrigin: "text",
+
+      //     // maskImage: "linear-gradient(#000 0 0)",
+      //     // maskRepeat: "no-repeat",
+      //     // maskSize: "100% 100%",
+      //     maskImage: `url(${fill.image})`,
+      //     maskRepeat: "repeat",
+      //     maskSize: `${size} ${size}`,
+      //     maskClip: "text",
+      //     maskOrigin: "text",
+
+      //     // Text transparency
+      //     // color: fg,
+
+      //     WebkitTextFillColor: "transparent",
+      //   };
+      // }
+
+      case "pattern": {
+        if (!fill.image) return {};
+
+        const fg = fill.fillPrimaryColor ?? "#000";
+        const bg = fill.fillSecondaryColor ?? "#fff";
+
+        const size =
+          fill.patternSize === "small"
+            ? "24px"
+            : fill.patternSize === "large"
+              ? "64px"
+              : "40px";
+
         return {
-          color: fill.fillPrimaryColor ?? "#000",
-          background: "none",
-          backgroundClip: "border-box",
-          WebkitBackgroundClip: "border-box",
-          WebkitTextFillColor: "initial",
+          position: "relative",
+          zIndex: 1,
+
+          backgroundColor: fill.fillPrimaryColor ?? "#000",
+
+          WebkitMaskImage: `url(${fill.image})`,
+          WebkitMaskRepeat: "repeat",
+          WebkitMaskSize: `${size} ${size}`,
+          WebkitMaskClip: "text",
+          WebkitMaskOrigin: "text",
+
+          maskImage: `url(${fill.image})`,
+          maskRepeat: "repeat",
+          maskSize: `${size} ${size}`,
+          maskClip: "text",
+          maskOrigin: "text",
+
+          WebkitTextFillColor: "transparent",
         };
+      }
 
       default:
         return { color: "#000" };
@@ -236,7 +419,6 @@ export default function BitDisplay({
   const dropShadowStyle: React.CSSProperties = (() => {
     if (!shadowHandledByStroke) return {};
     switch (shadowStyleType) {
-
       case "soft":
         return {
           filter: `drop-shadow(
@@ -247,9 +429,9 @@ export default function BitDisplay({
         };
       case "hard":
         return {
-          filter: `drop-shadow(${px(shadowScale.hard * shadowSizes.xs)} ${
-            px(shadowScale.hard * shadowSizes.sm)
-          } 0 ${shadowColour})`,
+          filter: `drop-shadow(${px(shadowScale.hard * shadowSizes.xs)} ${px(
+            shadowScale.hard * shadowSizes.sm
+          )} 0 ${shadowColour})`,
         };
       default:
         return {};
@@ -276,7 +458,7 @@ export default function BitDisplay({
           inset: 0,
           color: "transparent",
           zIndex: 1,
-          padding: `0 ${horizontalPadding}`,
+          // padding: `0 ${horizontalPadding}`,
           ...textShadowStyle,
         }}
       >
@@ -291,7 +473,7 @@ export default function BitDisplay({
           inset: 0,
           color: "transparent",
           zIndex: 2,
-          padding: `0 ${horizontalPadding}`,
+          // padding: `0 ${horizontalPadding}`,
           ...strokeStyle,
           ...dropShadowStyle,
         }}
@@ -302,13 +484,42 @@ export default function BitDisplay({
       {/* Fill layer */}
       <span
         style={{
-          position: "relative",
+          position: "absolute",
+          inset: 0,
+
           zIndex: 3,
-          padding: `0 ${horizontalPadding}`,
-          ...getFillStyle(),
+          // padding: `0 ${horizontalPadding}`,
         }}
       >
-        {value}
+        {/* Pattern fill only: Background fill (secondary colour) */}
+        <span
+          style={{
+            zIndex: 0,
+            position: "absolute",
+            top: "0",
+            left: "0",
+            inset: 0,
+
+            ...getBackgroundFillStyle(),
+          }}
+        >
+          {value}
+        </span>
+
+        {/* Main fill layer (when fill style = pattern, this is the primary colour layer) */}
+        <span
+          style={{
+            zIndex: 1,
+            position: "absolute",
+            top: "0",
+            left: "0",
+            inset: 0,
+
+            ...getFillStyle(),
+          }}
+        >
+          {value}
+        </span>
       </span>
     </div>
   );
