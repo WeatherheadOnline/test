@@ -51,7 +51,6 @@ export default function BitExperience({
       fillStyle: FillStyle;
       fillPrimaryColor: string | null;
       fillSecondaryColor: string | null;
-      // fillColorPair: string | null;
       gradientColorPair: string | null;
       stripeColorPair: string | null;
       stripeThickness: StripeThickness;
@@ -76,14 +75,16 @@ export default function BitExperience({
     | { type: "SET_BORDER_STYLE"; borderStyle: BorderStyle }
     | { type: "SET_SHADOW_STYLE"; shadowStyle: ShadowStyle }
     | { type: "SET_FILL_PRIMARY_COLOR"; color: string }
-    // | { type: "SET_FILL_COLOR_PAIR"; pair: string }
     | {
         type: "SET_FILL_COLOR_PAIR";
         target: "gradient" | "stripes";
         pair: string;
       }
     | { type: "SET_STRIPE_THICKNESS"; thickness: StripeThickness }
-    | { type: "SET_STRIPE_DIRECTION"; direction: StripeDirection };
+    | { type: "SET_STRIPE_DIRECTION"; direction: StripeDirection }
+    | { type: "SET_BORDER_THICKNESS"; thickness: BorderThickness }
+    | { type: "SET_BORDER_COLOUR"; colour: string }
+    | { type: "SET_SHADOW_COLOUR"; colour: string };
 
   function appearanceReducer(
     state: Appearance,
@@ -123,24 +124,8 @@ export default function BitExperience({
           fill: {
             ...state.fill,
             fillPrimaryColor: action.color,
-            // clear incompatible selections
-            // fillColorPair: null,
-            // gradientColorPair: null,
-            // stripeColorPair: null,
           },
         };
-
-      // case "SET_FILL_COLOR_PAIR":
-      //   return {
-      //     ...state,
-      //     fill: {
-      //       ...state.fill,
-      //       fillColorPair: action.pair,
-      //       // gradients/stripes override single colours
-      //       fillPrimaryColor: null,
-      //       fillSecondaryColor: null,
-      //     },
-      //   };
 
       case "SET_FILL_COLOR_PAIR":
         return {
@@ -176,6 +161,33 @@ export default function BitExperience({
           },
         };
 
+      case "SET_BORDER_THICKNESS":
+        return {
+          ...state,
+          border: {
+            ...state.border,
+            borderThickness: action.thickness,
+          },
+        };
+
+      case "SET_BORDER_COLOUR":
+        return {
+          ...state,
+          border: {
+            ...state.border,
+            borderColour: action.colour,
+          },
+        };
+
+      case "SET_SHADOW_COLOUR":
+        return {
+          ...state,
+          shadow: {
+            ...state.shadow,
+            shadowColour: action.colour,
+          },
+        };
+
       default:
         return state;
     }
@@ -186,7 +198,6 @@ export default function BitExperience({
       fillStyle: "solid",
       fillPrimaryColor: "#000000",
       fillSecondaryColor: "#AAAAAA",
-      // fillColorPair: null,
       gradientColorPair: "#AAAAAA | #000000",
       stripeColorPair: "#880000 | #000000",
       stripeThickness: "medium",
@@ -245,7 +256,12 @@ export default function BitExperience({
         {/* Flip toast */}
         {flipToastKey !== null && <FlipToast key={flipToastKey} />}
         {/* Giant bit */}
-        <BitDisplay value={value} fill={appearance.fill} />
+        <BitDisplay
+          value={value}
+          fill={appearance.fill}
+          border={appearance.border}
+          shadow={appearance.shadow}
+        />{" "}
         {/* Flip switch */}
         <button
           ref={flipButtonRef}
@@ -351,9 +367,6 @@ export default function BitExperience({
         onShadowStyleChange={(style) =>
           dispatchAppearance({ type: "SET_SHADOW_STYLE", shadowStyle: style })
         }
-        // onFillColorPairChange={(pair) =>
-        //   dispatchAppearance({ type: "SET_FILL_COLOR_PAIR", pair })
-        // }
         onFillColorPairChange={(target, pair) =>
           dispatchAppearance({
             type: "SET_FILL_COLOR_PAIR",
@@ -366,6 +379,15 @@ export default function BitExperience({
         }
         onStripeDirectionChange={(direction) =>
           dispatchAppearance({ type: "SET_STRIPE_DIRECTION", direction })
+        }
+        onBorderThicknessChange={(thickness) =>
+          dispatchAppearance({ type: "SET_BORDER_THICKNESS", thickness })
+        }
+        onBorderColourChange={(colour) =>
+          dispatchAppearance({ type: "SET_BORDER_COLOUR", colour })
+        }
+        onShadowColourChange={(colour) =>
+          dispatchAppearance({ type: "SET_SHADOW_COLOUR", colour })
         }
       />
     </div>
