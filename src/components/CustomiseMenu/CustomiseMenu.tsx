@@ -22,7 +22,8 @@ type CustomiseMenuProps = {
   onShadowStyleChange: (style: ShadowStyle) => void;
 
   onFillPrimaryColorChange: (color: string) => void;
-  onFillColorPairChange: (pair: string) => void;
+  // onFillColorPairChange: (pair: string) => void;
+  onFillColorPairChange: (target: "gradient" | "stripes", pair: string) => void;
 
   onStripeThicknessChange: (thickness: "thin" | "medium" | "thick") => void;
 
@@ -278,8 +279,14 @@ export default function CustomiseMenu({
                       key={`${pair.colorID}-${pair.colorID2}`}
                       type="button"
                       aria-label={`Set colour pair ${pair.colorID} and ${pair.colorID2}`}
+                      // onClick={() =>
+                      //   onFillColorPairChange(`${pair.hex}|${pair.hex2}`)
+                      // }
                       onClick={() =>
-                        onFillColorPairChange(`${pair.hex}|${pair.hex2}`)
+                        onFillColorPairChange(
+                          fillStyle,
+                          `${pair.hex}|${pair.hex2}`
+                        )
                       }
                       style={{
                         width: 48,

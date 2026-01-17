@@ -51,7 +51,9 @@ export default function BitExperience({
       fillStyle: FillStyle;
       fillPrimaryColor: string | null;
       fillSecondaryColor: string | null;
-      fillColorPair: string | null;
+      // fillColorPair: string | null;
+      gradientColorPair: string | null;
+      stripeColorPair: string | null;
       stripeThickness: StripeThickness;
       stripeDirection: StripeDirection;
       patternId: string | null;
@@ -74,7 +76,12 @@ export default function BitExperience({
     | { type: "SET_BORDER_STYLE"; borderStyle: BorderStyle }
     | { type: "SET_SHADOW_STYLE"; shadowStyle: ShadowStyle }
     | { type: "SET_FILL_PRIMARY_COLOR"; color: string }
-    | { type: "SET_FILL_COLOR_PAIR"; pair: string }
+    // | { type: "SET_FILL_COLOR_PAIR"; pair: string }
+    | {
+        type: "SET_FILL_COLOR_PAIR";
+        target: "gradient" | "stripes";
+        pair: string;
+      }
     | { type: "SET_STRIPE_THICKNESS"; thickness: StripeThickness }
     | { type: "SET_STRIPE_DIRECTION"; direction: StripeDirection };
 
@@ -117,19 +124,37 @@ export default function BitExperience({
             ...state.fill,
             fillPrimaryColor: action.color,
             // clear incompatible selections
-            fillColorPair: null,
+            // fillColorPair: null,
+            // gradientColorPair: null,
+            // stripeColorPair: null,
           },
         };
+
+      // case "SET_FILL_COLOR_PAIR":
+      //   return {
+      //     ...state,
+      //     fill: {
+      //       ...state.fill,
+      //       fillColorPair: action.pair,
+      //       // gradients/stripes override single colours
+      //       fillPrimaryColor: null,
+      //       fillSecondaryColor: null,
+      //     },
+      //   };
 
       case "SET_FILL_COLOR_PAIR":
         return {
           ...state,
           fill: {
             ...state.fill,
-            fillColorPair: action.pair,
-            // gradients/stripes override single colours
-            fillPrimaryColor: null,
-            fillSecondaryColor: null,
+            gradientColorPair:
+              action.target === "gradient"
+                ? action.pair
+                : state.fill.gradientColorPair,
+            stripeColorPair:
+              action.target === "stripes"
+                ? action.pair
+                : state.fill.stripeColorPair,
           },
         };
 
@@ -159,9 +184,11 @@ export default function BitExperience({
   const initialAppearance: Appearance = {
     fill: {
       fillStyle: "solid",
-      fillPrimaryColor: null,
-      fillSecondaryColor: null,
-      fillColorPair: null,
+      fillPrimaryColor: "#000000",
+      fillSecondaryColor: "#AAAAAA",
+      // fillColorPair: null,
+      gradientColorPair: "#AAAAAA | #000000",
+      stripeColorPair: "#880000 | #000000",
       stripeThickness: "medium",
       stripeDirection: "horizontal",
       patternId: null,
@@ -324,8 +351,15 @@ export default function BitExperience({
         onShadowStyleChange={(style) =>
           dispatchAppearance({ type: "SET_SHADOW_STYLE", shadowStyle: style })
         }
-        onFillColorPairChange={(pair) =>
-          dispatchAppearance({ type: "SET_FILL_COLOR_PAIR", pair })
+        // onFillColorPairChange={(pair) =>
+        //   dispatchAppearance({ type: "SET_FILL_COLOR_PAIR", pair })
+        // }
+        onFillColorPairChange={(target, pair) =>
+          dispatchAppearance({
+            type: "SET_FILL_COLOR_PAIR",
+            target,
+            pair,
+          })
         }
         onStripeThicknessChange={(thickness) =>
           dispatchAppearance({ type: "SET_STRIPE_THICKNESS", thickness })

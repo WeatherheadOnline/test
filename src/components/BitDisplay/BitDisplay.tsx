@@ -4,7 +4,10 @@ type FillAppearance = {
   fillStyle: "solid" | "gradient" | "stripes" | "pattern";
   fillPrimaryColor: string | null;
   fillSecondaryColor: string | null;
-  fillColorPair: string | null;
+  // fillColorPair: string | null;
+  gradientColorPair: string | null;
+  stripeColorPair: string | null;
+
   stripeThickness: "thin" | "medium" | "thick";
   stripeDirection: "horizontal" | "vertical" | "diagonalL" | "diagonalR";
   patternId: string | null;
@@ -38,6 +41,7 @@ export default function BitDisplay({
   const getFillStyle = (): React.CSSProperties => {
     switch (fill.fillStyle) {
       case "solid":
+        console.log(fill);
         return {
           color: fill.fillPrimaryColor ?? "#000",
           background: "none",
@@ -47,14 +51,24 @@ export default function BitDisplay({
         };
 
       case "gradient": {
-        if (!fill.fillColorPair) {
-          return { color: "#000" };
-        }
+        console.log(fill);
 
-        const [from, to] = fill.fillColorPair.split("|");
+        // if (!fill.gradientColorPair) {
+        //   return { color: "#000" };
+        // }
+        // const gradientColorPair = fill.gradientColorPair ? fill.gradientColorPair : "#555555 | #000000";
+
+        let gradientColorPair;
+
+        if (!fill.gradientColorPair) {
+          gradientColorPair = "#555555 | #000000";
+        } else gradientColorPair = fill.gradientColorPair;
+
+        const [from, to] = gradientColorPair.split("|");
+        // const [from, to] = gradientColorPair.split("|");
 
         return {
-          backgroundImage: `linear-gradient(90deg, ${from}, ${to})`,
+          backgroundImage: `linear-gradient(160deg, ${from} 10%, ${to} 90%)`,
           backgroundClip: "text",
           WebkitBackgroundClip: "text",
           WebkitTextFillColor: "transparent",
@@ -119,8 +133,8 @@ export default function BitDisplay({
       //   }
 
       case "stripes": {
-        const [from, to] = fill.fillColorPair
-          ? fill.fillColorPair.split("|")
+        const [from, to] = fill.stripeColorPair
+          ? fill.stripeColorPair.split("|")
           : ["#000000", "#FFFFFF"];
 
         const stripeWidth =
@@ -139,6 +153,7 @@ export default function BitDisplay({
             ? "45deg"
             : "315deg"; // diagonalR
 
+        console.log(fill);
         return {
           backgroundImage: `repeating-linear-gradient(
       ${angle},
@@ -153,6 +168,7 @@ export default function BitDisplay({
         };
       }
       case "pattern":
+        console.log(fill);
         return {
           color: fill.fillPrimaryColor ?? "#000",
           background: "none",
