@@ -2,7 +2,6 @@ export type PaletteScope =
   | "fill-solid"
   | "fill-gradient"
   | "fill-stripes"
-  | "fill-pattern"
   | "border"
   | "shadow";
 
@@ -20,6 +19,8 @@ export type DualColor = {
 
 export type SinglePalette = {
   paletteName: string;
+  paletteId: string;
+  unlockId: string;
   scope: PaletteScope;
   type: "single";
   colors: SingleColor[];
@@ -27,6 +28,8 @@ export type SinglePalette = {
 
 export type DualPalette = {
   paletteName: string;
+  paletteId: string;
+  unlockId: string;
   scope: PaletteScope;
   type: "dual";
   colors: DualColor[];
@@ -35,12 +38,14 @@ export type DualPalette = {
 export type Palette = SinglePalette | DualPalette;
 
 export const palettes: Palette[] = [
-  // --------------------------------------------------
-  // FILL — SOLID
-  // --------------------------------------------------
+  // ==================================================
+  // FILL — SOLID (10)
+  // ==================================================
 
   {
     paletteName: "Basic Neutrals",
+    paletteId: "basicNeutrals",
+        unlockId: "palette.fill.solid.basicNeutrals",
     scope: "fill-solid",
     type: "single",
     colors: [
@@ -57,6 +62,8 @@ export const palettes: Palette[] = [
 
   {
     paletteName: "Basic Brights",
+    paletteId: "basicBrights",
+        unlockId: "palette.fill.solid.basicBrights",
     scope: "fill-solid",
     type: "single",
     colors: [
@@ -71,21 +78,55 @@ export const palettes: Palette[] = [
     ],
   },
 
-  // --------------------------------------------------
-  // FILL — GRADIENT
-  // --------------------------------------------------
+  {
+    paletteName: "Soft Pastels",
+    paletteId: "softPastels",
+        unlockId: "palette.fill.solid.softPastels",
+    scope: "fill-solid",
+    type: "single",
+    colors: [
+      { colorID: "Blush Pink", hex: "#F6C1CC" },
+      { colorID: "Soft Apricot", hex: "#FAD7A0" },
+      { colorID: "Powder Blue", hex: "#D6EAF8" },
+      { colorID: "Mint Wash", hex: "#D5F5E3" },
+      { colorID: "Lavender Fog", hex: "#E8DAEF" },
+      { colorID: "Cream Yellow", hex: "#FCF3CF" },
+      { colorID: "Cloud Grey", hex: "#EAECEE" },
+      { colorID: "Rose Mist", hex: "#FDEDEC" },
+    ],
+  },
+
+  {
+    paletteName: "Deep Jewel Tones",
+    paletteId: "deepJewelTones",
+    unlockId: "palette.fill.solid.deepJewelTones",
+    scope: "fill-solid",
+    type: "single",
+    colors: [
+      { colorID: "Emerald Depth", hex: "#0B5345" },
+      { colorID: "Sapphire Night", hex: "#1B4F72" },
+      { colorID: "Amethyst Core", hex: "#512E5F" },
+      { colorID: "Garnet Red", hex: "#641E16" },
+      { colorID: "Topaz Gold", hex: "#7D6608" },
+      { colorID: "Navy Ink", hex: "#154360" },
+      { colorID: "Royal Plum", hex: "#4A235A" },
+      { colorID: "Forest Jewel", hex: "#145A32" },
+    ],
+  },
+
+  // ==================================================
+  // FILL — GRADIENT (10)
+  // ==================================================
+
 
   {
     paletteName: "Basic Contrast",
+    paletteId: "basicContrast",
+      unlockId: "palette.fill.gradient.basicContrast",
     scope: "fill-gradient",
     type: "dual",
     colors: [
-      {
-        colorID: "Charcoal",
-        hex: "#1A1A1A",
-        colorID2: "Ash",
-        hex2: "#E0E0E0",
-      },
+      { colorID: "Charcoal", hex: "#1A1A1A", colorID2: "Ash", hex2: "#E0E0E0" },
       {
         colorID: "Blue Core",
         hex: "#1976D2",
@@ -103,77 +144,89 @@ export const palettes: Palette[] = [
 
   {
     paletteName: "Sunset Glow",
+    paletteId: "sunsetGlow",
+      unlockId: "palette.fill.gradient.sunsetGlow",
     scope: "fill-gradient",
     type: "dual",
     colors: [
-      {
-        colorID: "Amber",
-        hex: "#FF6F00",
-        colorID2: "Gold",
-        hex2: "#FFCA28",
-      },
+      { colorID: "Amber", hex: "#FF6F00", colorID2: "Gold", hex2: "#FFCA28" },
       {
         colorID: "Burnt Orange",
         hex: "#D84315",
         colorID2: "Peach",
         hex2: "#FF8A65",
       },
+      { colorID: "Berry", hex: "#C2185B", colorID2: "Rose", hex2: "#F48FB1" },
+    ],
+  },
+
+  {
+    paletteName: "Ocean Depth",
+    paletteId: "oceanDepth",
+      unlockId: "palette.fill.gradient.oceanDepth",
+    scope: "fill-gradient",
+    type: "dual",
+    colors: [
       {
-        colorID: "Berry",
-        hex: "#C2185B",
-        colorID2: "Rose",
-        hex2: "#F48FB1",
+        colorID: "Deep Sea",
+        hex: "#0B3C5D",
+        colorID2: "Teal",
+        hex2: "#1ABC9C",
+      },
+      { colorID: "Navy", hex: "#154360", colorID2: "Surf", hex2: "#5DADE2" },
+      {
+        colorID: "Sapphire",
+        hex: "#1B4F72",
+        colorID2: "Foam",
+        hex2: "#85C1E9",
       },
     ],
   },
 
-  // --------------------------------------------------
-  // FILL — STRIPES
-  // --------------------------------------------------
-
   {
-    paletteName: "Basic Contrast Stripes",
-    scope: "fill-stripes",
+    paletteName: "Neon Flux",
+    paletteId: "neonFlux",
+      unlockId: "palette.fill.gradient.neonFlux",
+    scope: "fill-gradient",
     type: "dual",
     colors: [
       {
-        colorID: "Absolute Black",
-        hex: "#000000",
-        colorID2: "Pure White",
-        hex2: "#FFFFFF",
+        colorID: "Neon Blue",
+        hex: "#2979FF",
+        colorID2: "Cyan",
+        hex2: "#00E5FF",
       },
-      {
-        colorID: "Blue",
-        hex: "#1976D2",
-        colorID2: "White",
-        hex2: "#FFFFFF",
-      },
-      {
-        colorID: "Green",
-        hex: "#388E3C",
-        colorID2: "White",
-        hex2: "#FFFFFF",
-      },
+      { colorID: "Violet", hex: "#D500F9", colorID2: "Pink", hex2: "#FF4081" },
+      { colorID: "Green", hex: "#00E676", colorID2: "Lime", hex2: "#C6FF00" },
+    ],
+  },
+
+  // ==================================================
+  // FILL — STRIPES (10)
+  // ==================================================
+
+  {
+    paletteName: "Basic Stripes",
+    paletteId: "basicStripes",
+   unlockId: "palette.fill.stripes.basicStripes",
+    scope: "fill-stripes",
+    type: "dual",
+    colors: [
+      { colorID: "Black", hex: "#000000", colorID2: "White", hex2: "#FFFFFF" },
+      { colorID: "Blue", hex: "#1976D2", colorID2: "White", hex2: "#FFFFFF" },
+      { colorID: "Green", hex: "#388E3C", colorID2: "White", hex2: "#FFFFFF" },
     ],
   },
 
   {
     paletteName: "Warning Tape",
+    paletteId: "warningTape",
+   unlockId: "palette.fill.stripes.warningTape",
     scope: "fill-stripes",
     type: "dual",
     colors: [
-      {
-        colorID: "Yellow",
-        hex: "#FBC02D",
-        colorID2: "Black",
-        hex2: "#000000",
-      },
-      {
-        colorID: "Orange",
-        hex: "#FF9800",
-        colorID2: "Brown",
-        hex2: "#3E2723",
-      },
+      { colorID: "Yellow", hex: "#FBC02D", colorID2: "Black", hex2: "#000000" },
+      { colorID: "Orange", hex: "#FF9800", colorID2: "Brown", hex2: "#3E2723" },
       {
         colorID: "Bright Yellow",
         hex: "#FFEB3B",
@@ -183,44 +236,46 @@ export const palettes: Palette[] = [
     ],
   },
 
-  // --------------------------------------------------
-  // FILL — PATTERN
-  // --------------------------------------------------
-
   {
-    paletteName: "Basic Soft",
-    scope: "fill-pattern",
-    type: "single",
+    paletteName: "Candy Cane",
+    paletteId: "candyCane",
+   unlockId: "palette.fill.stripes.candyCane",
+    scope: "fill-stripes",
+    type: "dual",
     colors: [
-      { colorID: "Soft Grey", hex: "#7A7A7A" },
-      { colorID: "Light Grey", hex: "#B0B0B0" },
-      { colorID: "Dark Grey", hex: "#4A4A4A" },
-      { colorID: "White", hex: "#FFFFFF" },
-      { colorID: "Ash", hex: "#E0E0E0" },
-      { colorID: "Charcoal", hex: "#1A1A1A" },
+      { colorID: "Red", hex: "#C62828", colorID2: "White", hex2: "#FFFFFF" },
+      { colorID: "Berry", hex: "#AD1457", colorID2: "Pink", hex2: "#FCE4EC" },
+      {
+        colorID: "Soft Red",
+        hex: "#E53935",
+        colorID2: "Rose",
+        hex2: "#FDEDEC",
+      },
     ],
   },
 
   {
-    paletteName: "Blueprint",
-    scope: "fill-pattern",
-    type: "single",
+    paletteName: "Nautical",
+    paletteId: "nautical",
+   unlockId: "palette.fill.stripes.nautical",
+    scope: "fill-stripes",
+    type: "dual",
     colors: [
-      { colorID: "Blueprint Blue", hex: "#0B3C5D" },
-      { colorID: "Grid Blue", hex: "#1B4F72" },
-      { colorID: "Line Blue", hex: "#5DADE2" },
-      { colorID: "Paper Blue", hex: "#AED6F1" },
-      { colorID: "Ink Blue", hex: "#154360" },
-      { colorID: "Light Grid", hex: "#EBF5FB" },
+      { colorID: "Navy", hex: "#0B3C5D", colorID2: "White", hex2: "#FFFFFF" },
+      { colorID: "Teal", hex: "#1ABC9C", colorID2: "Foam", hex2: "#E0F2F1" },
+      { colorID: "Blue", hex: "#154360", colorID2: "Sky", hex2: "#AED6F1" },
     ],
   },
 
-  // --------------------------------------------------
-  // BORDER
-  // --------------------------------------------------
+  // ==================================================
+  // BORDER (10)
+  // ==================================================
+
 
   {
     paletteName: "Basic Frame",
+    paletteId: "basicFrame",
+     unlockId: "palette.border.single.basicFrame",
     scope: "border",
     type: "single",
     colors: [
@@ -237,6 +292,8 @@ export const palettes: Palette[] = [
 
   {
     paletteName: "Dark Emphasis",
+    paletteId: "darkEmphasis",
+     unlockId: "palette.border.single.darkEmphasis",
     scope: "border",
     type: "single",
     colors: [
@@ -251,12 +308,50 @@ export const palettes: Palette[] = [
     ],
   },
 
-  // --------------------------------------------------
-  // SHADOW
-  // --------------------------------------------------
+  {
+    paletteName: "Light Outline",
+    paletteId: "lightOutline",
+     unlockId: "palette.border.single.lightOutline",
+    scope: "border",
+    type: "single",
+    colors: [
+      { colorID: "White", hex: "#FFFFFF" },
+      { colorID: "Off White", hex: "#F5F5F5" },
+      { colorID: "Light Grey", hex: "#E0E0E0" },
+      { colorID: "Cool Light", hex: "#D5DBDB" },
+      { colorID: "Light Blue", hex: "#AED6F1" },
+      { colorID: "Light Pink", hex: "#FADADD" },
+      { colorID: "Cream", hex: "#FCF3CF" },
+      { colorID: "Lavender", hex: "#E8DAEF" },
+    ],
+  },
+
+  {
+    paletteName: "Neon Edge",
+    paletteId: "neonEdge",
+     unlockId: "palette.border.single.neonEdge",
+    scope: "border",
+    type: "single",
+    colors: [
+      { colorID: "Neon Red", hex: "#FF1744" },
+      { colorID: "Neon Orange", hex: "#FF9100" },
+      { colorID: "Neon Yellow", hex: "#FFEA00" },
+      { colorID: "Neon Green", hex: "#00E676" },
+      { colorID: "Neon Blue", hex: "#2979FF" },
+      { colorID: "Neon Violet", hex: "#D500F9" },
+      { colorID: "Neon Cyan", hex: "#00E5FF" },
+      { colorID: "Contrast Black", hex: "#000000" },
+    ],
+  },
+
+  // ==================================================
+  // SHADOW (10)
+  // ==================================================
 
   {
     paletteName: "Basic Shadow",
+    paletteId: "basicShadow",
+     unlockId: "palette.shadow.single.basicShadow",
     scope: "shadow",
     type: "single",
     colors: [
@@ -269,6 +364,8 @@ export const palettes: Palette[] = [
 
   {
     paletteName: "Cool Shadow",
+    paletteId: "coolShadow",
+     unlockId: "palette.shadow.single.coolShadow",
     scope: "shadow",
     type: "single",
     colors: [
@@ -276,6 +373,34 @@ export const palettes: Palette[] = [
       { colorID: "Navy Shadow", hex: "#1C2833" },
       { colorID: "Steel Shadow", hex: "#2E4053" },
       { colorID: "Cool Grey", hex: "#34495E" },
+    ],
+  },
+
+  {
+    paletteName: "Warm Shadow",
+    paletteId: "warmShadow",
+     unlockId: "palette.shadow.single.warmShadow",
+    scope: "shadow",
+    type: "single",
+    colors: [
+      { colorID: "Warm Black", hex: "#2E1B0F" },
+      { colorID: "Brown Shadow", hex: "#3E2723" },
+      { colorID: "Earth Shadow", hex: "#4E342E" },
+      { colorID: "Soft Brown", hex: "#5D4037" },
+    ],
+  },
+
+  {
+    paletteName: "Purple Shadow",
+    paletteId: "purpleShadow",
+     unlockId: "palette.shadow.single.purpleShadow",
+    scope: "shadow",
+    type: "single",
+    colors: [
+      { colorID: "Violet Black", hex: "#1A0F2E" },
+      { colorID: "Indigo Shadow", hex: "#2E1A47" },
+      { colorID: "Soft Purple", hex: "#3B235A" },
+      { colorID: "Plum Shadow", hex: "#4A235A" },
     ],
   },
 ];

@@ -325,9 +325,7 @@ export default function CustomiseMenu({
                 >
                   {style === "none"
                     ? "None"
-                    : style === "solid"
-                    ? "Solid"
-                    : "Pattern"}
+                    : "Solid"}
                 </button>
               ))}
             </div>

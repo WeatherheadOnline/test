@@ -30,7 +30,6 @@ type DashboardProfile = {
   flip_count: number;
 
   // future
-  background_pattern?: string | null;
   background_color?: string | null;
   accessories?: any;
 };
@@ -98,7 +97,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
 // display_name,
 // status,
 // flip_count,
-// background_pattern,
 // background_color,
 // accessories
 // `

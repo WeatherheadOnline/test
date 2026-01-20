@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useReducer, useRef, useState } from "react";
+import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import BitDisplay from "@/components/BitDisplay/BitDisplay";
 import CustomiseMenu from "@/components/CustomiseMenu/CustomiseMenu";
 import "./bitExperience.css";
 import FlipToast from "@/components/FlipToast";
 import UnlockToast from "../UnlockToast";
+import { resolveUnlocks } from "@/lib/unlocks";
 
 type BitExperienceProps = {
   mode: "authenticated" | "preview";
@@ -36,10 +37,9 @@ export default function BitExperience({
   const hasMountedRef = useRef(false);
   const [unlockToasts, setUnlockToasts] = useState<string[]>([]);
 
-  type FillStyle = "solid" | "gradient" | "stripes" | "pattern";
+  type FillStyle = "solid" | "gradient" | "stripes";
   type StripeThickness = "thin" | "medium" | "thick";
   type StripeDirection = "horizontal" | "vertical" | "diagonalL" | "diagonalR";
-  type PatternSize = "small" | "medium" | "large";
 
   type BorderStyle = "none" | "solid";
   type BorderThickness = "thin" | "medium" | "thick";
@@ -50,14 +50,10 @@ export default function BitExperience({
     fill: {
       fillStyle: FillStyle;
       fillPrimaryColor: string | null;
-      fillSecondaryColor: string | null;
       gradientColorPair: string | null;
       stripeColorPair: string | null;
       stripeThickness: StripeThickness;
       stripeDirection: StripeDirection;
-      patternId: string | null;
-      patternSize: PatternSize;
-      image: string | null;
     };
     border: {
       borderStyle: BorderStyle;
@@ -75,18 +71,25 @@ export default function BitExperience({
     | { type: "SET_BORDER_STYLE"; borderStyle: BorderStyle }
     | { type: "SET_SHADOW_STYLE"; shadowStyle: ShadowStyle }
     | { type: "SET_FILL_PRIMARY_COLOR"; color: string }
-    | { type: "SET_FILL_SECONDARY_COLOR"; color: string }
     | {
         type: "SET_FILL_COLOR_PAIR";
         target: "gradient" | "stripes";
         pair: string;
       }
-    | { type: "SET_FILL_PATTERN"; patternId: string; image: string }
     | { type: "SET_STRIPE_THICKNESS"; thickness: StripeThickness }
     | { type: "SET_STRIPE_DIRECTION"; direction: StripeDirection }
     | { type: "SET_BORDER_THICKNESS"; thickness: BorderThickness }
     | { type: "SET_BORDER_COLOUR"; colour: string }
     | { type: "SET_SHADOW_COLOUR"; colour: string };
+
+    const unlocked = useMemo(
+  () =>
+    resolveUnlocks({
+      mode,
+      flipCount,
+    }),
+  [mode, flipCount]
+);
 
   function appearanceReducer(
     state: Appearance,
@@ -129,15 +132,6 @@ export default function BitExperience({
           },
         };
 
-      case "SET_FILL_SECONDARY_COLOR":
-        return {
-          ...state,
-          fill: {
-            ...state.fill,
-            fillSecondaryColor: action.color,
-          },
-        };
-
       case "SET_FILL_COLOR_PAIR":
         return {
           ...state,
@@ -169,16 +163,6 @@ export default function BitExperience({
           fill: {
             ...state.fill,
             stripeDirection: action.direction,
-          },
-        };
-
-      case "SET_FILL_PATTERN":
-        return {
-          ...state,
-          fill: {
-            ...state.fill,
-            patternId: action.patternId,
-            image: action.image,
           },
         };
 
@@ -218,14 +202,10 @@ export default function BitExperience({
     fill: {
       fillStyle: "solid",
       fillPrimaryColor: "#000000",
-      fillSecondaryColor: "#AAAAAA",
       gradientColorPair: "#AAAAAA | #000000",
       stripeColorPair: "#880000 | #000000",
       stripeThickness: "medium",
       stripeDirection: "horizontal",
-      patternId: null,
-      patternSize: "medium",
-      image: null,
     },
     border: {
       borderStyle: "none",
@@ -373,6 +353,7 @@ export default function BitExperience({
 
       <CustomiseMenu
         ignoreRef={flipButtonRef}
+        unlocked={unlocked}
         fillStyle={appearance.fill.fillStyle}
         onFillStyleChange={(style) =>
           dispatchAppearance({ type: "SET_FILL_STYLE", fillStyle: style })
@@ -409,19 +390,6 @@ export default function BitExperience({
         }
         onShadowColourChange={(colour) =>
           dispatchAppearance({ type: "SET_SHADOW_COLOUR", colour })
-        }
-        onFillPatternChange={(patternId, image) =>
-          dispatchAppearance({
-            type: "SET_FILL_PATTERN",
-            patternId,
-            image,
-          })
-        }
-        onFillSecondaryColorChange={(color) =>
-          dispatchAppearance({
-            type: "SET_FILL_SECONDARY_COLOR",
-            color,
-          })
         }
       />
     </div>

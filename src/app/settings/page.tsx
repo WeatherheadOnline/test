@@ -10,7 +10,7 @@ import "./settings.css";
 import RedirectToGate from "@/components/RedirectToGate";
 
 export default function Settings() {
-  const { user, authLoading, userReady } = useUser();
+  const { user, authLoading, profile, userReady } = useUser();
   const router = useRouter();
 
   const [currentPassword, setCurrentPassword] = useState("");
@@ -108,6 +108,11 @@ if (!user) {
       <section className="page-section">
         <div className="section-wrapper">
           <h2>Settings page</h2>
+          {profile?.display_name ? (
+            <>
+              <p>for {profile.display_name}</p>
+            </>
+            ) : ""}
 
           <form>
             <fieldset>

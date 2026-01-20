@@ -21,7 +21,6 @@ export type FillStripes = {
   thickness: "thin" | "medium" | "thick";
 };
 
-// pattern will come later
 // export type FillAppearance =
 //   | FillSolid
 //   | FillGradient
@@ -41,17 +40,9 @@ export type BorderSolid = {
   primaryColor: string;
 };
 
-export type BorderPattern = {
-  style: "pattern";
-  thickness: "thin" | "medium" | "thick";
-  primaryColor: string;
-  secondaryColor: string;
-};
-
 export type BorderAppearance =
   | BorderNone
-  | BorderSolid
-  | BorderPattern;
+  | BorderSolid;
 
 // =====================
 // Shadow

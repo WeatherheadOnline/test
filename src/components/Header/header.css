@@ -3,7 +3,7 @@ header {
     z-index: 100;
     position: fixed;
     height: max-content;
-    width: 100vw;
+    min-width: 100vw;
     top: 0;
     padding: var(--hud-padding-mobile);
     display: flex;
@@ -15,6 +15,18 @@ header {
         width: calc(100vw - var(--hud-padding-desktop));
     }
 }
+
+.header-wrapper.header-left {
+    display: flex;
+    gap: 1rem;
+}
+.header-wrapper.header-right {
+}
+
+p.username-display {
+    width: max-content;
+}
+
 #logo {
     width: min(15vw, 15vh);
     height: auto;
