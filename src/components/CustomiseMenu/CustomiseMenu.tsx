@@ -342,24 +342,23 @@ export default function CustomiseMenu({
                 className="flex-wrap"
                 style={{ display: "flex", gap: "0.5rem" }}
               >
-
-{PATTERNS.map((pattern) => (
-  <button
-    key={pattern.patternId}
-    type="button"
-    aria-label={`Select ${pattern.patternId} pattern`}
-    onClick={() => onPatternChange(pattern.patternId)}
-    style={{
-      width: 32,
-      height: 32,
-      borderRadius: 4,
-      border: "1px solid #000",
-      backgroundImage: `url(${pattern.patternURL})`,
-      backgroundRepeat: "repeat",
-      backgroundSize: "50%",
-    }}
-  />
-))}
+                {PATTERNS.map((pattern) => (
+                  <button
+                    key={pattern.patternId}
+                    type="button"
+                    aria-label={`Select ${pattern.patternId} pattern`}
+                    onClick={() => onPatternChange(pattern.patternId)}
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 4,
+                      border: "1px solid #000",
+                      backgroundImage: `url(${pattern.patternURL})`,
+                      backgroundRepeat: "repeat",
+                      backgroundSize: "50%",
+                    }}
+                  />
+                ))}
               </div>
             </div>
           )}
