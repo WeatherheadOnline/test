@@ -2,7 +2,6 @@ export type PaletteScope =
   | "fill-solid"
   | "fill-gradient"
   | "fill-stripes"
-  | "fill-pattern"
   | "border"
   | "shadow";
 

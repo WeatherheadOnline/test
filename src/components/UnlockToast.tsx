@@ -32,7 +32,8 @@ export default function UnlockToast({ label }: UnlockToastProps) {
         animationDelay: '1000ms',
       }}
     >
-      New {label} unlocked
+
+<p style={{ whiteSpace: "pre-line" }}>{label}</p>
     </div>
   )
 }

@@ -21,4 +21,9 @@ export const STYLE_OPTIONS: StyleOption[] = [
     arrayName: "stripes",
     buttonText: "Stripes",
   },
+  {
+    unlockId: "style.fill.pattern",
+    arrayName: "pattern",
+    buttonText: "Pattern",
+  },
 ];

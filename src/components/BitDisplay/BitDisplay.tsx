@@ -1,13 +1,17 @@
 import "./bitDisplay.css";
 
 type FillAppearance = {
-  fillStyle: "solid" | "gradient" | "stripes";
+  fillStyle: "solid" | "gradient" | "stripes" | "pattern";
   fillPrimaryColor: string | null;
   gradientColorPair: string | null;
   stripeColorPair: string | null;
 
   stripeThickness: "thin" | "medium" | "thick";
   stripeDirection: "horizontal" | "vertical" | "diagonalL" | "diagonalR";
+
+  patternId: string | null;
+  patternURL?: string | null;
+  patternRepeat?: boolean;
 };
 
 type BorderAppearance = {
@@ -119,6 +123,19 @@ export default function BitDisplay({
         };
       }
 
+      case "pattern": {
+        const patternURL = fill.patternURL ?? "/patterns/checker.svg";
+
+        return {
+          backgroundImage: `url(${patternURL})`,
+          backgroundRepeat: fill.patternRepeat ? "repeat" : "no-repeat",
+          backgroundPosition: "center",
+          backgroundSize: fill.patternRepeat ? "10%" : "cover",
+          backgroundClip: "text",
+          WebkitBackgroundClip: "text",
+          WebkitTextFillColor: "transparent",
+        };
+      }
 
       default:
         return { color: "#000" };
@@ -204,13 +221,13 @@ export default function BitDisplay({
       case "hard":
         return {
           textShadow: `${px(shadowSizes.sm)} ${px(
-            shadowSizes.med
+            shadowSizes.med,
           )} 0 ${shadowColour}`,
         };
       case "standing":
         return {
           textShadow: `${px(shadowSizes.xs)} ${px(shadowSizes.xl)} ${px(
-            shadowSizes.xl
+            shadowSizes.xl,
           )} ${shadowColour}`,
           transform: `scale(1, 0.1) translateY(${
             0.05 * scaleFactor
@@ -236,15 +253,13 @@ export default function BitDisplay({
       case "hard":
         return {
           filter: `drop-shadow(${px(shadowScale.hard * shadowSizes.xs)} ${px(
-            shadowScale.hard * shadowSizes.sm
+            shadowScale.hard * shadowSizes.sm,
           )} 0 ${shadowColour})`,
         };
       default:
         return {};
     }
   })();
-
-
 
   return (
     <div

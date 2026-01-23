@@ -28,16 +28,23 @@ export type UnlockRule =
 export const DEFAULT_UNLOCKS_PREVIEW: UnlockId[] = [
   // styles
   "style.fill.solid",
+  "style.border.none",
+  "style.border.solid",
+  "style.shadow.none",
+  "style.shadow.soft",
 
   // palettes
   "palette.fill.solid.basicNeutrals",
   "palette.fill.solid.basicBrights",
+  "palette.border.single.basicFrame",
+  "palette.shadow.single.basicShadow",
 ];
 
 // Logged in (authenticated, flip_count = 0)
 export const DEFAULT_UNLOCKS_AUTHENTICATED: UnlockId[] = [
   // styles
   "style.fill.solid",
+  "style.fill.pattern",  // REMOVE FROM THIS LIST after finished developing pattern fill
   "style.border.none",
   "style.border.solid",
   "style.shadow.none",
@@ -88,14 +95,14 @@ export const UNLOCK_RULES: UnlockRule[] = [
 
   // 64
   {
-    threshold: 64,
+    threshold: 8,
     type: "palette",
     id: "palette.fill.gradient.sunsetGlow",
   },
 
   // 128
   {
-    threshold: 128,
+    threshold: 16,
     type: "style",
     id: "style.fill.stripes",
   },

@@ -43,6 +43,7 @@ const handleFlip = () => {
         value={status ? "1" : "0"}
         flipCount={flipCount}
         onFlip={handleFlip}
+        showShare={false}
       />
       <div className="button-wrapper bit-exp-CTA-wrapper">
           <Link className="navlink" href="/signup">

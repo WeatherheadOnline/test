@@ -4,6 +4,8 @@
   width="24"
   height="24"
 >
+<rect  />
+<rect width="24" height="24" fill="#000000" />
   <circle cx="6" cy="6" r="3" fill="#FFFFFF" />
   <circle cx="18" cy="6" r="3" fill="#FFFFFF" />
   <circle cx="12" cy="18" r="3" fill="#FFFFFF" />

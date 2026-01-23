@@ -32,12 +32,13 @@ export default function BitExperience({
   flipPending = false,
 }: BitExperienceProps) {
   const [flipToastKey, setFlipToastKey] = useState<number | null>(null);
+  const [unlockToasts, setUnlockToasts] = useState<string[]>([]);
   const flipButtonRef = useRef<HTMLButtonElement | null>(null);
   const flipToastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const hasMountedRef = useRef(false);
-  const [unlockToasts, setUnlockToasts] = useState<string[]>([]);
+  const prevUnlockedRef = useRef<Set<string> | null>(null);
 
-  type FillStyle = "solid" | "gradient" | "stripes";
+  type FillStyle = "solid" | "gradient" | "stripes" | "pattern";
   type StripeThickness = "thin" | "medium" | "thick";
   type StripeDirection = "horizontal" | "vertical" | "diagonalL" | "diagonalR";
 
@@ -54,6 +55,7 @@ export default function BitExperience({
       stripeColorPair: string | null;
       stripeThickness: StripeThickness;
       stripeDirection: StripeDirection;
+      patternId: string | null;
     };
     border: {
       borderStyle: BorderStyle;
@@ -78,22 +80,76 @@ export default function BitExperience({
       }
     | { type: "SET_STRIPE_THICKNESS"; thickness: StripeThickness }
     | { type: "SET_STRIPE_DIRECTION"; direction: StripeDirection }
+    | { type: "SET_PATTERN"; patternId: string }
     | { type: "SET_BORDER_THICKNESS"; thickness: BorderThickness }
     | { type: "SET_BORDER_COLOUR"; colour: string }
     | { type: "SET_SHADOW_COLOUR"; colour: string };
 
-    const unlocked = useMemo(
-  () =>
-    resolveUnlocks({
-      mode,
-      flipCount,
-    }),
-  [mode, flipCount]
-);
+  const unlocked = useMemo(
+    () =>
+      resolveUnlocks({
+        mode,
+        flipCount,
+      }),
+    [mode, flipCount],
+  );
+
+  function unlockIdToToastLabel(unlockId: string): string | null {
+    if (unlockId.startsWith("style.fill.gradient"))
+      return "Gradient fill unlocked";
+    if (unlockId.startsWith("style.fill.stripes"))
+      return "Stripe fill unlocked";
+
+    if (unlockId.startsWith("palette.fill")) return "New fill colours unlocked";
+    if (unlockId.startsWith("palette.border"))
+      return "New border colours unlocked";
+    if (unlockId.startsWith("palette.shadow"))
+      return "New shadow colours unlocked";
+
+    if (unlockId.startsWith("style.shadow")) return "New shadow style unlocked";
+
+    return null;
+  }
+
+  useEffect(() => {
+    if (!prevUnlockedRef.current) {
+      prevUnlockedRef.current = unlocked;
+      return;
+    }
+
+    const newlyUnlocked: string[] = [];
+
+    for (const id of unlocked) {
+      if (!prevUnlockedRef.current.has(id)) {
+        newlyUnlocked.push(id);
+      }
+    }
+
+    if (newlyUnlocked.length > 0) {
+      // setUnlockToasts((prev) => {
+      //   const labels = newlyUnlocked
+      //     .map(unlockIdToToastLabel)
+      //     .filter((l): l is string => Boolean(l));
+
+      //   return labels.length > 0 ? [...prev, ...labels] : prev;
+      // });
+      setUnlockToasts((prev) => {
+        const labels = newlyUnlocked
+          .map(unlockIdToToastLabel)
+          .filter((l): l is string => Boolean(l));
+
+        if (labels.length === 0) return prev;
+
+        return [...prev, labels.join("\n")];
+      });
+    }
+
+    prevUnlockedRef.current = unlocked;
+  }, [unlocked]);
 
   function appearanceReducer(
     state: Appearance,
-    action: AppearanceAction
+    action: AppearanceAction,
   ): Appearance {
     switch (action.type) {
       case "SET_FILL_STYLE":
@@ -166,7 +222,16 @@ export default function BitExperience({
           },
         };
 
-      case "SET_BORDER_THICKNESS":
+case "SET_PATTERN":
+  return {
+    ...state,
+    fill: {
+      ...state.fill,
+      patternId: action.patternId,
+    },
+  };
+
+  case "SET_BORDER_THICKNESS":
         return {
           ...state,
           border: {
@@ -206,6 +271,7 @@ export default function BitExperience({
       stripeColorPair: "#880000 | #000000",
       stripeThickness: "medium",
       stripeDirection: "horizontal",
+      patternId: null,
     },
     border: {
       borderStyle: "none",
@@ -220,7 +286,7 @@ export default function BitExperience({
 
   const [appearance, dispatchAppearance] = useReducer(
     appearanceReducer,
-    initialAppearance
+    initialAppearance,
   );
 
   const unlockIdToLabel = (id: string): string | null => {
@@ -239,6 +305,8 @@ export default function BitExperience({
     // flipCount changed due to a user flip
     setFlipToastKey(Date.now());
   }, [flipCount]);
+
+console.log(appearance.fill);
 
   return (
     <div className="dashboard-container section-wrapper">
@@ -262,7 +330,7 @@ export default function BitExperience({
           fill={appearance.fill}
           border={appearance.border}
           shadow={appearance.shadow}
-        />{" "}
+        />
         {/* Flip switch */}
         <button
           ref={flipButtonRef}
@@ -391,6 +459,9 @@ export default function BitExperience({
         onShadowColourChange={(colour) =>
           dispatchAppearance({ type: "SET_SHADOW_COLOUR", colour })
         }
+        onPatternChange={(patternId) =>
+  dispatchAppearance({ type: "SET_PATTERN", patternId })
+}
       />
     </div>
   );

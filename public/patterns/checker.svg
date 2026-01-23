@@ -4,6 +4,7 @@
   width="20"
   height="20"
 >
+<rect width="24" height="24" fill="#ff49c5" />
   <rect x="0" y="0" width="10" height="10" fill="#FFFFFF" />
   <rect x="10" y="10" width="10" height="10" fill="#FFFFFF" />
 </svg>
