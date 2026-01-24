@@ -8,25 +8,26 @@ import FlipToast from "@/components/FlipToast";
 import UnlockToast from "../UnlockToast";
 import { resolveUnlocks } from "@/lib/unlocks";
 import { PATTERNS, type PatternOption } from "@/lib/patterns";
+import { useUser } from "@/providers/UserProvider";
+import { supabase } from "@/lib/supabase";
 
 type BitExperienceProps = {
   mode: "authenticated" | "preview";
-
   value: "0" | "1";
   flipCount: number;
-
   onFlip: () => void;
-
+  flipPending?: boolean;
   showShare?: boolean;
   onShare?: () => void;
-
-  flipPending?: boolean;
 };
 
-function resolvePattern(patternId: string | null | undefined): PatternOption | null {
-  if (!patternId) return null;
-  return PATTERNS.find(p => p.patternId === patternId) ?? null;
+function resolvePattern(
+  patternId: string | null | undefined,
+): PatternOption | null {
+  const pattern = patternId ? patternId : "checker";
+  return PATTERNS.find((p) => p.patternId === pattern) ?? null;
 }
+
 
 export default function BitExperience({
   mode,
@@ -115,6 +116,14 @@ export default function BitExperience({
     if (unlockId.startsWith("style.shadow")) return "New shadow style unlocked";
 
     return null;
+  }
+
+  function debounce<F extends (...args: any[]) => void>(fn: F, delay: number) {
+    let timeout: NodeJS.Timeout;
+    return (...args: Parameters<F>) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => fn(...args), delay);
+    };
   }
 
   useEffect(() => {
@@ -228,16 +237,16 @@ export default function BitExperience({
           },
         };
 
-case "SET_PATTERN":
-  return {
-    ...state,
-    fill: {
-      ...state.fill,
-      patternId: action.patternId,
-    },
-  };
+      case "SET_PATTERN":
+        return {
+          ...state,
+          fill: {
+            ...state.fill,
+            patternId: action.patternId,
+          },
+        };
 
-  case "SET_BORDER_THICKNESS":
+      case "SET_BORDER_THICKNESS":
         return {
           ...state,
           border: {
@@ -269,7 +278,7 @@ case "SET_PATTERN":
     }
   }
 
-  const initialAppearance: Appearance = {
+  const initialAppearanceDefault: Appearance = {
     fill: {
       fillStyle: "solid",
       fillPrimaryColor: "#000000",
@@ -290,9 +299,42 @@ case "SET_PATTERN":
     },
   };
 
+  const { user, profile, profileLoading } = useUser();
+
+  // debounced save function
+const saveAppearance = useMemo(
+  () =>
+    debounce(async (appearance: Appearance) => {
+      if (!user) return;
+
+      //  Skip if unchanged
+      if (JSON.stringify(appearance) === JSON.stringify(lastSavedAppearanceRef.current)) {
+        return;
+      }
+
+      const { error } = await supabase
+        .from("profiles")
+        .update({ appearance })
+        .eq("id", user.id);
+
+      if (!error) {
+        lastSavedAppearanceRef.current = appearance; // update last saved
+      } else {
+        console.error("Failed to save appearance:", error);
+      }
+    }, 500),
+  [user]
+);
+
   const [appearance, dispatchAppearance] = useReducer(
     appearanceReducer,
-    initialAppearance,
+    profile && profile.appearance
+      ? profile.appearance
+      : initialAppearanceDefault,
+  );
+
+  const lastSavedAppearanceRef = useRef<Appearance | null>(
+    profile?.appearance ?? null,
   );
 
   const unlockIdToLabel = (id: string): string | null => {
@@ -314,11 +356,16 @@ case "SET_PATTERN":
 
   const resolvedPattern = resolvePattern(appearance.fill.patternId);
 
-const fillWithPattern = {
-  ...appearance.fill,
-  patternURL: resolvedPattern?.patternURL,
-  patternRepeat: resolvedPattern?.patternRepeat,
-};
+  const fillWithPattern = {
+    ...appearance.fill,
+    patternURL: resolvedPattern?.patternURL,
+    patternRepeat: resolvedPattern?.patternRepeat,
+  };
+
+  // watch reducer changes
+  useEffect(() => {
+    saveAppearance(appearance);
+  }, [appearance, saveAppearance]);
 
   return (
     <div className="dashboard-container section-wrapper">
@@ -334,17 +381,18 @@ const fillWithPattern = {
       </div>
 
       <div className="bit-flip-wrapper">
-
         {/* Flip toast */}
         {flipToastKey !== null && <FlipToast key={flipToastKey} />}
 
         {/* Giant bit */}
-        <BitDisplay
-          value={value}
-          fill={fillWithPattern}
-          border={appearance.border}
-          shadow={appearance.shadow}
-        />
+        {mode === "authenticated" && !profileLoading && (
+          <BitDisplay
+            value={value}
+            fill={fillWithPattern}
+            border={appearance.border}
+            shadow={appearance.shadow}
+          />
+        )}
 
         {/* Flip switch */}
         <button
@@ -475,8 +523,8 @@ const fillWithPattern = {
           dispatchAppearance({ type: "SET_SHADOW_COLOUR", colour })
         }
         onPatternChange={(patternId) =>
-  dispatchAppearance({ type: "SET_PATTERN", patternId })
-}
+          dispatchAppearance({ type: "SET_PATTERN", patternId })
+        }
       />
     </div>
   );

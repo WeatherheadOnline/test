@@ -9,6 +9,7 @@ import {
 } from "react";
 import { supabase } from "@/lib/supabase";
 import type { Session, User } from "@supabase/supabase-js";
+import { DEFAULT_APPEARANCE } from "@/lib/defaultAppearance";
 
 type UserContextValue = {
   user: User | null;
@@ -28,10 +29,10 @@ type UserContextValue = {
 type DashboardProfile = {
   status: boolean;
   flip_count: number;
+  appearance?: any;
 
   // future
   background_color?: string | null;
-  accessories?: any;
 };
 
 type Profile = {
@@ -86,57 +87,41 @@ export function UserProvider({ children }: { children: ReactNode }) {
     });
   };
 
-//   const loadProfile = async (userId: string) => {
-//     setProfileLoading(true);
+  const loadProfile = async (userId: string) => {
+    setProfileLoading(true);
 
-//     const { data, error } = await supabase
-//       .from("profiles")
-//       .select(
-//         `
-// username,
-// display_name,
-// status,
-// flip_count,
-// background_color,
-// accessories
-// `
-//       )
-//       .eq("id", userId)
-//       .single();
-
-//     if (!error && data) {
-//       setProfile(data);
-//     } else {
-//       setProfile(null);
-//     }
-
-//     setProfileLoading(false);
-//   };
-
-const loadProfile = async (userId: string) => {
-  setProfileLoading(true);
-
-  const { data, error } = await supabase
-    .from("profiles")
-    .select(
-      `
+    const { data, error } = await supabase
+      .from("profiles")
+      .select(
+        `
       username,
       display_name,
       status,
-      flip_count
-      `
-    )
-    .eq("id", userId)
-    .maybeSingle(); // 👈 important
+      flip_count,
+      appearance
+      `,
+      )
+      .eq("id", userId)
+      .maybeSingle(); // 👈 important
 
-  if (error) {
-    setProfile(null);
-  } else {
-    setProfile(data);
-  }
+    // if (error) {
+    //   setProfile(null);
+    // } else {
+    //   setProfile(data);
+    // }
+    if (error || !data) {
+      setProfile(null);
+    } else {
+      // Merge backend appearance with defaults
+      const appearance = { ...DEFAULT_APPEARANCE, ...data.appearance };
+      setProfile({
+        ...data,
+        appearance,
+      });
+    }
 
-  setProfileLoading(false);
-};
+    setProfileLoading(false);
+  };
 
   const refreshProfile = async () => {
     if (!user) return;

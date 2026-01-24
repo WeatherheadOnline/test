@@ -1,4 +1,4 @@
-export type LocalProfile = {
-  status: boolean
-  flipCount: number
-}
+// export type LocalProfile = {
+//   status: boolean
+//   flipCount: number
+// }

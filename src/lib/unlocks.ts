@@ -44,11 +44,15 @@ export const DEFAULT_UNLOCKS_PREVIEW: UnlockId[] = [
 export const DEFAULT_UNLOCKS_AUTHENTICATED: UnlockId[] = [
   // styles
   "style.fill.solid",
+  "style.fill.gradient",  // REMOVE FROM THIS LIST after finished developing pattern fill
+  "style.fill.stripes",  // REMOVE FROM THIS LIST after finished developing pattern fill
   "style.fill.pattern",  // REMOVE FROM THIS LIST after finished developing pattern fill
   "style.border.none",
   "style.border.solid",
   "style.shadow.none",
   "style.shadow.soft",
+  "style.shadow.hard",  // REMOVE FROM THIS LIST after finished developing pattern fill
+  "style.shadow.standing",  // REMOVE FROM THIS LIST after finished developing pattern fill
 
   // fill palettes
   "palette.fill.solid.basicNeutrals",

@@ -123,29 +123,17 @@ export default function BitDisplay({
         };
       }
 
-case "pattern": {
-  if (!fill.patternURL) {
-    return {
-      backgroundImage: "url(/patterns/checker.svg)",
-      backgroundRepeat: "repeat",
-      backgroundPosition: "center",
-      backgroundSize: "10%",
-      backgroundClip: "text",
-      WebkitBackgroundClip: "text",
-      WebkitTextFillColor: "transparent",
-    };
-  }
-
-  return {
-    backgroundImage: `url(${fill.patternURL})`,
-    backgroundRepeat: fill.patternRepeat ? "repeat" : "no-repeat",
-    backgroundPosition: "center",
-    backgroundSize: fill.patternRepeat ? "10%" : "cover",
-    backgroundClip: "text",
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-  };
-}
+      case "pattern": {
+        return {
+          backgroundImage: `url(${fill.patternURL})`,
+          backgroundRepeat: fill.patternRepeat ? "repeat" : "no-repeat",
+          backgroundPosition: "center",
+          backgroundSize: fill.patternRepeat ? "10%" : "cover",
+          backgroundClip: "text",
+          WebkitBackgroundClip: "text",
+          WebkitTextFillColor: "transparent",
+        };
+      }
       default:
         return { color: "#000" };
     }
@@ -191,10 +179,9 @@ case "pattern": {
   // Shadow styles
   // --------------------
   const borderIsNone = border.borderStyle === "none";
+  const shadowColour = shadow.shadowColour;
   const shadowStyleType = shadow.shadowStyle;
   const shadowHandledByStroke = !borderIsNone && shadowStyleType !== "standing";
-
-  const shadowColour = shadow.shadowColour ?? "#555555";
 
   const shadowSizes = {
     xs: 0.5,
