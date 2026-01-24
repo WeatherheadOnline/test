@@ -123,20 +123,29 @@ export default function BitDisplay({
         };
       }
 
-      case "pattern": {
-        const patternURL = fill.patternURL ?? "/patterns/checker.svg";
+case "pattern": {
+  if (!fill.patternURL) {
+    return {
+      backgroundImage: "url(/patterns/checker.svg)",
+      backgroundRepeat: "repeat",
+      backgroundPosition: "center",
+      backgroundSize: "10%",
+      backgroundClip: "text",
+      WebkitBackgroundClip: "text",
+      WebkitTextFillColor: "transparent",
+    };
+  }
 
-        return {
-          backgroundImage: `url(${patternURL})`,
-          backgroundRepeat: fill.patternRepeat ? "repeat" : "no-repeat",
-          backgroundPosition: "center",
-          backgroundSize: fill.patternRepeat ? "10%" : "cover",
-          backgroundClip: "text",
-          WebkitBackgroundClip: "text",
-          WebkitTextFillColor: "transparent",
-        };
-      }
-
+  return {
+    backgroundImage: `url(${fill.patternURL})`,
+    backgroundRepeat: fill.patternRepeat ? "repeat" : "no-repeat",
+    backgroundPosition: "center",
+    backgroundSize: fill.patternRepeat ? "10%" : "cover",
+    backgroundClip: "text",
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+  };
+}
       default:
         return { color: "#000" };
     }

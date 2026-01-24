@@ -44,6 +44,7 @@ export const DEFAULT_UNLOCKS_PREVIEW: UnlockId[] = [
 export const DEFAULT_UNLOCKS_AUTHENTICATED: UnlockId[] = [
   // styles
   "style.fill.solid",
+  "style.fill.pattern",  // REMOVE FROM THIS LIST after finished developing pattern fill
   "style.border.none",
   "style.border.solid",
   "style.shadow.none",

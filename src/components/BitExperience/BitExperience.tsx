@@ -7,6 +7,7 @@ import "./bitExperience.css";
 import FlipToast from "@/components/FlipToast";
 import UnlockToast from "../UnlockToast";
 import { resolveUnlocks } from "@/lib/unlocks";
+import { PATTERNS, type PatternOption } from "@/lib/patterns";
 
 type BitExperienceProps = {
   mode: "authenticated" | "preview";
@@ -21,6 +22,11 @@ type BitExperienceProps = {
 
   flipPending?: boolean;
 };
+
+function resolvePattern(patternId: string | null | undefined): PatternOption | null {
+  if (!patternId) return null;
+  return PATTERNS.find(p => p.patternId === patternId) ?? null;
+}
 
 export default function BitExperience({
   mode,
@@ -306,7 +312,13 @@ case "SET_PATTERN":
     setFlipToastKey(Date.now());
   }, [flipCount]);
 
-console.log(appearance.fill);
+  const resolvedPattern = resolvePattern(appearance.fill.patternId);
+
+const fillWithPattern = {
+  ...appearance.fill,
+  patternURL: resolvedPattern?.patternURL,
+  patternRepeat: resolvedPattern?.patternRepeat,
+};
 
   return (
     <div className="dashboard-container section-wrapper">
@@ -322,15 +334,18 @@ console.log(appearance.fill);
       </div>
 
       <div className="bit-flip-wrapper">
+
         {/* Flip toast */}
         {flipToastKey !== null && <FlipToast key={flipToastKey} />}
+
         {/* Giant bit */}
         <BitDisplay
           value={value}
-          fill={appearance.fill}
+          fill={fillWithPattern}
           border={appearance.border}
           shadow={appearance.shadow}
         />
+
         {/* Flip switch */}
         <button
           ref={flipButtonRef}
