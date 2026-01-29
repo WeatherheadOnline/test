@@ -24,12 +24,15 @@ type UserContextValue = {
   refreshFollowing: () => Promise<void>;
   optimisticallyFollow: (userId: string) => void;
   optimisticallyUnfollow: (userId: string) => void;
+  updateProfileOptimistic: (updates: Partial<Profile>) => void;
+  updateFlipOptimistic: (newStatus: boolean, newFlipCount: number) => void;
 };
 
 type DashboardProfile = {
   status: boolean;
   flip_count: number;
   appearance?: any;
+  unlocks?: string[];
 
   // future
   background_color?: string | null;
@@ -98,11 +101,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
       display_name,
       status,
       flip_count,
-      appearance
+      appearance,
+      unlocks
       `,
       )
       .eq("id", userId)
-      .maybeSingle(); // 👈 important
+      .maybeSingle();
 
     // if (error) {
     //   setProfile(null);
@@ -117,6 +121,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       setProfile({
         ...data,
         appearance,
+        unlocks: data.unlocks ?? [],
       });
     }
 
@@ -126,6 +131,17 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const refreshProfile = async () => {
     if (!user) return;
     await loadProfile(user.id);
+  };
+
+  const updateProfileOptimistic = (updates: Partial<Profile>) => {
+    setProfile((prev) => (prev ? { ...prev, ...updates } : prev));
+  };
+
+  const updateFlipOptimistic = (newStatus: boolean, newFlipCount: number) => {
+    setProfile((prev) => {
+      if (!prev) return prev;
+      return { ...prev, status: newStatus, flip_count: newFlipCount };
+    });
   };
 
   useEffect(() => {
@@ -139,7 +155,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       setSession(data.session);
       setUser(data.session?.user ?? null);
 
-      // 🔑 AUTH READY — routing may proceed
+      // AUTH READY — routing may proceed
       setAuthLoading(false);
 
       if (data.session?.user) {
@@ -189,6 +205,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
         },
         optimisticallyFollow,
         optimisticallyUnfollow,
+        updateProfileOptimistic,
+        updateFlipOptimistic,
       }}
     >
       {children}

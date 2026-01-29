@@ -179,7 +179,7 @@ export default function BitDisplay({
   // Shadow styles
   // --------------------
   const borderIsNone = border.borderStyle === "none";
-  const shadowColour = shadow.shadowColour;
+  const shadowColour = shadow.shadowColour ? shadow.shadowColour : "#424242";
   const shadowStyleType = shadow.shadowStyle;
   const shadowHandledByStroke = !borderIsNone && shadowStyleType !== "standing";
 

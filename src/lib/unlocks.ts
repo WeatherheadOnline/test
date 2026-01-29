@@ -44,15 +44,10 @@ export const DEFAULT_UNLOCKS_PREVIEW: UnlockId[] = [
 export const DEFAULT_UNLOCKS_AUTHENTICATED: UnlockId[] = [
   // styles
   "style.fill.solid",
-  "style.fill.gradient",  // REMOVE FROM THIS LIST after finished developing pattern fill
-  "style.fill.stripes",  // REMOVE FROM THIS LIST after finished developing pattern fill
-  "style.fill.pattern",  // REMOVE FROM THIS LIST after finished developing pattern fill
   "style.border.none",
   "style.border.solid",
   "style.shadow.none",
   "style.shadow.soft",
-  "style.shadow.hard",  // REMOVE FROM THIS LIST after finished developing pattern fill
-  "style.shadow.standing",  // REMOVE FROM THIS LIST after finished developing pattern fill
 
   // fill palettes
   "palette.fill.solid.basicNeutrals",
@@ -167,4 +162,30 @@ export function resolveUnlocks(params: {
   }
 
   return unlocked;
+}
+
+export function getNewUnlocks(params: {
+  flipCount: number;
+  existingUnlocks: Set<UnlockId>;
+}): UnlockId[] {
+  const { flipCount, existingUnlocks } = params;
+
+  const resolved = resolveUnlocks({
+    mode: "authenticated",
+    flipCount,
+  });
+
+  const newlyUnlocked: UnlockId[] = [];
+
+  for (const id of resolved) {
+    if (!existingUnlocks.has(id)) {
+      newlyUnlocked.push(id);
+    }
+  }
+
+  return newlyUnlocked;
+}
+
+export function isUnlockId(value: string): value is UnlockId {
+  return value.startsWith("style.") || value.startsWith("palette.");
 }

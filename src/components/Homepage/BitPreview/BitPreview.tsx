@@ -9,32 +9,43 @@ import "@/styles/globals.css";
 export default function BitPreview() {
   const [status, setStatus] = useState(false);
   const [flipCount, setFlipCount] = useState(0);
-const { config } = useHeaderConfig();
+  const { config } = useHeaderConfig();
 
   const FLIP_COOLDOWN_MS = 200;
   const lastFlipAtRef = useRef<number>(0);
 
-  useEffect(() => {
-    const stored = localStorage.getItem("previewFlipCount");
-    if (stored) setFlipCount(Number(stored));
-  }, []);
+  // useEffect(() => {
+  //   const stored = localStorage.getItem("previewFlipCount");
+  //   if (stored) setFlipCount(Number(stored));
+  // }, []);
 
-  useEffect(() => {
-    localStorage.setItem("previewFlipCount", String(flipCount));
-  }, [flipCount]);
+  // useEffect(() => {
+  //   localStorage.setItem("previewFlipCount", String(flipCount));
+  // }, [flipCount]);
 
-const handleFlip = () => {
-  const now = Date.now();
+  // useEffect(() => {
+  //   const storedStatus = localStorage.getItem("previewBitStatus");
+  //   if (storedStatus !== null) {
+  //     setStatus(storedStatus === "1");
+  //   }
+  // }, []);
 
-  if (now - lastFlipAtRef.current < FLIP_COOLDOWN_MS) {
-    return;
-  }
+  // useEffect(() => {
+  //   localStorage.setItem("previewBitStatus", status ? "1" : "0");
+  // }, [status]);
 
-  lastFlipAtRef.current = now;
+  const handleFlip = () => {
+    const now = Date.now();
 
-  setStatus((prev) => !prev);
-  setFlipCount((prev) => prev + 1);
-};
+    if (now - lastFlipAtRef.current < FLIP_COOLDOWN_MS) {
+      return;
+    }
+
+    lastFlipAtRef.current = now;
+
+    setStatus((prev) => !prev);
+    setFlipCount((prev) => prev + 1);
+  };
 
   return (
     <section className="page-section what-section">
@@ -46,17 +57,17 @@ const handleFlip = () => {
         showShare={false}
       />
       <div className="button-wrapper bit-exp-CTA-wrapper">
-          <Link className="navlink" href="/signup">
-            Sign up
-          </Link>
+        <Link className="navlink" href="/signup">
+          Sign up
+        </Link>
         <button
-  type="button"
-  onClick={() => {
-    config.onLoginClick?.();
-  }}
->
-  Log in
-</button>
+          type="button"
+          onClick={() => {
+            config.onLoginClick?.();
+          }}
+        >
+          Log in
+        </button>
       </div>
     </section>
   );

@@ -1,17 +1,19 @@
-export const DEFAULT_APPEARANCE = {
-  fill: {
+import type { Appearance } from "@/lib/appearance";
+
+export const DEFAULT_APPEARANCE: Appearance = {
+    fill: {
     fillStyle: "solid",
-    patternId: "checker",
-    stripeColorPair: "#FFFFFF | #000000",
-    stripeDirection: "diagonalL",
-    stripeThickness: "medium",
     fillPrimaryColor: "#000000",
     gradientColorPair: "#555555|#000000",
+    stripeColorPair: "#FFFFFF | #000000",
+    stripeThickness: "medium",
+    stripeDirection: "diagonalL",
+    patternId: "checker",
   },
   border: {
     borderStyle: "none",
-    borderColour: "#555555",
     borderThickness: "medium",
+    borderColour: "#555555",
   },
   shadow: {
     shadowStyle: "none",
