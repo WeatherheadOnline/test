@@ -108,11 +108,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
       .eq("id", userId)
       .maybeSingle();
 
-    // if (error) {
-    //   setProfile(null);
-    // } else {
-    //   setProfile(data);
-    // }
     if (error || !data) {
       setProfile(null);
     } else {

@@ -33,4 +33,10 @@ input {
 form button {
     outline: 1px solid #000000;
     background-color: #EEEEEE;
+    cursor: pointer;
+}
+
+form button:disabled {
+    background-color: grey;
+    cursor: default;
 }

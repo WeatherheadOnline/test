@@ -56,27 +56,6 @@ export default function BitExperience({
 
   type ShadowStyle = "none" | "soft" | "hard" | "standing";
 
-  // type Appearance = {
-  //   fill: {
-  //     fillStyle: FillStyle;
-  //     fillPrimaryColor: string | null;
-  //     gradientColorPair: string | null;
-  //     stripeColorPair: string | null;
-  //     stripeThickness: StripeThickness;
-  //     stripeDirection: StripeDirection;
-  //     patternId: string | null;
-  //   };
-  //   border: {
-  //     borderStyle: BorderStyle;
-  //     borderThickness: BorderThickness;
-  //     borderColour: string | null;
-  //   };
-  //   shadow: {
-  //     shadowStyle: ShadowStyle;
-  //     shadowColour: string | null;
-  //   };
-  // };
-
   type AppearanceAction =
     | { type: "SET_FILL_STYLE"; fillStyle: FillStyle }
     | { type: "SET_BORDER_STYLE"; borderStyle: BorderStyle }
@@ -128,18 +107,6 @@ export default function BitExperience({
     [user, profile?.unlocks],
   );
 
-  // const unlocked = useMemo(
-  //   () =>
-  //     resolveUnlocks({
-  //       mode,
-  //       flipCount,
-  //     }),
-  //   [mode, flipCount],
-  // );
-  // const unlocked = useMemo(
-  //   () => new Set(profile?.unlocks ?? []),
-  //   [profile?.unlocks],
-  // );
   // Calculate unlocked items directly
   const unlocked: Set<UnlockId> = (() => {
     if (mode === "preview") {
@@ -329,27 +296,6 @@ export default function BitExperience({
     }
   }
 
-  // const initialAppearanceDefault: Appearance = {
-  //   fill: {
-  //     fillStyle: "solid",
-  //     fillPrimaryColor: "#000000",
-  //     gradientColorPair: "#AAAAAA | #000000",
-  //     stripeColorPair: "#880000 | #000000",
-  //     stripeThickness: "medium",
-  //     stripeDirection: "horizontal",
-  //     patternId: null,
-  //   },
-  //   border: {
-  //     borderStyle: "none",
-  //     borderThickness: "medium",
-  //     borderColour: null,
-  //   },
-  //   shadow: {
-  //     shadowStyle: "none",
-  //     shadowColour: null,
-  //   },
-  // };
-
   // debounced save function
   const saveAppearance = useMemo(
     () =>
@@ -377,46 +323,6 @@ export default function BitExperience({
       }, 500),
     [user],
   );
-
-  // useEffect(() => {
-  //   if (mode !== "authenticated" || !profile) return;
-  //   if (newlyUnlocked.length === 0) return;
-
-  //   saveUnlocks(newlyUnlocked);
-  // }, [newlyUnlocked, saveUnlocks, mode]);
-
-  // useEffect(() => {
-  //   if (mode !== "authenticated" || !profile) return;
-
-  //   const persisted = new Set(profile?.unlocks ?? []);
-  //   const newUnlocks = getNewUnlocks({ flipCount, existingUnlocks: persisted });
-
-  //   if (newUnlocks.length > 0) {
-  //     const labels = newUnlocks
-  //       .map(unlockIdToToastLabel)
-  //       .filter((l): l is string => l !== null);
-
-  //     setUnlockToasts(labels);
-
-  //     // Later: call saveUnlocks(newUnlocks) to persist
-  //   }
-  // }, [flipCount, profile, mode]);
-
-  // const [appearance, dispatchAppearance] = useReducer(
-  //   appearanceReducer,
-  //   profile && profile.appearance
-  //     ? profile.appearance
-  //     : initialAppearanceDefault,
-  // );
-  // const [appearance, dispatchAppearance] = useReducer(
-  //   appearanceReducer,
-  //   mode === "preview"
-  //     ? DEFAULT_APPEARANCE
-  //     : (profile?.appearance as Appearance),
-  // );
-  //   const lastSavedAppearanceRef = useRef<Appearance | null>(
-  //     profile?.appearance ?? null,
-  //   );
 
   const initialAppearance: Appearance =
     mode === "authenticated"
@@ -458,28 +364,11 @@ export default function BitExperience({
   };
 
   // watch reducer changes
-  // useEffect(() => {
-  //   saveAppearance(appearance);
-  // }, [appearance, saveAppearance]);
   useEffect(() => {
-    if (mode === "authenticated") {
-      // Only save for authenticated users
+    if (mode === "authenticated") {      // Only save for authenticated users
       saveAppearance(appearance);
     }
   }, [appearance, saveAppearance]);
-
-  // useEffect(() => {
-  //   if (mode === "preview") {
-  //     localStorage.setItem("previewAppearance", JSON.stringify(appearance));
-  //     return;
-  //   }
-
-  //   // save to backend (debounced) and update context immediately
-  //   saveAppearance(appearance);
-  //   if (user) {
-  //     updateAppearance?.(appearance);
-  //   }
-  // }, [appearance, mode, saveAppearance, updateAppearance, user]);
 
   return (
     <div className="dashboard-container section-wrapper">

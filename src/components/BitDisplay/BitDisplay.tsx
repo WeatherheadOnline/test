@@ -1,6 +1,6 @@
 import "./bitDisplay.css";
 
-type FillAppearance = {
+export type FillAppearance = {
   fillStyle: "solid" | "gradient" | "stripes" | "pattern";
   fillPrimaryColor: string | null;
   gradientColorPair: string | null;
@@ -14,13 +14,13 @@ type FillAppearance = {
   patternRepeat?: boolean;
 };
 
-type BorderAppearance = {
+export type BorderAppearance = {
   borderStyle: "none" | "solid";
   borderThickness: "thin" | "medium" | "thick";
   borderColour: string | null;
 };
 
-type ShadowAppearance = {
+export type ShadowAppearance = {
   shadowStyle: "none" | "soft" | "hard" | "standing";
   shadowColour: string | null;
 };

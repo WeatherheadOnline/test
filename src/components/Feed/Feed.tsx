@@ -5,8 +5,13 @@ import "./feed.css";
 import "@/styles/globals.css";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/providers/UserProvider";
-import FollowButton from "../FollowButton/FollowButton";
-import BitDisplay from "../BitDisplay/BitDisplay";
+import FollowButton from "@/components/FollowButton/FollowButton";
+import BitDisplay, {
+  FillAppearance,
+  BorderAppearance,
+  ShadowAppearance,
+} from "@/components/BitDisplay/BitDisplay";
+import { DEFAULT_APPEARANCE } from "@/lib/defaultAppearance";
 
 type FeedProfile = {
   id: string;
@@ -16,6 +21,11 @@ type FeedProfile = {
   flip_count: number;
   last_flip_at: string | null;
   is_following: boolean;
+  appearance: {
+    fill: FillAppearance;
+    border: BorderAppearance;
+    shadow: ShadowAppearance;
+  } | null;
 };
 
 type SortKey =
@@ -31,10 +41,7 @@ type SortKey =
 export default function Feed() {
   const PAGE_SIZE = 4;
 
-  const {
-    user,
-    userReady,
-  } = useUser();
+  const { user, userReady } = useUser();
 
   type StatusFilter = "all" | "true" | "false";
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -64,7 +71,7 @@ export default function Feed() {
   const commitSearch = () => {
     const trimmed = searchInput.trim();
     setSearchQuery((prev) =>
-      prev === (trimmed || null) ? prev : trimmed || null
+      prev === (trimmed || null) ? prev : trimmed || null,
     );
   };
 
@@ -327,10 +334,10 @@ export default function Feed() {
             {onlyFollowing && statusFilter !== "all"
               ? "Try expanding your search"
               : onlyFollowing && statusFilter === "all"
-              ? "Try expanding your search to users you don't follow"
-              : !onlyFollowing && statusFilter !== "all"
-              ? "Try clearing the filter"
-              : "Nothing flipping here"}
+                ? "Try expanding your search to users you don't follow"
+                : !onlyFollowing && statusFilter !== "all"
+                  ? "Try clearing the filter"
+                  : "Nothing flipping here"}
           </p>
         )}
 
@@ -368,6 +375,13 @@ export default function Feed() {
                 <BitDisplay
                   value={person.status ? "1" : "0"}
                   scaleFactor={0.2}
+                  fill={person.appearance?.fill ?? DEFAULT_APPEARANCE.fill}
+                  border={
+                    person.appearance?.border ?? DEFAULT_APPEARANCE.border
+                  }
+                  shadow={
+                    person.appearance?.shadow ?? DEFAULT_APPEARANCE.shadow
+                  }
                 />
               </div>
 
@@ -388,8 +402,8 @@ export default function Feed() {
 
                   setProfiles((prev) =>
                     prev.map((p) =>
-                      p.id === person.id ? { ...p, is_following: true } : p
-                    )
+                      p.id === person.id ? { ...p, is_following: true } : p,
+                    ),
                   );
 
                   const { error } = await supabase.from("followers").insert({
@@ -400,8 +414,8 @@ export default function Feed() {
                   if (error && error.code !== "23505") {
                     setProfiles((prev) =>
                       prev.map((p) =>
-                        p.id === person.id ? { ...p, is_following: false } : p
-                      )
+                        p.id === person.id ? { ...p, is_following: false } : p,
+                      ),
                     );
                   }
                 }}
@@ -411,8 +425,8 @@ export default function Feed() {
                   // Optimistically update UI
                   setProfiles((prev) =>
                     prev.map((p) =>
-                      p.id === person.id ? { ...p, is_following: false } : p
-                    )
+                      p.id === person.id ? { ...p, is_following: false } : p,
+                    ),
                   );
 
                   const { error } = await supabase
@@ -425,8 +439,8 @@ export default function Feed() {
                   if (error) {
                     setProfiles((prev) =>
                       prev.map((p) =>
-                        p.id === person.id ? { ...p, is_following: true } : p
-                      )
+                        p.id === person.id ? { ...p, is_following: true } : p,
+                      ),
                     );
                   }
                 }}

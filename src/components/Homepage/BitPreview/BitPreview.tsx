@@ -14,26 +14,6 @@ export default function BitPreview() {
   const FLIP_COOLDOWN_MS = 200;
   const lastFlipAtRef = useRef<number>(0);
 
-  // useEffect(() => {
-  //   const stored = localStorage.getItem("previewFlipCount");
-  //   if (stored) setFlipCount(Number(stored));
-  // }, []);
-
-  // useEffect(() => {
-  //   localStorage.setItem("previewFlipCount", String(flipCount));
-  // }, [flipCount]);
-
-  // useEffect(() => {
-  //   const storedStatus = localStorage.getItem("previewBitStatus");
-  //   if (storedStatus !== null) {
-  //     setStatus(storedStatus === "1");
-  //   }
-  // }, []);
-
-  // useEffect(() => {
-  //   localStorage.setItem("previewBitStatus", status ? "1" : "0");
-  // }, [status]);
-
   const handleFlip = () => {
     const now = Date.now();
 

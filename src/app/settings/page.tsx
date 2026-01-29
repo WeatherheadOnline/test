@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useUser } from "@/providers/UserProvider";
@@ -10,8 +10,7 @@ import "./settings.css";
 import RedirectToGate from "@/components/RedirectToGate";
 
 export default function Settings() {
-  const { user, authLoading, profile, userReady } = useUser();
-  const router = useRouter();
+  const { user, profile, userReady } = useUser();
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newEmail, setNewEmail] = useState("");
@@ -22,13 +21,13 @@ export default function Settings() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-if (!userReady) {
-  return null; // or a loading skeleton if you want
-}
+  if (!userReady) {
+    return null; // or a loading skeleton if you want
+  }
 
-if (!user) {
-  return <RedirectToGate />;
-}
+  if (!user) {
+    return <RedirectToGate />;
+  }
 
   const handleNewEmail = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,7 +49,7 @@ if (!user) {
       if (error) throw error;
 
       setSuccess(
-        "Email update requested. Check your new email to confirm the change."
+        "Email update requested. Check your new email to confirm the change.",
       );
       setNewEmail("");
       setCurrentPassword("");
@@ -112,21 +111,27 @@ if (!user) {
             <>
               <p>for {profile.display_name}</p>
             </>
-            ) : ""}
+          ) : (
+            ""
+          )}
 
           <form>
             <fieldset>
-              <h2 className="settings-h">Account</h2>
-
-              <label>
-                Current password
-                <input
-                  type="password"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  required
-                />
+              <h2 className="settings-h">Current Password</h2>
+              <label htmlFor="current-password-input">
+                To update your password or email address, enter your current password.
               </label>
+              <input
+                id="current-password-input"
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                required
+              />
+            </fieldset>
+
+            <fieldset>
+              <h2 className="settings-h">Update Email</h2>
 
               <label>
                 New email
@@ -138,13 +143,17 @@ if (!user) {
                 />
               </label>
 
-              <button type="button" onClick={handleNewEmail}>
+              <button
+                type="button"
+                onClick={handleNewEmail}
+                disabled={currentPassword.length === 0}
+              >
                 Update email
               </button>
             </fieldset>
 
             <fieldset>
-              <h2 className="settings-h">Security</h2>
+              <h2 className="settings-h">Password</h2>
 
               <label>
                 New password
@@ -166,7 +175,11 @@ if (!user) {
                 />
               </label>
 
-              <button type="button" onClick={handleNewPassword}>
+              <button
+                type="button"
+                onClick={handleNewPassword}
+                disabled={currentPassword.length === 0}
+              >
                 Update password
               </button>
             </fieldset>
