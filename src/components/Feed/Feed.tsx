@@ -68,8 +68,24 @@ export default function Feed() {
 
   const searchInputRef = useRef<HTMLInputElement>(null);
 
+  // const commitSearch = () => {
+  //   const trimmed = searchInput.trim();
+  //   setSearchQuery((prev) =>
+  //     prev === (trimmed || null) ? prev : trimmed || null,
+  //   );
+  // };
   const commitSearch = () => {
     const trimmed = searchInput.trim();
+
+    // Block email-style searches (frontend guard only)
+    if (trimmed.includes("@")) {
+      setError("Search by username only");
+      setSearchQuery(null);
+      return;
+    }
+
+    setError(null);
+
     setSearchQuery((prev) =>
       prev === (trimmed || null) ? prev : trimmed || null,
     );
@@ -221,10 +237,14 @@ export default function Feed() {
             <div className="search-wrapper">
               <input
                 type="text"
-                placeholder="Search username or email"
+                placeholder="Search by username"
                 value={searchInput}
                 ref={searchInputRef}
-                onChange={(e) => setSearchInput(e.target.value)}
+                // onChange={(e) => setSearchInput(e.target.value)}
+                onChange={(e) => {
+                  setSearchInput(e.target.value);
+                  if (error) setError(null);
+                }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     e.preventDefault();
@@ -248,7 +268,11 @@ export default function Feed() {
                 </button>
               )}
 
-              <button type="button" onClick={commitSearch}>
+              <button
+                type="button"
+                onClick={commitSearch}
+                aria-label="Search by username"
+              >
                 Search
               </button>
             </div>
@@ -283,7 +307,11 @@ export default function Feed() {
               <input
                 type="text"
                 value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
+                // onChange={(e) => setSearchInput(e.target.value)}
+                onChange={(e) => {
+                  setSearchInput(e.target.value);
+                  if (error) setError(null);
+                }}
                 onKeyDown={(e) => e.key === "Enter" && commitSearch()}
               />
 
