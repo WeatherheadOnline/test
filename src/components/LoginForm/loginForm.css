@@ -6,3 +6,9 @@
 input:focus {
     outline: 3px solid  red;
 }
+
+form {
+    display: "flex";
+    flex-direction: "column";
+    gap: "1rem";
+}

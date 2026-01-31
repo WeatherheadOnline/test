@@ -15,6 +15,7 @@ export default function ShareModal({ onClose, homepageUrl }: Props) {
   const [loading, setLoading] = useState(true);
   const [liveMessage, setLiveMessage] = useState("");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [showCopiedToast, setShowCopiedToast] = useState(false);
 
   // For displaying image size in share-modal image preview:
   const [imageSize, setImageSize] = useState<{
@@ -53,18 +54,18 @@ export default function ShareModal({ onClose, homepageUrl }: Props) {
   useEffect(() => {
     if (imageSize) {
       setLiveMessage(
-        `Image ready. ${imageSize.width} by ${imageSize.height} pixels.`
+        `Image ready. ${imageSize.width} by ${imageSize.height} pixels.`,
       );
     }
   }, [imageSize]);
 
-//   Aria: prevent re-reading on re-render
+  //   Aria: prevent re-reading on re-render
   useEffect(() => {
-  if (liveMessage === "Image ready") {
-    const id = setTimeout(() => setLiveMessage(""), 500);
-    return () => clearTimeout(id);
-  }
-}, [liveMessage]);
+    if (liveMessage === "Image ready") {
+      const id = setTimeout(() => setLiveMessage(""), 500);
+      return () => clearTimeout(id);
+    }
+  }, [liveMessage]);
 
   // Focus management + ESC
 
@@ -76,8 +77,8 @@ export default function ShareModal({ onClose, homepageUrl }: Props) {
       if (!modalRef.current) return [];
       return Array.from(
         modalRef.current.querySelectorAll<HTMLElement>(
-          'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
-        )
+          'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])',
+        ),
       );
     };
 
@@ -86,7 +87,7 @@ export default function ShareModal({ onClose, homepageUrl }: Props) {
       if (focusables.length === 0) return;
 
       const currentIndex = focusables.indexOf(
-        document.activeElement as HTMLElement
+        document.activeElement as HTMLElement,
       );
 
       // ESC closes
@@ -170,7 +171,7 @@ export default function ShareModal({ onClose, homepageUrl }: Props) {
           setPreviewUrl(URL.createObjectURL(b));
           setLoading(false);
           setLiveMessage("Image ready");
-        })
+        }),
     );
   }, []);
 
@@ -192,12 +193,35 @@ export default function ShareModal({ onClose, homepageUrl }: Props) {
     a.click();
   };
 
+  // const copy = async () => {
+  //   if (!pngBlob) return;
+  //   await navigator.clipboard.write([
+  //     new ClipboardItem({ "image/png": pngBlob }),
+  //   ]);
+  // };
   const copy = async () => {
     if (!pngBlob) return;
-    await navigator.clipboard.write([
-      new ClipboardItem({ "image/png": pngBlob }),
-    ]);
+
+    try {
+      await navigator.clipboard.write([
+        new ClipboardItem({ "image/png": pngBlob }),
+      ]);
+
+      setShowCopiedToast(true);
+    } catch (err) {
+      console.error("Failed to copy image", err);
+    }
   };
+
+  useEffect(() => {
+    if (!showCopiedToast) return;
+
+    const timeout = setTimeout(() => {
+      setShowCopiedToast(false);
+    }, 1200); // visible duration
+
+    return () => clearTimeout(timeout);
+  }, [showCopiedToast]);
 
   const shareLink = encodeURIComponent(homepageUrl);
 
@@ -294,6 +318,12 @@ export default function ShareModal({ onClose, homepageUrl }: Props) {
           <p className="share-hint">
             Use “Share image” for Instagram, Messages, or chat apps.
           </p>
+        )}
+
+        {showCopiedToast && (
+          <div className="copy-toast" role="status" aria-live="polite">
+            Copied
+          </div>
         )}
 
         <div className="share-links">

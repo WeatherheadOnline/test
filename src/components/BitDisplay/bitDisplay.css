@@ -1,8 +1,32 @@
 .giant-bit {
   font-size: clamp(20rem, 35vw, 30rem);
   font-family: Caprasimo;
+  position: relative;
+  display: inline-block;
+  line-height: 1;
+  font-weight: 800;
 }
 
 /* .giant-bit span {
   padding: 0 clamp(4rem, 7vw, 6rem);
 } */
+
+.bit-layer {
+  inset: 0;
+  position: absolute;
+}
+
+.bit-shadow {
+  color: transparent;
+  z-index: 1;
+}
+
+.bit-stroke {
+  color: transparent;
+  z-index: 2;
+}
+
+.bit-fill {
+  position: relative;
+  z-index: 3;
+}

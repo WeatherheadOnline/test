@@ -62,3 +62,169 @@
 }
 
 
+/* =========================
+   Menu container
+   ========================= */
+
+.customise-menu-container {
+  width: 100%;
+  background: #0e0e11;
+  color: #fff;
+  border-top: 1px solid #1c1c22;
+}
+
+/* =========================
+   Header button
+   ========================= */
+
+.customise-heading {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 1rem;
+  font-weight: 600;
+
+  background: transparent;
+  color: #fff;
+  border: none;
+
+  cursor: pointer;
+}
+
+.customise-button-active {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.customise-button-inactive {
+  background: transparent;
+}
+
+/* =========================
+   Menu body
+   ========================= */
+
+.customise-body {
+  padding: 1rem;
+}
+
+/* =========================
+   Sections
+   ========================= */
+
+.customise-section {
+  display: block;
+}
+
+.section-spaced {
+  margin-top: 1.5rem;
+}
+
+.customise-section-heading {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+/* =========================
+   Option groups
+   ========================= */
+
+.option-group {
+  margin-top: 0.75rem;
+}
+
+.option-group p {
+  margin: 0 0 0.25rem;
+  font-size: 0.75rem;
+  color: #a0a0ab;
+}
+
+/* =========================
+   Button rows
+   ========================= */
+
+.button-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+/* =========================
+   Buttons (base)
+   ========================= */
+
+.customise-menu-container button {
+  padding: 0.4rem 0.6rem;
+  font-size: 0.75rem;
+
+  background: #18181d;
+  color: #fff;
+
+  border: 1px solid #26262c;
+  border-radius: 8px;
+
+  cursor: pointer;
+}
+
+.customise-menu-container button:hover:not(:disabled) {
+  background: #222228;
+}
+
+.customise-menu-container button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* =========================
+   Color buttons
+   ========================= */
+
+.color-button {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+
+  border-radius: 50%;
+  border: 1px solid #000;
+}
+
+/* =========================
+   Pair buttons
+   ========================= */
+
+.pair-button {
+  width: 48px;
+  height: 24px;
+  padding: 0;
+
+  border-radius: 999px;
+  border: 1px solid #000;
+}
+
+/* =========================
+   Pattern buttons
+   ========================= */
+
+.pattern-button {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+
+  border-radius: 4px;
+  border: 1px solid #000;
+
+  background-repeat: repeat;
+  background-size: 50%;
+}
+
+/* =========================
+   Accessibility
+   ========================= */
+
+button[aria-pressed="true"] {
+  outline: 2px solid #6b6bf7;
+  outline-offset: 1px;
+}

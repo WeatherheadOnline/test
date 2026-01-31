@@ -2,10 +2,10 @@
 
 import { useEffect } from "react";
 import { useUser } from "@/providers/UserProvider";
-import Landing from "@/components/Homepage/Landing/Landing";
-import What from "@/components/Homepage/What/What";
+import Landing from "@/components/Landing/Landing";
+import What from "@/components/What/What";
 import Feed from "@/components/Feed/Feed";
-import BitPreview from "@/components/Homepage/BitPreview/BitPreview";
+import BitPreview from "@/components/BitPreview/BitPreview";
 
 export default function Home() {
   const { user, authLoading } = useUser();

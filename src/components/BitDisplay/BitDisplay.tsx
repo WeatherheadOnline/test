@@ -263,20 +263,12 @@ export default function BitDisplay({
       className="giant-bit"
       role="img"
       aria-label={`Your bit is ${value}`}
-      style={{
-        position: "relative",
-        lineHeight: 1,
-        fontWeight: 800,
-      }}
     >
       {/* Shadow layer */}
       <span
         aria-hidden
+        className="bit-layer bit-shadow"
         style={{
-          position: "absolute",
-          inset: 0,
-          color: "transparent",
-          zIndex: 1,
           padding: `0 ${horizontalPadding}`,
           ...textShadowStyle,
         }}
@@ -287,11 +279,8 @@ export default function BitDisplay({
       {/* Stroke layer */}
       <span
         aria-hidden
+        className="bit-layer bit-stroke"
         style={{
-          position: "absolute",
-          inset: 0,
-          color: "transparent",
-          zIndex: 2,
           padding: `0 ${horizontalPadding}`,
           ...strokeStyle,
           ...dropShadowStyle,
@@ -302,11 +291,8 @@ export default function BitDisplay({
 
       {/* Fill layer */}
       <span
+        className="bit-layer bit-fill"
         style={{
-          position: "relative",
-          inset: 0,
-
-          zIndex: 3,
           padding: `0 ${horizontalPadding}`,
           ...getFillStyle(),
         }}
@@ -315,4 +301,62 @@ export default function BitDisplay({
       </span>
     </div>
   );
+  // return (
+  //   <div
+  //     id="bit-capture"
+  //     className="giant-bit"
+  //     role="img"
+  //     aria-label={`Your bit is ${value}`}
+  //     style={{
+  //       position: "relative",
+  //       lineHeight: 1,
+  //       fontWeight: 800,
+  //     }}
+  //   >
+  //     {/* Shadow layer */}
+  //     <span
+  //       aria-hidden
+  //       style={{
+  //         position: "absolute",
+  //         inset: 0,
+  //         color: "transparent",
+  //         zIndex: 1,
+  //         padding: `0 ${horizontalPadding}`,
+  //         ...textShadowStyle,
+  //       }}
+  //     >
+  //       {value}
+  //     </span>
+
+  //     {/* Stroke layer */}
+  //     <span
+  //       aria-hidden
+  //       style={{
+  //         position: "absolute",
+  //         inset: 0,
+  //         color: "transparent",
+  //         zIndex: 2,
+  //         padding: `0 ${horizontalPadding}`,
+  //         ...strokeStyle,
+  //         ...dropShadowStyle,
+  //       }}
+  //     >
+  //       {value}
+  //     </span>
+
+  //     {/* Fill layer */}
+  //     <span
+  //       style={{
+  //         position: "relative",
+  //         inset: 0,
+
+  //         zIndex: 3,
+  //         padding: `0 ${horizontalPadding}`,
+  //         ...getFillStyle(),
+  //       }}
+  //     >
+  //       {value}
+  //     </span>
+  //   </div>
+  // );
 }

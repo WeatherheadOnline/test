@@ -1,0 +1,48 @@
+import { ReactNode } from 'react'
+import './section.css';
+
+type SectionProps = {
+  children: ReactNode
+  minHeight?: string
+}
+
+export default function Section({
+  children,
+  minHeight = '100vh',
+}: SectionProps) {
+
+    return (
+    <section
+      className="section"
+      style={{ minHeight }}
+    >
+      <div className="section-inner">
+        {children}
+      </div>
+    </section>
+  )
+
+  // return (
+  //   <section
+  //     style={{
+  //       width: '100%',
+  //       minHeight,
+  //       display: 'flex',
+  //       justifyContent: 'center',
+  //     }}
+  //   >
+  //     <div
+  //       style={{
+  //         width: '100%',
+  //         maxWidth: '1200px',
+  //         padding: '4rem 1.5rem',
+  //         display: 'flex',
+  //         flexDirection: 'column',
+  //         alignItems: 'center',
+  //       }}
+  //     >
+  //       {children}
+  //     </div>
+  //   </section>
+  // )
+}

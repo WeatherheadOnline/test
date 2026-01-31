@@ -1,0 +1,43 @@
+.unlock-toast {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  z-index: 1000;
+  pointer-events: none;
+
+  background: #111;
+  color: #fff;
+
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+
+  font-size: 0.9rem;
+  opacity: 0.95;
+
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+
+  animation: unlock-toast-exit 1000ms ease forwards;
+  animation-delay: 1000ms;
+}
+
+.unlock-toast-label {
+  margin: 0;
+  white-space: pre-line;
+}
+
+/* Exit animation */
+@keyframes unlock-toast-exit {
+  from {
+    opacity: 0.95;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+}

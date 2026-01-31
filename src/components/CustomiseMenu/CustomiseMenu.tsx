@@ -158,44 +158,39 @@ export default function CustomiseMenu({
         ref={menuRef}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
-        style={{
-          display: isOpen ? "block" : "none",
-        }}
+        style={{ display: isOpen ? "block" : "none" }}
       >
         {/* Fill section */}
         <section aria-labelledby="fill-heading" className="customise-section">
-          <h2 id="fill-heading" style={{ fontSize: "0.9rem" }}>
+          <h2 id="fill-heading" className="customise-section-heading">
             Fill
           </h2>
 
           {/* Fill style */}
-          <div style={{ display: "flex", gap: "0.5rem" }}>
+          <div className="button-row">
             {STYLE_OPTIONS.map((option) => {
               const isUnlocked = unlocked.has(option.unlockId);
 
               return (
                 <button
-                  key={option.arrayName} // unique key for React
+                  key={option.arrayName}
                   type="button"
-                  disabled={!isUnlocked} // disable if not unlocked
+                  disabled={!isUnlocked}
                   aria-pressed={fillStyle === option.arrayName}
                   onClick={() => onFillStyleChange(option.arrayName)}
                 >
-                  {option.buttonText} {/* render display text */}
+                  {option.buttonText}
                   {!isUnlocked && "🔒"}
                 </button>
               );
             })}
           </div>
 
-          {/* Primary colour (conditional - if fill = solid) */}
+          {/* Primary colour (solid only) */}
           {fillStyle === "solid" && (
-            <div style={{ marginTop: "0.75rem" }}>
+            <div className="option-group">
               <p>Colour</p>
-              <div
-                className="flex-wrap"
-                style={{ display: "flex", gap: "0.5rem" }}
-              >
+              <div className="button-row flex-wrap">
                 {fillPalettes
                   .filter((palette) => palette.type === "single")
                   .flatMap((palette) =>
@@ -207,27 +202,19 @@ export default function CustomiseMenu({
                       type="button"
                       aria-label={`Set primary colour to ${color.colorID}`}
                       onClick={() => onFillPrimaryColorChange(color.hex)}
-                      style={{
-                        width: 24,
-                        height: 24,
-                        borderRadius: "50%",
-                        background: color.hex,
-                        border: "1px solid #000",
-                      }}
+                      className="color-button"
+                      style={{ background: color.hex }}
                     />
                   ))}
               </div>
             </div>
           )}
 
-          {/* Color pairs (conditional - if fill = gradient | stripes) */}
+          {/* Colour pairs (gradient / stripes) */}
           {(fillStyle === "gradient" || fillStyle === "stripes") && (
-            <div style={{ marginTop: "0.75rem" }}>
+            <div className="option-group">
               <p>Colour pairs</p>
-              <div
-                className="flex-wrap"
-                style={{ display: "flex", gap: "0.5rem" }}
-              >
+              <div className="button-row flex-wrap">
                 {fillPalettes
                   .filter((palette) => palette.type === "dual")
                   .flatMap((palette) =>
@@ -244,16 +231,13 @@ export default function CustomiseMenu({
                           `${pair.hex}|${pair.hex2}`,
                         )
                       }
+                      className="pair-button"
                       style={{
-                        width: 48,
-                        height: 24,
-                        borderRadius: 999,
-                        border: "1px solid #000",
                         background: `linear-gradient(
-          to right,
-          ${pair.hex} 50%,
-          ${pair.hex2} 50%
-        )`,
+                        to right,
+                        ${pair.hex} 50%,
+                        ${pair.hex2} 50%
+                      )`,
                       }}
                     />
                   ))}
@@ -261,14 +245,11 @@ export default function CustomiseMenu({
             </div>
           )}
 
-          {/* Stripe direction (conditional - stripes only) */}
+          {/* Stripe direction */}
           {fillStyle === "stripes" && (
-            <div style={{ marginTop: "0.75rem" }}>
+            <div className="option-group">
               <p>Direction</p>
-              <div
-                className="flex-wrap"
-                style={{ display: "flex", gap: "0.5rem" }}
-              >
+              <div className="button-row flex-wrap">
                 {(
                   ["horizontal", "vertical", "diagonalL", "diagonalR"] as const
                 ).map((direction) => (
@@ -288,14 +269,11 @@ export default function CustomiseMenu({
             </div>
           )}
 
-          {/* Stripe thickness (conditional - stripes only) */}
+          {/* Stripe thickness */}
           {fillStyle === "stripes" && (
-            <div style={{ marginTop: "0.75rem" }}>
+            <div className="option-group">
               <p>Thickness</p>
-              <div
-                className="flex-wrap"
-                style={{ display: "flex", gap: "0.5rem" }}
-              >
+              <div className="button-row flex-wrap">
                 {(["thin", "medium", "thick"] as const).map((thickness) => (
                   <button
                     key={thickness}
@@ -309,53 +287,20 @@ export default function CustomiseMenu({
             </div>
           )}
 
-          {fillStyle === "stripes" && (
-            <div style={{ marginTop: "0.75rem" }}>
-              <p>Direction</p>
-              <div
-                className="flex-wrap"
-                style={{ display: "flex", gap: "0.5rem" }}
-              >
-                {(
-                  ["horizontal", "vertical", "diagonalL", "diagonalR"] as const
-                ).map((direction) => (
-                  <button
-                    key={direction}
-                    type="button"
-                    onClick={() => onStripeDirectionChange(direction)}
-                  >
-                    {direction === "diagonalL"
-                      ? "Diagonal ↘"
-                      : direction === "diagonalR"
-                        ? "Diagonal ↗"
-                        : direction}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
+          {/* Pattern */}
           {fillStyle === "pattern" && (
-            <div style={{ marginTop: "0.75rem" }}>
+            <div className="option-group">
               <p>Pattern</p>
-              <div
-                className="flex-wrap"
-                style={{ display: "flex", gap: "0.5rem" }}
-              >
+              <div className="button-row flex-wrap">
                 {PATTERNS.map((pattern) => (
                   <button
                     key={pattern.patternId}
                     type="button"
                     aria-label={`Select ${pattern.patternId} pattern`}
                     onClick={() => onPatternChange(pattern.patternId)}
+                    className="pattern-button"
                     style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: 4,
-                      border: "1px solid #000",
                       backgroundImage: `url(${pattern.patternURL})`,
-                      backgroundRepeat: "repeat",
-                      backgroundSize: "50%",
                     }}
                   />
                 ))}
@@ -366,19 +311,16 @@ export default function CustomiseMenu({
 
         {/* Border section */}
         <section
-          className="customise-section"
+          className="customise-section section-spaced"
           aria-labelledby="border-heading"
-          style={{ marginTop: "1.5rem" }}
         >
-          <h2 id="border-heading" style={{ fontSize: "0.9rem" }}>
+          <h2 id="border-heading" className="customise-section-heading">
             Border
           </h2>
 
-          {/* Choose none or solid  */}
-
-          <div style={{ marginTop: "0.5rem" }}>
+          <div className="option-group">
             <p>Border style</p>
-            <div style={{ display: "flex", gap: "0.5rem" }}>
+            <div className="button-row">
               {(["none", "solid"] as const).map((style) => {
                 const unlockId =
                   style === "none" ? "style.border.none" : "style.border.solid";
@@ -400,14 +342,10 @@ export default function CustomiseMenu({
               })}
             </div>
 
-            {/* If solid border: choose primary colour */}
             {borderStyle === "solid" && (
-              <div style={{ marginTop: "0.75rem" }}>
+              <div className="option-group">
                 <p>Colour</p>
-                <div
-                  className="flex-wrap"
-                  style={{ display: "flex", gap: "0.5rem" }}
-                >
+                <div className="button-row flex-wrap">
                   {borderPalettes
                     .flatMap((palette) =>
                       unlocked.has(palette.unlockId) ? palette.colors : [],
@@ -418,38 +356,31 @@ export default function CustomiseMenu({
                         type="button"
                         aria-label={`Set border colour to ${color.colorID}`}
                         onClick={() => onBorderColourChange(color.hex)}
-                        style={{
-                          width: 24,
-                          height: 24,
-                          borderRadius: "50%",
-                          background: color.hex,
-                          border: "1px solid #000",
-                        }}
+                        className="color-button"
+                        style={{ background: color.hex }}
                       />
                     ))}
                 </div>
               </div>
             )}
+
             {borderStyle !== "none" && (
-              <div style={{ marginTop: "0.75rem" }}>
+              <div className="option-group">
                 <p>Border thickness</p>
-                <div style={{ display: "flex", gap: "0.5rem" }}>
-                  {(["thin", "medium", "thick"] as const).map((thickness) => {
-                    return (
-                      <button
-                        key={thickness}
-                        type="button"
-                        // aria-pressed={border.borderThickness === thickness} // optional for accessibility
-                        onClick={() => onBorderThicknessChange(thickness)} // <-- wired up
-                      >
-                        {thickness === "thin"
-                          ? "Thin"
-                          : thickness === "medium"
-                            ? "Medium"
-                            : "Thick"}
-                      </button>
-                    );
-                  })}
+                <div className="button-row">
+                  {(["thin", "medium", "thick"] as const).map((thickness) => (
+                    <button
+                      key={thickness}
+                      type="button"
+                      onClick={() => onBorderThicknessChange(thickness)}
+                    >
+                      {thickness === "thin"
+                        ? "Thin"
+                        : thickness === "medium"
+                          ? "Medium"
+                          : "Thick"}
+                    </button>
+                  ))}
                 </div>
               </div>
             )}
@@ -458,20 +389,16 @@ export default function CustomiseMenu({
 
         {/* Shadow section */}
         <section
-          className="customise-section"
+          className="customise-section section-spaced"
           aria-labelledby="shadow-heading"
-          style={{ marginTop: "1.5rem" }}
         >
-          <h2 id="shadow-heading" style={{ fontSize: "0.9rem" }}>
+          <h2 id="shadow-heading" className="customise-section-heading">
             Shadow
           </h2>
 
-          <div style={{ marginTop: "0.5rem" }}>
+          <div className="option-group">
             <p>Shadow style</p>
-            <div
-              className="flex-wrap"
-              style={{ display: "flex", gap: "0.5rem" }}
-            >
+            <div className="button-row flex-wrap">
               {(["none", "soft", "hard", "standing"] as const).map((style) => {
                 const unlockId = `style.shadow.${style}`;
                 const isUnlocked = unlocked.has(unlockId);
@@ -498,12 +425,9 @@ export default function CustomiseMenu({
             </div>
 
             {shadowStyle !== "none" && (
-              <div style={{ marginTop: "0.75rem" }}>
+              <div className="option-group">
                 <p>Shadow colour</p>
-                <div
-                  className="color-buttons flex-wrap"
-                  style={{ display: "flex", gap: "0.5rem" }}
-                >
+                <div className="button-row flex-wrap">
                   {shadowPalettes
                     .flatMap((palette) =>
                       unlocked.has(palette.unlockId) ? palette.colors : [],
@@ -514,13 +438,8 @@ export default function CustomiseMenu({
                         type="button"
                         aria-label={`Set shadow colour to ${color.colorID}`}
                         onClick={() => onShadowColourChange(color.hex)}
-                        style={{
-                          width: 24,
-                          height: 24,
-                          borderRadius: "50%",
-                          background: color.hex,
-                          border: "1px solid #000",
-                        }}
+                        className="color-button"
+                        style={{ background: color.hex }}
                       />
                     ))}
                 </div>
@@ -531,4 +450,406 @@ export default function CustomiseMenu({
       </div>
     </div>
   );
+
+  // return (
+  //   <div
+  //     aria-labelledby="customise-heading"
+  //     className="customise-menu-container"
+  //   >
+  //     {/* Header */}
+  //     <button
+  //       ref={buttonRef}
+  //       type="button"
+  //       aria-expanded={isOpen}
+  //       aria-controls="customise-body"
+  //       id="customise-heading"
+  //       className={
+  //         "customise-heading " +
+  //         (isOpen ? "customise-button-active" : "customise-button-inactive")
+  //       }
+  //       onClick={() => setIsOpen((prev) => !prev)}
+  //     >
+  //       Customise
+  //     </button>
+
+  //     {/* Body */}
+  //     <div
+  //       id="customise-body"
+  //       className="customise-body"
+  //       ref={menuRef}
+  //       onTouchStart={onTouchStart}
+  //       onTouchMove={onTouchMove}
+  //       style={{
+  //         display: isOpen ? "block" : "none",
+  //       }}
+  //     >
+  //       {/* Fill section */}
+  //       <section aria-labelledby="fill-heading" className="customise-section">
+  //         <h2 id="fill-heading" style={{ fontSize: "0.9rem" }}>
+  //           Fill
+  //         </h2>
+
+  //         {/* Fill style */}
+  //         <div style={{ display: "flex", gap: "0.5rem" }}>
+  //           {STYLE_OPTIONS.map((option) => {
+  //             const isUnlocked = unlocked.has(option.unlockId);
+
+  //             return (
+  //               <button
+  //                 key={option.arrayName} // unique key for React
+  //                 type="button"
+  //                 disabled={!isUnlocked} // disable if not unlocked
+  //                 aria-pressed={fillStyle === option.arrayName}
+  //                 onClick={() => onFillStyleChange(option.arrayName)}
+  //               >
+  //                 {option.buttonText} {/* render display text */}
+  //                 {!isUnlocked && "🔒"}
+  //               </button>
+  //             );
+  //           })}
+  //         </div>
+
+  //         {/* Primary colour (conditional - if fill = solid) */}
+  //         {fillStyle === "solid" && (
+  //           <div style={{ marginTop: "0.75rem" }}>
+  //             <p>Colour</p>
+  //             <div
+  //               className="flex-wrap"
+  //               style={{ display: "flex", gap: "0.5rem" }}
+  //             >
+  //               {fillPalettes
+  //                 .filter((palette) => palette.type === "single")
+  //                 .flatMap((palette) =>
+  //                   unlocked.has(palette.unlockId) ? palette.colors : [],
+  //                 )
+  //                 .map((color) => (
+  //                   <button
+  //                     key={color.colorID}
+  //                     type="button"
+  //                     aria-label={`Set primary colour to ${color.colorID}`}
+  //                     onClick={() => onFillPrimaryColorChange(color.hex)}
+  //                     style={{
+  //                       width: 24,
+  //                       height: 24,
+  //                       borderRadius: "50%",
+  //                       background: color.hex,
+  //                       border: "1px solid #000",
+  //                     }}
+  //                   />
+  //                 ))}
+  //             </div>
+  //           </div>
+  //         )}
+
+  //         {/* Color pairs (conditional - if fill = gradient | stripes) */}
+  //         {(fillStyle === "gradient" || fillStyle === "stripes") && (
+  //           <div style={{ marginTop: "0.75rem" }}>
+  //             <p>Colour pairs</p>
+  //             <div
+  //               className="flex-wrap"
+  //               style={{ display: "flex", gap: "0.5rem" }}
+  //             >
+  //               {fillPalettes
+  //                 .filter((palette) => palette.type === "dual")
+  //                 .flatMap((palette) =>
+  //                   unlocked.has(palette.unlockId) ? palette.colors : [],
+  //                 )
+  //                 .map((pair) => (
+  //                   <button
+  //                     key={`${pair.colorID}-${pair.colorID2}`}
+  //                     type="button"
+  //                     aria-label={`Set colour pair ${pair.colorID} and ${pair.colorID2}`}
+  //                     onClick={() =>
+  //                       onFillColorPairChange(
+  //                         fillStyle,
+  //                         `${pair.hex}|${pair.hex2}`,
+  //                       )
+  //                     }
+  //                     style={{
+  //                       width: 48,
+  //                       height: 24,
+  //                       borderRadius: 999,
+  //                       border: "1px solid #000",
+  //                       background: `linear-gradient(
+  //         to right,
+  //         ${pair.hex} 50%,
+  //         ${pair.hex2} 50%
+  //       )`,
+  //                     }}
+  //                   />
+  //                 ))}
+  //             </div>
+  //           </div>
+  //         )}
+
+  //         {/* Stripe direction (conditional - stripes only) */}
+  //         {fillStyle === "stripes" && (
+  //           <div style={{ marginTop: "0.75rem" }}>
+  //             <p>Direction</p>
+  //             <div
+  //               className="flex-wrap"
+  //               style={{ display: "flex", gap: "0.5rem" }}
+  //             >
+  //               {(
+  //                 ["horizontal", "vertical", "diagonalL", "diagonalR"] as const
+  //               ).map((direction) => (
+  //                 <button
+  //                   key={direction}
+  //                   type="button"
+  //                   onClick={() => onStripeDirectionChange(direction)}
+  //                 >
+  //                   {direction === "diagonalL"
+  //                     ? "Diagonal ↘"
+  //                     : direction === "diagonalR"
+  //                       ? "Diagonal ↗"
+  //                       : direction}
+  //                 </button>
+  //               ))}
+  //             </div>
+  //           </div>
+  //         )}
+
+  //         {/* Stripe thickness (conditional - stripes only) */}
+  //         {fillStyle === "stripes" && (
+  //           <div style={{ marginTop: "0.75rem" }}>
+  //             <p>Thickness</p>
+  //             <div
+  //               className="flex-wrap"
+  //               style={{ display: "flex", gap: "0.5rem" }}
+  //             >
+  //               {(["thin", "medium", "thick"] as const).map((thickness) => (
+  //                 <button
+  //                   key={thickness}
+  //                   type="button"
+  //                   onClick={() => onStripeThicknessChange(thickness)}
+  //                 >
+  //                   {thickness}
+  //                 </button>
+  //               ))}
+  //             </div>
+  //           </div>
+  //         )}
+
+  //         {fillStyle === "stripes" && (
+  //           <div style={{ marginTop: "0.75rem" }}>
+  //             <p>Direction</p>
+  //             <div
+  //               className="flex-wrap"
+  //               style={{ display: "flex", gap: "0.5rem" }}
+  //             >
+  //               {(
+  //                 ["horizontal", "vertical", "diagonalL", "diagonalR"] as const
+  //               ).map((direction) => (
+  //                 <button
+  //                   key={direction}
+  //                   type="button"
+  //                   onClick={() => onStripeDirectionChange(direction)}
+  //                 >
+  //                   {direction === "diagonalL"
+  //                     ? "Diagonal ↘"
+  //                     : direction === "diagonalR"
+  //                       ? "Diagonal ↗"
+  //                       : direction}
+  //                 </button>
+  //               ))}
+  //             </div>
+  //           </div>
+  //         )}
+
+  //         {fillStyle === "pattern" && (
+  //           <div style={{ marginTop: "0.75rem" }}>
+  //             <p>Pattern</p>
+  //             <div
+  //               className="flex-wrap"
+  //               style={{ display: "flex", gap: "0.5rem" }}
+  //             >
+  //               {PATTERNS.map((pattern) => (
+  //                 <button
+  //                   key={pattern.patternId}
+  //                   type="button"
+  //                   aria-label={`Select ${pattern.patternId} pattern`}
+  //                   onClick={() => onPatternChange(pattern.patternId)}
+  //                   style={{
+  //                     width: 32,
+  //                     height: 32,
+  //                     borderRadius: 4,
+  //                     border: "1px solid #000",
+  //                     backgroundImage: `url(${pattern.patternURL})`,
+  //                     backgroundRepeat: "repeat",
+  //                     backgroundSize: "50%",
+  //                   }}
+  //                 />
+  //               ))}
+  //             </div>
+  //           </div>
+  //         )}
+  //       </section>
+
+  //       {/* Border section */}
+  //       <section
+  //         className="customise-section"
+  //         aria-labelledby="border-heading"
+  //         style={{ marginTop: "1.5rem" }}
+  //       >
+  //         <h2 id="border-heading" style={{ fontSize: "0.9rem" }}>
+  //           Border
+  //         </h2>
+
+  //         {/* Choose none or solid  */}
+
+  //         <div style={{ marginTop: "0.5rem" }}>
+  //           <p>Border style</p>
+  //           <div style={{ display: "flex", gap: "0.5rem" }}>
+  //             {(["none", "solid"] as const).map((style) => {
+  //               const unlockId =
+  //                 style === "none" ? "style.border.none" : "style.border.solid";
+
+  //               const isUnlocked = unlocked.has(unlockId);
+
+  //               return (
+  //                 <button
+  //                   key={style}
+  //                   type="button"
+  //                   disabled={!isUnlocked}
+  //                   aria-pressed={borderStyle === style}
+  //                   onClick={() => onBorderStyleChange(style)}
+  //                 >
+  //                   {style === "none" ? "None" : "Solid"}
+  //                   {!isUnlocked && "🔒"}
+  //                 </button>
+  //               );
+  //             })}
+  //           </div>
+
+  //           {/* If solid border: choose primary colour */}
+  //           {borderStyle === "solid" && (
+  //             <div style={{ marginTop: "0.75rem" }}>
+  //               <p>Colour</p>
+  //               <div
+  //                 className="flex-wrap"
+  //                 style={{ display: "flex", gap: "0.5rem" }}
+  //               >
+  //                 {borderPalettes
+  //                   .flatMap((palette) =>
+  //                     unlocked.has(palette.unlockId) ? palette.colors : [],
+  //                   )
+  //                   .map((color) => (
+  //                     <button
+  //                       key={color.colorID}
+  //                       type="button"
+  //                       aria-label={`Set border colour to ${color.colorID}`}
+  //                       onClick={() => onBorderColourChange(color.hex)}
+  //                       style={{
+  //                         width: 24,
+  //                         height: 24,
+  //                         borderRadius: "50%",
+  //                         background: color.hex,
+  //                         border: "1px solid #000",
+  //                       }}
+  //                     />
+  //                   ))}
+  //               </div>
+  //             </div>
+  //           )}
+  //           {borderStyle !== "none" && (
+  //             <div style={{ marginTop: "0.75rem" }}>
+  //               <p>Border thickness</p>
+  //               <div style={{ display: "flex", gap: "0.5rem" }}>
+  //                 {(["thin", "medium", "thick"] as const).map((thickness) => {
+  //                   return (
+  //                     <button
+  //                       key={thickness}
+  //                       type="button"
+  //                       // aria-pressed={border.borderThickness === thickness} // optional for accessibility
+  //                       onClick={() => onBorderThicknessChange(thickness)} // <-- wired up
+  //                     >
+  //                       {thickness === "thin"
+  //                         ? "Thin"
+  //                         : thickness === "medium"
+  //                           ? "Medium"
+  //                           : "Thick"}
+  //                     </button>
+  //                   );
+  //                 })}
+  //               </div>
+  //             </div>
+  //           )}
+  //         </div>
+  //       </section>
+
+  //       {/* Shadow section */}
+  //       <section
+  //         className="customise-section"
+  //         aria-labelledby="shadow-heading"
+  //         style={{ marginTop: "1.5rem" }}
+  //       >
+  //         <h2 id="shadow-heading" style={{ fontSize: "0.9rem" }}>
+  //           Shadow
+  //         </h2>
+
+  //         <div style={{ marginTop: "0.5rem" }}>
+  //           <p>Shadow style</p>
+  //           <div
+  //             className="flex-wrap"
+  //             style={{ display: "flex", gap: "0.5rem" }}
+  //           >
+  //             {(["none", "soft", "hard", "standing"] as const).map((style) => {
+  //               const unlockId = `style.shadow.${style}`;
+  //               const isUnlocked = unlocked.has(unlockId);
+
+  //               return (
+  //                 <button
+  //                   key={style}
+  //                   type="button"
+  //                   disabled={!isUnlocked}
+  //                   aria-pressed={shadowStyle === style}
+  //                   onClick={() => onShadowStyleChange(style)}
+  //                 >
+  //                   {style === "none"
+  //                     ? "None"
+  //                     : style === "soft"
+  //                       ? "Soft"
+  //                       : style === "hard"
+  //                         ? "Hard"
+  //                         : "Standing"}
+  //                   {!isUnlocked && "🔒"}
+  //                 </button>
+  //               );
+  //             })}
+  //           </div>
+
+  //           {shadowStyle !== "none" && (
+  //             <div style={{ marginTop: "0.75rem" }}>
+  //               <p>Shadow colour</p>
+  //               <div
+  //                 className="color-buttons flex-wrap"
+  //                 style={{ display: "flex", gap: "0.5rem" }}
+  //               >
+  //                 {shadowPalettes
+  //                   .flatMap((palette) =>
+  //                     unlocked.has(palette.unlockId) ? palette.colors : [],
+  //                   )
+  //                   .map((color) => (
+  //                     <button
+  //                       key={color.colorID}
+  //                       type="button"
+  //                       aria-label={`Set shadow colour to ${color.colorID}`}
+  //                       onClick={() => onShadowColourChange(color.hex)}
+  //                       style={{
+  //                         width: 24,
+  //                         height: 24,
+  //                         borderRadius: "50%",
+  //                         background: color.hex,
+  //                         border: "1px solid #000",
+  //                       }}
+  //                     />
+  //                   ))}
+  //               </div>
+  //             </div>
+  //           )}
+  //         </div>
+  //       </section>
+  //     </div>
+  //   </div>
+  // );
 }

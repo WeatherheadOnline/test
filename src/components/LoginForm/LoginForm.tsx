@@ -4,6 +4,7 @@ import { forwardRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import "./loginForm.css";
+import "@/styles/globals.css";
 
 const LoginForm = forwardRef<HTMLInputElement>(function LoginForm(_, ref) {
 // export default function LoginForm() {
@@ -65,10 +66,7 @@ const LoginForm = forwardRef<HTMLInputElement>(function LoginForm(_, ref) {
     <div className="login-form-wrapper">
       <h2>Log in</h2>
 
-      <form
-        onSubmit={handleSubmit}
-        style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
-      >
+      <form onSubmit={handleSubmit}>
         <input
           ref={ref}
           type="text"
@@ -90,7 +88,7 @@ const LoginForm = forwardRef<HTMLInputElement>(function LoginForm(_, ref) {
         </button>
       </form>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {error && <p className="error">{error}</p>}
     </div>
   );
 })
